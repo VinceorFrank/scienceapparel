@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const { protect, admin } = require('../middlewares/auth');
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 
 // @desc    Create a new product
 // @route   POST /api/products
-router.post('/', async (req, res) => {
+router.post('/', protect, admin, async (req, res) => {
   try {
     const { name, description, price, image, stock, category } = req.body;
 
@@ -55,7 +56,7 @@ router.put('/:id', async (req, res) => {
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, admin, async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
 

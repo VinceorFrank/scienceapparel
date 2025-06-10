@@ -3,7 +3,9 @@ const router = express.Router();
 const Product = require('../models/Product');
 const { protect, admin } = require('../middlewares/auth');
 const buildFilters = require('../utils/buildFilters'); // adjust path if needed
-
+const { body, validationResult } = require('express-validator');
+const { validateProductUpdate } = require('../middlewares/validators/productValidators');
+const Order = require('../models/Order');
 
 
 // @desc    Get all products
@@ -56,45 +58,75 @@ res.json({
   }
 });
 
+
+
 // @desc    Create a new product
 // @route   POST /api/products
-router.post('/', protect, admin, async (req, res) => {
-  try {
-    const { name, description, price, image, stock, category } = req.body;
+router.post(
+  '/',
+  protect,
+  admin,
+  [
+    body('name').notEmpty().withMessage('Name is required'),
+    body('description').notEmpty().withMessage('Description is required'),
+    body('price').isFloat({ gt: 0 }).withMessage('Price must be a positive number'),
+    body('stock').isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
+    body('category').notEmpty().withMessage('Category is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-    const newProduct = new Product({
-      name,
-      description,
-      price,
-      image,
-      stock,
-      category,
-    });
+    try {
+      const { name, description, price, image, stock, category } = req.body;
 
-    await newProduct.save();
-    res.status(201).json({ message: 'Product created', product: newProduct });
-  } catch (err) {
-    res.status(400).json({ message: 'Error creating product', error: err.message });
+      const newProduct = new Product({
+        name,
+        description,
+        price,
+        image,
+        stock,
+        category,
+      });
+
+      await newProduct.save();
+      res.status(201).json({ message: 'Product created', product: newProduct });
+    } catch (err) {
+      res.status(400).json({ message: 'Error creating product', error: err.message });
+    }
   }
-});
+);
 
 // @desc    Update a product
 // @route   PUT /api/products/:id
-router.put('/:id', protect, admin, async (req, res) => {
-  try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+router.put(
+  '/:id',
+  protect,
+  admin,
+  validateProductUpdate,
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-    if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
+    try {
+      const updatedProduct = await Product.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
+      );
 
-    res.json({ message: 'Product updated', product: updatedProduct });
-  } catch (err) {
-    res.status(400).json({ message: 'Error updating product', error: err.message });
+      if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
+
+      res.json({ message: 'Product updated', product: updatedProduct });
+    } catch (err) {
+      res.status(400).json({ message: 'Error updating product', error: err.message });
+    }
   }
-});
+);
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
@@ -114,32 +146,113 @@ router.delete('/:id', protect, admin, async (req, res) => {
 
 // @desc    Add a review to a product
 // @route   POST /api/products/:id/reviews
-router.post('/:id/reviews', async (req, res) => {
-  const { name, rating, comment, user } = req.body;
+router.post('/:id/reviews', protect, async (req, res) => {
+  const { rating, comment } = req.body;
+  const userId = req.user._id;
+  const userName = req.user.name;
 
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === user
+      (r) => r.user.toString() === userId.toString()
     );
-    if (alreadyReviewed) return res.status(400).json({ message: 'Product already reviewed by this user' });
+    if (alreadyReviewed)
+      return res.status(400).json({ message: 'Product already reviewed by this user' });
+
+    if (!comment || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Please provide a rating (1–5) and comment' });
+    }
 
     const review = {
-      user,
-      name,
+      user: userId,
+      name: userName,
       rating: Number(rating),
-      comment
+      comment,
     };
 
     product.reviews.push(review);
     product.numReviews = product.reviews.length;
-    product.rating =
-      product.reviews.reduce((acc, r) => r.rating + acc, 0) / product.numReviews;
+
+    product.rating = (
+      product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.numReviews
+    ).toFixed(1); // One decimal
 
     await product.save();
+
     res.status(201).json({ message: 'Review added', review });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// @desc    Add a review via secure token (no login required)
+// @route   POST /api/products/:id/review-token
+router.post('/:id/review-token', async (req, res) => {
+  const { token, name, rating, comment } = req.body;
+
+  try {
+    const order = await Order.findOne({ reviewToken: token });
+
+    if (!order) {
+      return res.status(400).json({ message: 'Invalid or expired review token' });
+    }
+
+    const productId = req.params.id;
+    const orderedProductIds = order.orderItems.map(item => item.product.toString());
+
+    if (!orderedProductIds.includes(productId)) {
+      return res.status(403).json({ message: 'This token does not grant review rights to this product' });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Optional: check for duplicate name-based review
+    const alreadyReviewed = product.reviews.find(r => r.name === name);
+    if (alreadyReviewed) {
+      return res.status(400).json({ message: 'This person already reviewed the product' });
+    }
+
+    if (!rating || !comment || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Please provide a valid rating (1–5) and comment' });
+    }
+
+    const review = {
+      user: null, // no user account
+      name,
+      rating: Number(rating),
+      comment,
+    };
+
+    product.reviews.push(review);
+    product.numReviews = product.reviews.length;
+    product.rating = (
+      product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.numReviews
+    ).toFixed(1);
+
+    await product.save();
+
+    // Invalidate token after use
+    order.reviewToken = null;
+    await order.save();
+
+    res.status(201).json({ message: 'Review submitted via token', review });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// @desc    Get a single product by ID
+// @route   GET /api/products/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    res.json(product); // includes rating, numReviews, etc.
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

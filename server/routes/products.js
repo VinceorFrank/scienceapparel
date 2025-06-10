@@ -2,13 +2,55 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 const { protect, admin } = require('../middlewares/auth');
+const buildFilters = require('../utils/buildFilters'); // adjust path if needed
+
+
 
 // @desc    Get all products
 // @route   GET /api/products
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find();
-    res.json(products);
+    const filters = buildFilters(req.query);
+
+
+const page = Number(req.query.page) || 1;
+const limit = Number(req.query.limit) || 10;
+const skip = (page - 1) * limit;
+
+//sort logic with validation
+const allowedSortFields = ['price', 'name', 'createdAt', 'rating', 'numReviews'];
+let sort = req.query.sort;
+
+if (sort) {
+  const sortFields = sort.split(',');
+  const isValid = sortFields.every(field => {
+    const cleanField = field.replace('-', '');
+    return allowedSortFields.includes(cleanField);
+  });
+
+  if (!isValid) {
+    sort = '-rating,-numReviews'; // fallback default
+  }
+} else {
+  sort = '-rating,-numReviews'; // default
+}
+
+const products = await Product.find({ ...filters })
+  .sort(sort)  // 👈 New line: apply sorting
+  .skip(skip)
+  .limit(limit);
+
+// Optional: total number of products for frontend pagination
+const total = await Product.countDocuments({ ...filters });
+
+res.json({
+  page,
+  limit,
+  total,
+  totalPages: Math.ceil(total / limit),
+  products,
+});
+    
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -38,7 +80,7 @@ router.post('/', protect, admin, async (req, res) => {
 
 // @desc    Update a product
 // @route   PUT /api/products/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, admin, async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
@@ -104,6 +146,3 @@ router.post('/:id/reviews', async (req, res) => {
 });
 
 module.exports = router;
-
-
-

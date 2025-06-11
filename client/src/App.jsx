@@ -17,6 +17,8 @@ import Complaint from "./pages/Complaint";
 import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
+import TailwindTest from "./pages/TailwindTest";
+
 
 const App = () => {
   return (
@@ -37,7 +39,9 @@ const App = () => {
           <Route path="/responsibility" element={<Responsibility />} />
           <Route path="/calendly" element={<Calendly />} />
           <Route path="/complaint" element={<Complaint />} />
+          <Route path="/tailwind-test" element={<TailwindTest />} />
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </Layout>
     </Router>

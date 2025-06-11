@@ -244,6 +244,114 @@ router.post('/:id/review-token', async (req, res) => {
   }
 });
 
+
+// @desc    Get product review statistics (admin only)
+// @route   GET /api/products/stats
+router.get('/stats', protect, admin, async (req, res) => {
+  try {
+    const totalProducts = await Product.countDocuments();
+
+    const avgRating = await Product.aggregate([
+      { $match: { numReviews: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$rating' },
+          totalReviews: { $sum: '$numReviews' }
+        }
+      }
+    ]);
+
+    const avgPrice = await Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          avgPrice: { $avg: '$price' }
+        }
+      }
+    ]);
+
+    const highestPriceProduct = await Product.findOne().sort({ price: -1 });
+    const lowStockProducts = await Product.find({ stock: { $gt: 0, $lt: 5 } });
+
+    const topRated = await Product.find().sort({ rating: -1 }).limit(5);
+    const mostReviewed = await Product.find().sort({ numReviews: -1 }).limit(5);
+
+    const productsPerCategory = await Product.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const reviewsPerCategory = await Product.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          totalReviews: { $sum: '$numReviews' }
+        }
+      },
+      { $sort: { totalReviews: -1 } }
+    ]);
+
+    const outOfStockCount = await Product.countDocuments({ stock: { $lte: 0 } });
+    const fiveStarOnlyCount = await Product.countDocuments({ rating: 5 });
+    // ➕ New stats
+    const featuredCount = await Product.countDocuments({ featured: true });
+    const archivedCount = await Product.countDocuments({ archived: true });
+    const onSaleCount = await Product.countDocuments({ discountPrice: { $ne: null } });
+
+    const tagStats = await Product.aggregate([
+  { $unwind: '$tags' },
+  { $group: { _id: '$tags', count: { $sum: 1 } } },
+  { $sort: { count: -1 } }
+]);
+
+
+
+    res.json({
+  totals: {
+    totalProducts,
+    totalReviews: avgRating[0]?.totalReviews || 0,
+    averageRating: avgRating[0]?.avgRating.toFixed(1) || 0,
+    averagePrice: avgPrice[0]?.avgPrice.toFixed(2) || 0,
+    outOfStockCount,
+    fiveStarOnlyCount,
+    lowStockCount: lowStockProducts.length
+  },
+  topRated,
+  mostReviewed,
+  highestPriceProduct,
+  lowStockProducts,
+  productsPerCategory: productsPerCategory.reduce((acc, cat) => {
+    acc[cat._id] = cat.count;
+    return acc;
+  }, {}),
+  reviewsPerCategory: reviewsPerCategory.reduce((acc, cat) => {
+    acc[cat._id] = cat.totalReviews;
+    return acc;
+  }, {}),
+    customStats: {
+    featuredCount,
+    archivedCount,
+    onSaleCount,
+    tags: tagStats.reduce((acc, tag) => {
+      acc[tag._id] = tag.count;
+      return acc;
+    }, {})
+  }
+});
+
+// ✅ These two lines close the route properly:
+} catch (err) {
+  res.status(500).json({ message: 'Error retrieving stats', error: err.message });
+}
+});
+
+
+
 // @desc    Get a single product by ID
 // @route   GET /api/products/:id
 router.get('/:id', async (req, res) => {
@@ -257,5 +365,11 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+
+
+
+
+
 
 module.exports = router;

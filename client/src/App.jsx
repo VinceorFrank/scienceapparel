@@ -18,6 +18,8 @@ import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import TailwindTest from "./pages/TailwindTest";
+import AdminDashboard from "./pages/AdminDashboard";
+
 
 
 const App = () => {
@@ -40,6 +42,7 @@ const App = () => {
           <Route path="/calendly" element={<Calendly />} />
           <Route path="/complaint" element={<Complaint />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
 
         </Routes>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchProductStats } from "../api/stats";
+import { fetchProductStats } from "../../api/stats";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -42,4 +42,4 @@ const Card = ({ label, value }) => (
   </div>
 );
 
-export default AdminDashboard;
+export default AdminDashboard; 

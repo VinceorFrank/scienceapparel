@@ -18,15 +18,19 @@ import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import TailwindTest from "./pages/TailwindTest";
-import AdminDashboard from "./pages/AdminDashboard";
-
-
+import AdminLogin from "./pages/Admin/AdminLogin";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminLayout from "./components/AdminLayout";
+import ProductsAdmin from "./pages/Admin/ProductsAdmin";
+import OrdersAdmin from "./pages/Admin/OrdersAdmin";
+import UsersAdmin from "./pages/Admin/UsersAdmin";
 
 const App = () => {
   return (
     <Router>
-      <Layout>
-        <Routes>
+      <Routes>
+        {/* Public site layout */}
+        <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
@@ -42,11 +46,21 @@ const App = () => {
           <Route path="/calendly" element={<Calendly />} />
           <Route path="/complaint" element={<Complaint />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
+        </Route>
 
-        </Routes>
-      </Layout>
+        {/* Admin login route (standalone, no sidebar) */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+        {/* Admin dashboard layout */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="products" element={<ProductsAdmin />} />
+          <Route path="orders" element={<OrdersAdmin />} />
+          <Route path="users" element={<UsersAdmin />} />
+        </Route>
+      </Routes>
     </Router>
   );
 };

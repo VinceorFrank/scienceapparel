@@ -18,6 +18,7 @@ import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import TailwindTest from "./pages/TailwindTest";
+import RequireAdmin from "./components/RequireAdmin";
 import AdminLogin from "./pages/Admin/AdminLogin";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminLayout from "./components/AdminLayout";
@@ -53,13 +54,15 @@ const App = () => {
         <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Admin dashboard layout */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="products" element={<ProductsAdmin />} />
-          <Route path="orders" element={<OrdersAdmin />} />
-          <Route path="users" element={<UsersAdmin />} />
-        </Route>
+       <Route path="/admin" element={<RequireAdmin />}>
+  <Route element={<AdminLayout />}>
+    <Route index element={<AdminDashboard />} />
+    <Route path="dashboard" element={<AdminDashboard />} />
+    <Route path="products" element={<ProductsAdmin />} />
+    <Route path="orders" element={<OrdersAdmin />} />
+    <Route path="users" element={<UsersAdmin />} />
+  </Route>
+</Route>
       </Routes>
     </Router>
   );

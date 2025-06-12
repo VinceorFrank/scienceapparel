@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { logout } from "../utils/logout";
+
 
 const AdminLayout = () => {
   return (
@@ -12,6 +14,13 @@ const AdminLayout = () => {
           <NavItem to="/admin/orders" label="Orders" />
           <NavItem to="/admin/users" label="Users" />
         </nav>
+        <button
+  onClick={logout}
+  className="block w-full text-left px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white mt-8"
+>
+  Logout
+</button>
+
       </aside>
 
       {/* Main content */}

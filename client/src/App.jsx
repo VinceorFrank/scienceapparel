@@ -25,6 +25,10 @@ import AdminLayout from "./components/AdminLayout";
 import ProductsAdmin from "./pages/Admin/ProductsAdmin";
 import OrdersAdmin from "./pages/Admin/OrdersAdmin";
 import UsersAdmin from "./pages/Admin/UsersAdmin";
+import LoginCustomer from "./pages/Customer/LoginCustomer";
+import RequireCustomer from "./components/RequireCustomer";
+
+
 
 const App = () => {
   return (
@@ -37,7 +41,12 @@ const App = () => {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/order-tracking" element={<OrderTracking />} />
-          <Route path="/account" element={<Account />} />
+
+          <Route element={<RequireCustomer />}>
+  <Route path="/account" element={<Account />} />
+</Route>
+
+          <Route path="/login" element={<LoginCustomer />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/shipping" element={<Shipping />} />

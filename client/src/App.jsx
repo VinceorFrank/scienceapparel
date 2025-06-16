@@ -26,6 +26,7 @@ import ProductsAdmin from "./pages/Admin/ProductsAdmin";
 import OrdersAdmin from "./pages/Admin/OrdersAdmin";
 import UsersAdmin from "./pages/Admin/UsersAdmin";
 import LoginCustomer from "./pages/Customer/LoginCustomer";
+import EditCustomer from "./pages/Customer/EditCustomer";
 import RequireCustomer from "./components/RequireCustomer";
 
 
@@ -44,6 +45,7 @@ const App = () => {
 
           <Route element={<RequireCustomer />}>
   <Route path="/account" element={<Account />} />
+  <Route path="/account/edit" element={<EditCustomer />} />
 </Route>
 
           <Route path="/login" element={<LoginCustomer />} />

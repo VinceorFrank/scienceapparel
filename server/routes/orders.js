@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Order = require('../models/Order');
+const { protect } = require('../middlewares/auth'); // ✅ middleware to get logged-in user
 
-router.post('/', async (req, res) => {
+// ✅ POST /api/orders - Create new order (requires token)
+router.post('/', protect, async (req, res) => {
   const {
     orderItems,
     shippingAddress,
@@ -11,8 +13,7 @@ router.post('/', async (req, res) => {
     itemsPrice,
     taxPrice,
     shippingPrice,
-    totalPrice,
-    userId // for now, passed in body until auth is used
+    totalPrice
   } = req.body;
 
   try {
@@ -21,7 +22,7 @@ router.post('/', async (req, res) => {
     }
 
     const order = new Order({
-      user: userId,
+      user: req.user._id, // ✅ secure: taken from token
       orderItems,
       shippingAddress,
       paymentMethod,
@@ -35,16 +36,14 @@ router.post('/', async (req, res) => {
 
     await order.save();
 
-    // ✅ Build review links for each product
+    // ✅ Optional: Build review links for testing
     const reviewLinks = order.orderItems.map((item) => {
       return `http://localhost:5173/review?product=${item.product}&token=${order.reviewToken}`;
     });
 
-    // ✅ Print links to terminal for testing
     console.log('🧾 Review Links:');
     reviewLinks.forEach(link => console.log('👉', link));
 
-    // ✅ Return them in response for testing (optional)
     res.status(201).json({
       message: 'Order created',
       order,
@@ -55,19 +54,38 @@ router.post('/', async (req, res) => {
   }
 });
 
-const { protect } = require('../middlewares/auth'); // Make sure this is at the top of your file
-
-// GET /api/orders/myorders
+// ✅ GET /api/orders/myorders - All orders of current user
 router.get('/myorders', protect, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate('orderItems.product', 'name price');
+
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-//Once we plug in authentication, you’ll replace userId in the body with req.user._id and add protect middleware — but we’ll do that when ready.
+// ✅ GET /api/orders/:id - View specific order if owned by customer
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('orderItems.product', 'name price');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Commande introuvable' });
+    }
+
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Accès non autorisé à cette commande' });
+    }
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+});
 
 module.exports = router;
 

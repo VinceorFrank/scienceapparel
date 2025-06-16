@@ -10,17 +10,20 @@ const LoginCustomer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:5000/api/users/login", {
-        email,
-        password,
-      });
+   try {
+  const res = await axios.post("http://localhost:5000/api/users/login", {
+    email,
+    password,
+  });
 
-      localStorage.setItem("customerToken", res.data.token);
-      navigate("/account");
-    } catch (err) {
-      setError("Identifiants invalides ou erreur serveur.");
-    }
+  localStorage.setItem("customerToken", res.data.token);
+  localStorage.setItem("customerName", res.data.user.name);
+  localStorage.setItem("customerEmail", res.data.user.email);
+
+  navigate("/account");
+} catch (err) {
+  setError("Identifiants invalides ou erreur serveur.");
+}
   };
 
   return (

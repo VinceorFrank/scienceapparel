@@ -105,6 +105,44 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// PUT /api/users/profile
+router.put('/profile', protect, async (req, res) => {
+  const { name, currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    if (name) user.name = name;
+
+    if (newPassword) {
+      // Check if current password is correct
+      const isMatch = await user.matchPassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Mot de passe actuel incorrect" });
+      }
+
+      // Set new password
+      user.password = newPassword;
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Profil mis à jour avec succès",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+});
 
 module.exports = router;
 

@@ -3,10 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("customerToken");
+  const token = localStorage.getItem("customerToken");
+  const name = localStorage.getItem("customerName");
 
   const handleLogout = () => {
     localStorage.removeItem("customerToken");
+    localStorage.removeItem("customerName");
+    localStorage.removeItem("customerEmail");
+
+    // ✅ Optional: show a logout success message
+    alert("Vous avez été déconnecté avec succès.");
     navigate("/login");
   };
 
@@ -27,15 +33,19 @@ const Navbar = () => {
         <li><Link to="/calendly">Calendly</Link></li>
         <li><Link to="/complaint">Plainte</Link></li>
 
-        {isLoggedIn && (
-          <li>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-            >
-              Déconnexion
-            </button>
-          </li>
+        {/* ✅ Show name and logout if logged in */}
+        {token && (
+          <>
+            <li className="ml-auto text-green-300">Bonjour, {name}</li>
+            <li>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+              >
+                Déconnexion
+              </button>
+            </li>
+          </>
         )}
       </ul>
     </nav>
@@ -43,3 +53,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

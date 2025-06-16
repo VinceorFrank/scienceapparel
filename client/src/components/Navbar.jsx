@@ -1,10 +1,18 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("customerToken");
+
+  const handleLogout = () => {
+    localStorage.removeItem("customerToken");
+    navigate("/login");
+  };
+
   return (
     <nav className="bg-gray-800 p-4 text-white">
-      <ul className="flex flex-wrap gap-4">
+      <ul className="flex flex-wrap gap-4 items-center">
         <li><Link to="/">Accueil</Link></li>
         <li><Link to="/products">Produits</Link></li>
         <li><Link to="/cart">Panier</Link></li>
@@ -18,9 +26,20 @@ const Navbar = () => {
         <li><Link to="/responsibility">Responsabilité</Link></li>
         <li><Link to="/calendly">Calendly</Link></li>
         <li><Link to="/complaint">Plainte</Link></li>
+
+        {isLoggedIn && (
+          <li>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+            >
+              Déconnexion
+            </button>
+          </li>
+        )}
       </ul>
     </nav>
   );
 };
 
-export default Navbar; 
+export default Navbar;

@@ -55,6 +55,17 @@ router.post('/', async (req, res) => {
   }
 });
 
+const { protect } = require('../middlewares/auth'); // Make sure this is at the top of your file
+
+// GET /api/orders/myorders
+router.get('/myorders', protect, async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 
 //Once we plug in authentication, you’ll replace userId in the body with req.user._id and add protect middleware — but we’ll do that when ready.
 

@@ -28,6 +28,7 @@ app.use('/api/payment', require('./routes/payment'));
 app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/upload', uploadRoutes); // ✅ added
+app.use('/api/admin/dashboard', require('./routes/dashboard')); // Add dashboard routes
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // ✅ added
 
 // Start server

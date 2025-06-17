@@ -13,6 +13,16 @@ const AdminLayout = () => {
           <NavItem to="/admin/products" label="Products" />
           <NavItem to="/admin/orders" label="Orders" />
           <NavItem to="/admin/users" label="Users" />
+          <li>
+            <NavLink to="/admin/categories" className={({ isActive }) => isActive ? 'font-bold text-blue-600' : ''}>
+              Categories
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/admin/activity-log" className={({ isActive }) => isActive ? 'font-bold text-blue-600' : ''}>
+              Activity Log
+            </NavLink>
+          </li>
         </nav>
         <button
   onClick={logout}

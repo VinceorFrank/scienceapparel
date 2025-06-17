@@ -4,6 +4,7 @@ const { protect, admin } = require('../middlewares/auth');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const ActivityLog = require('../models/ActivityLog');
 
 // Helper function to get date range
 const getDateRange = (days) => {
@@ -210,6 +211,18 @@ router.get('/customer-activity', protect, admin, async (req, res) => {
       activeCustomers: activeCustomers.length,
       customerOrders
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @desc    Get activity logs
+// @route   GET /api/admin/dashboard/activity-logs
+// @access  Private/Admin
+router.get('/activity-logs', protect, admin, async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(50).populate('user', 'name email role');
+    res.json(logs);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -8,6 +8,7 @@ const { validateProductUpdate } = require('../middlewares/validators/productVali
 const Order = require('../models/Order');
 const fs = require('fs');
 const path = require('path');
+const ActivityLog = require('../models/ActivityLog');
 
 
 // @desc    Get all products
@@ -94,6 +95,7 @@ router.post(
       });
 
       await newProduct.save();
+      await ActivityLog.create({ user: req.user._id, action: 'create_product', description: `Created product '${newProduct.name}'` });
       res.status(201).json(newProduct);
     } catch (err) {
       res.status(400).json({ message: 'Error creating product', error: err.message });
@@ -122,7 +124,7 @@ router.put(
       );
 
       if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
-
+      await ActivityLog.create({ user: req.user._id, action: 'update_product', description: `Updated product '${updatedProduct.name}'` });
       res.json({ message: 'Product updated', product: updatedProduct });
     } catch (err) {
       res.status(400).json({ message: 'Error updating product', error: err.message });
@@ -145,6 +147,7 @@ router.delete('/:id', protect, admin, async (req, res) => {
         // Ignore error if file does not exist
       });
     }
+    await ActivityLog.create({ user: req.user._id, action: 'delete_product', description: `Deleted product '${deletedProduct.name}'` });
     res.json({ message: 'Product deleted', product: deletedProduct });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting product', error: err.message });
@@ -402,6 +405,8 @@ router.get('/export', protect, admin, async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
     
     res.send(csv);
+
+    await ActivityLog.create({ user: req.user._id, action: 'export_products', description: 'Exported products to CSV' });
   } catch (err) {
     res.status(500).json({ message: 'Error exporting products', error: err.message });
   }
@@ -471,6 +476,8 @@ router.post('/import', protect, admin, async (req, res) => {
       message: 'Import completed',
       results
     });
+
+    await ActivityLog.create({ user: req.user._id, action: 'import_products', description: `Imported products from CSV (${results.success} success, ${results.failed} failed)` });
   } catch (err) {
     res.status(500).json({ message: 'Error importing products', error: err.message });
   }

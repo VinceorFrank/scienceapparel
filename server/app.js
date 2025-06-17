@@ -36,6 +36,7 @@ app.use('/api/support', require('./routes/support'));
 app.use('/api/upload', uploadRoutes); // ✅ added
 app.use('/api/admin/dashboard', require('./routes/dashboard')); // Add dashboard routes
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // ✅ added
+app.use('/api/categories', require('./routes/categories'));
 
 // Start server
 const PORT = process.env.PORT || 5000;

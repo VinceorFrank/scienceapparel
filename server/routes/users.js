@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require("express-validator");
+const ActivityLog = require('../models/ActivityLog');
 
 
 // POST /api/users/signup
@@ -86,7 +87,7 @@ router.post(
   }
 );
 
-const { protect } = require('../middlewares/auth'); // ✅ Make sure this is at the top of your file (if not already)
+const { protect, admin } = require('../middlewares/auth'); // ✅ Make sure this is at the top of your file (if not already)
 
 // GET /api/users/profile
 router.get('/profile', protect, async (req, res) => {
@@ -141,6 +142,20 @@ router.put('/profile', protect, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+});
+
+// PATCH /api/users/:id/role - Update user role (admin only)
+router.patch('/:id/role', protect, admin, async (req, res) => {
+  const { role } = req.body;
+  if (!role) return res.status(400).json({ message: 'Role is required' });
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true, runValidators: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    await ActivityLog.create({ user: req.user._id, action: 'update_user_role', description: `Changed role of user '${user.email}' to '${role}'` });
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ message: 'Error updating user role', error: err.message });
   }
 });
 

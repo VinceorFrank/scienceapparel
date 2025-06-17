@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const Order = require('../models/Order');
 const { protect } = require('../middlewares/auth'); // ✅ middleware to get logged-in user
+const ActivityLog = require('../models/ActivityLog');
 
 // ✅ POST /api/orders - Create new order (requires token)
 router.post('/', protect, async (req, res) => {
@@ -43,6 +44,8 @@ router.post('/', protect, async (req, res) => {
 
     console.log('🧾 Review Links:');
     reviewLinks.forEach(link => console.log('👉', link));
+
+    await ActivityLog.create({ user: req.user._id, action: 'create_order', description: `Created new order ${order._id}` });
 
     res.status(201).json({
       message: 'Order created',

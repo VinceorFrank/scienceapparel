@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema(
     image: { type: String, default: '' },
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0 },
-    category: { type: String, required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     featured: { type: Boolean, default: false },       // ✅ promote product
     archived: { type: Boolean, default: false },       // ✅ hide product from frontend
     discountPrice: { type: Number, default: null },    // ✅ for sales tracking

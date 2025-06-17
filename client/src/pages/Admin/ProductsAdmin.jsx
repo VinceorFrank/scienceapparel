@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../../api/products";
+import { getCategories } from "../../api/categories";
 import axios from "axios";
-
-const categories = ["All", "Apparel", "Accessories", "Stationery"];
 
 // Add a simple error boundary wrapper for the main content
 class ErrorBoundary extends React.Component {
@@ -29,7 +28,7 @@ const ProductsAdmin = () => {
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', category: categories[1], price: '', stock: '', image: '' });
+  const [form, setForm] = useState({ name: '', description: '', category: '', price: '', stock: '', image: '' });
   const [image, setImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [editModal, setEditModal] = useState(false);
@@ -42,6 +41,7 @@ const ProductsAdmin = () => {
   const [importResults, setImportResults] = useState(null);
   const [importing, setImporting] = useState(false);
   const [imageError, setImageError] = useState('');
+  const [categories, setCategories] = useState([]);
 
   // Fetch products from backend
   useEffect(() => {
@@ -60,9 +60,22 @@ const ProductsAdmin = () => {
     fetchData();
   }, []);
 
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Filter and search logic (client-side for now)
   const filtered = products.filter((p) => {
-    const matchesCategory = category === "All" || (p.category || '').toLowerCase() === category.toLowerCase();
+    const matchesCategory = category === "All" || String(p.category) === category;
     const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -112,7 +125,7 @@ const ProductsAdmin = () => {
       const newProduct = await addProduct(form);
       setProducts([newProduct, ...products]);
       setShowModal(false);
-      setForm({ name: '', description: '', category: categories[1], price: '', stock: '', image: '' });
+      setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' });
       setImage('');
       setPage(1);
     } catch (err) {
@@ -244,6 +257,8 @@ const ProductsAdmin = () => {
     e.target.value = null; // Reset file input
   };
 
+  if (!categories) return <div>Loading categories...</div>;
+
   return (
     <ErrorBoundary>
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow">
@@ -286,8 +301,9 @@ const ProductsAdmin = () => {
             onChange={(e) => setCategory(e.target.value)}
             className="border p-2 rounded"
           >
+            <option value="All">All</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
             ))}
           </select>
         </div>
@@ -316,6 +332,9 @@ const ProductsAdmin = () => {
           <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded">
             Importing products...
           </div>
+        )}
+        {categories.length === 0 && !loading && (
+          <div className="text-red-600 mb-4">No categories found. Please add a category first.</div>
         )}
         <table className="w-full border mt-2">
           <thead>
@@ -346,7 +365,9 @@ const ProductsAdmin = () => {
                     )}
                   </td>
                   <td className="p-2">{product.name}</td>
-                  <td className="p-2">{product.category}</td>
+                  <td className="p-2">
+                    {categories.find((cat) => cat._id === String(product.category))?.name || "-"}
+                  </td>
                   <td className="p-2">${product.price}</td>
                   <td className="p-2">{product.stock}</td>
                   <td className="p-2">
@@ -423,8 +444,9 @@ const ProductsAdmin = () => {
                     className="border p-2 rounded w-full"
                     required
                   >
-                    {categories.filter((cat) => cat !== "All").map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    <option value="">Select a category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
@@ -477,7 +499,7 @@ const ProductsAdmin = () => {
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
-                    onClick={() => { setShowModal(false); setForm({ name: '', description: '', category: categories[1], price: '', stock: '', image: '' }); setImage(''); }}
+                    onClick={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
                     className="px-4 py-2 bg-gray-200 rounded"
                   >
                     Cancel
@@ -521,8 +543,8 @@ const ProductsAdmin = () => {
                     className="border p-2 rounded w-full"
                     required
                   >
-                    {categories.filter((cat) => cat !== "All").map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>

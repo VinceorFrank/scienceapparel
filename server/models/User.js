@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false, // Normal users by default
-  }
+  },
+  role: { type: String, enum: ['admin', 'product_manager', 'order_manager', 'support_agent', 'customer'], default: 'customer' },
 }, { timestamps: true });
 
 // Encrypt password before saving

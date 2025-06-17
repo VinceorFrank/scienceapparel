@@ -6,6 +6,8 @@ const buildFilters = require('../utils/buildFilters'); // adjust path if needed
 const { body, validationResult } = require('express-validator');
 const { validateProductUpdate } = require('../middlewares/validators/productValidators');
 const Order = require('../models/Order');
+const fs = require('fs');
+const path = require('path');
 
 
 // @desc    Get all products
@@ -92,7 +94,7 @@ router.post(
       });
 
       await newProduct.save();
-      res.status(201).json({ message: 'Product created', product: newProduct });
+      res.status(201).json(newProduct);
     } catch (err) {
       res.status(400).json({ message: 'Error creating product', error: err.message });
     }
@@ -133,11 +135,16 @@ router.put(
 router.delete('/:id', protect, admin, async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-
     if (!deletedProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
-
+    // Delete image file if it exists
+    if (deletedProduct.image) {
+      const imagePath = path.join(__dirname, '../uploads', deletedProduct.image);
+      fs.unlink(imagePath, (err) => {
+        // Ignore error if file does not exist
+      });
+    }
     res.json({ message: 'Product deleted', product: deletedProduct });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting product', error: err.message });
@@ -366,10 +373,107 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// @desc    Export products to CSV
+// @route   GET /api/products/export
+router.get('/export', protect, admin, async (req, res) => {
+  try {
+    const products = await Product.find().select('-reviews');
+    
+    // Convert products to CSV format
+    const csvHeader = 'Name,Description,Price,Stock,Category,Featured,Archived,DiscountPrice,Tags\n';
+    const csvRows = products.map(product => {
+      return [
+        `"${product.name}"`,
+        `"${product.description}"`,
+        product.price,
+        product.stock,
+        `"${product.category}"`,
+        product.featured,
+        product.archived,
+        product.discountPrice || '',
+        `"${product.tags.join(',')}"`
+      ].join(',');
+    }).join('\n');
 
+    const csv = csvHeader + csvRows;
 
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
+    
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ message: 'Error exporting products', error: err.message });
+  }
+});
 
+// @desc    Import products from CSV
+// @route   POST /api/products/import
+router.post('/import', protect, admin, async (req, res) => {
+  try {
+    if (!req.files || !req.files.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
 
+    const file = req.files.file;
+    const fileContent = file.data.toString();
+    const rows = fileContent.split('\n');
+    
+    // Skip header row
+    const dataRows = rows.slice(1);
+    
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: []
+    };
 
+    for (const row of dataRows) {
+      if (!row.trim()) continue;
+
+      const [
+        name,
+        description,
+        price,
+        stock,
+        category,
+        featured,
+        archived,
+        discountPrice,
+        tags
+      ] = row.split(',').map(field => field.trim().replace(/^"|"$/g, ''));
+
+      try {
+        const product = new Product({
+          name,
+          description,
+          price: parseFloat(price),
+          stock: parseInt(stock),
+          category,
+          featured: featured === 'true',
+          archived: archived === 'true',
+          discountPrice: discountPrice ? parseFloat(discountPrice) : null,
+          tags: tags ? tags.split(',').map(tag => tag.trim()) : []
+        });
+
+        await product.save();
+        results.success++;
+      } catch (err) {
+        results.failed++;
+        results.errors.push({
+          row: row,
+          error: err.message
+        });
+      }
+    }
+
+    res.json({
+      message: 'Import completed',
+      results
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error importing products', error: err.message });
+  }
+});
 
 module.exports = router;

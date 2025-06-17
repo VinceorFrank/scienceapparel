@@ -1,0 +1,6 @@
+Name,Description,Price,Stock,Category,Featured,Archived,DiscountPrice,Tags
+"Classic T-Shirt","Comfortable cotton t-shirt with a modern fit",29.99,100,"Apparel",true,false,24.99,"clothing,casual,summer"
+"Leather Wallet","Genuine leather wallet with multiple card slots",49.99,50,"Accessories",false,false,,"accessories,leather,premium"
+"Notebook Set","Set of 3 premium notebooks with 100 pages each",19.99,200,"Stationery",true,false,,"stationery,office,school"
+"Designer Watch","Elegant stainless steel watch with leather strap",199.99,25,"Accessories",true,false,179.99,"accessories,premium,luxury"
+"Canvas Backpack","Durable canvas backpack with laptop compartment",79.99,75,"Accessories",false,false,,"accessories,travel,student" 

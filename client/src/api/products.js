@@ -9,7 +9,7 @@ export const getProducts = async (params = {}) => {
     headers: { Authorization: `Bearer ${token}` },
     params,
   });
-  return res.data;
+  return res.data.products;
 };
 
 // Add a new product

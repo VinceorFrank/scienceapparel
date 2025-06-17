@@ -6,7 +6,7 @@ const { body, validationResult } = require("express-validator");
 const ActivityLog = require('../models/ActivityLog');
 
 
-// POST /api/users/signup
+// User signup
 router.post(
   '/signup',
   [
@@ -38,7 +38,7 @@ router.post(
   }
 );
 
-// POST /api/users/login
+// User login
 router.post(
   '/login',
   [
@@ -89,7 +89,7 @@ router.post(
 
 const { protect, admin } = require('../middlewares/auth'); // ✅ Make sure this is at the top of your file (if not already)
 
-// GET /api/users/profile
+// Get user profile (authenticated)
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -106,7 +106,7 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
-// PUT /api/users/profile
+// Update user profile (authenticated, with password change logic)
 router.put('/profile', protect, async (req, res) => {
   const { name, currentPassword, newPassword } = req.body;
 
@@ -145,7 +145,7 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
-// PATCH /api/users/:id/role - Update user role (admin only)
+// Update user role (admin only)
 router.patch('/:id/role', protect, admin, async (req, res) => {
   const { role } = req.body;
   if (!role) return res.status(400).json({ message: 'Role is required' });

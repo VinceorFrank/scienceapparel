@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getCategories, addCategory, updateCategory, deleteCategory } from "../../api/categories";
+import Modal from './components/Modal';
 
 const CategoriesAdmin = () => {
   const [categories, setCategories] = useState([]);
@@ -131,51 +132,50 @@ const CategoriesAdmin = () => {
         </tbody>
       </table>
       {/* Add/Edit Category Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{editMode ? "Edit Category" : "Add Category"}</h2>
-            <form onSubmit={editMode ? handleEditCategory : handleAddCategory} className="space-y-4">
-              <div>
-                <label className="block mb-1 font-medium">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleFormChange}
-                  className="border p-2 rounded w-full"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1 font-medium">Description</label>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleFormChange}
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setEditMode(false); setEditId(null); setForm({ name: "", description: "" }); }}
-                  className="px-4 py-2 bg-gray-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                  disabled={!form.name}
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={showModal}
+        onClose={() => { setShowModal(false); setEditMode(false); setEditId(null); setForm({ name: '', description: '' }); }}
+        title={editMode ? 'Edit Category' : 'Add Category'}
+      >
+        <form onSubmit={editMode ? handleEditCategory : handleAddCategory} className="space-y-4">
+          <div>
+            <label className="block mb-1 font-medium">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              className="border p-2 rounded w-full"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block mb-1 font-medium">Description</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleFormChange}
+              className="border p-2 rounded w-full"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => { setShowModal(false); setEditMode(false); setEditId(null); setForm({ name: '', description: '' }); }}
+              className="px-4 py-2 bg-gray-200 rounded"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+              disabled={!form.name}
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { getProducts, addProduct, updateProduct, deleteProduct } from "../../api/products";
 import { getCategories } from "../../api/categories";
 import axios from "axios";
+import ProductTable from './components/ProductTable';
+import ProductForm from './components/ProductForm';
+import Modal from './components/Modal';
 
 // Add a simple error boundary wrapper for the main content
 class ErrorBoundary extends React.Component {
@@ -20,6 +23,9 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// ProductsAdmin.jsx - Admin page for managing products
+// Uses modular components: ProductTable, ProductForm, ProductImageUpload
+// Handles product CRUD, image upload, import/export, and filtering
 const ProductsAdmin = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,7 +49,7 @@ const ProductsAdmin = () => {
   const [imageError, setImageError] = useState('');
   const [categories, setCategories] = useState([]);
 
-  // Fetch products from backend
+  // Fetch products from backend on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -60,7 +66,7 @@ const ProductsAdmin = () => {
     fetchData();
   }, []);
 
-  // Fetch categories on mount
+  // Fetch categories from backend on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -73,7 +79,7 @@ const ProductsAdmin = () => {
     fetchCategories();
   }, []);
 
-  // Filter and search logic (client-side for now)
+  // Filter and search logic (client-side)
   const filtered = products.filter((p) => {
     const matchesCategory = category === "All" || String(p.category) === category;
     const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
@@ -84,13 +90,13 @@ const ProductsAdmin = () => {
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  // Handle form input changes
+  // Form input change handler
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle image upload
+  // Image upload handler
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -116,7 +122,7 @@ const ProductsAdmin = () => {
     setUploading(false);
   };
 
-  // Handle add product
+  // Add product handler
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -141,11 +147,13 @@ const ProductsAdmin = () => {
     setEditModal(true);
   };
 
+  // Edit form input change handler
   const handleEditFormChange = (e) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Edit product handler
   const handleEditProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -162,6 +170,7 @@ const ProductsAdmin = () => {
     setLoading(false);
   };
 
+  // Edit image upload handler
   const handleEditImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -188,6 +197,7 @@ const ProductsAdmin = () => {
     setDeleteDialog(true);
   };
 
+  // Delete product handler
   const handleDeleteProduct = async () => {
     setLoading(true);
     setError("");
@@ -202,7 +212,7 @@ const ProductsAdmin = () => {
     setLoading(false);
   };
 
-  // Handle export products
+  // Export products as CSV
   const handleExport = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/products/export', {
@@ -225,7 +235,7 @@ const ProductsAdmin = () => {
     }
   };
 
-  // Handle import products
+  // Import products from CSV
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -336,277 +346,56 @@ const ProductsAdmin = () => {
         {categories.length === 0 && !loading && (
           <div className="text-red-600 mb-4">No categories found. Please add a category first.</div>
         )}
-        <table className="w-full border mt-2">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2 text-left">Image</th>
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Category</th>
-              <th className="p-2 text-left">Price</th>
-              <th className="p-2 text-left">Stock</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.length === 0 ? (
-              <tr><td colSpan={6} className="p-4 text-center text-gray-500">No products found.</td></tr>
-            ) : (
-              paginated.map((product) => (
-                <tr key={product._id} className="border-b">
-                  <td className="p-2">
-                    {product.image ? (
-                      <img
-                        src={`http://localhost:5000/uploads/${product.image}`}
-                        alt={product.name ? `Product image for ${product.name}` : 'Product image'}
-                        className="h-12 w-12 object-cover rounded"
-                      />
-                    ) : (
-                      <span className="text-gray-400">No image</span>
-                    )}
-                  </td>
-                  <td className="p-2">{product.name}</td>
-                  <td className="p-2">
-                    {categories.find((cat) => cat._id === String(product.category))?.name || "-"}
-                  </td>
-                  <td className="p-2">${product.price}</td>
-                  <td className="p-2">{product.stock}</td>
-                  <td className="p-2">
-                    <button
-                      className="text-blue-600 hover:underline mr-2"
-                      onClick={() => openEditModal(product)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="text-red-600 hover:underline"
-                      onClick={() => openDeleteDialog(product)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        {/* Pagination Controls */}
-        <div className="flex justify-between items-center mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>Page {page} of {totalPages}</span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        {/* Product Table and Pagination */}
+        <ProductTable
+          products={paginated}
+          categories={categories}
+          page={page}
+          totalPages={totalPages}
+          onEdit={openEditModal}
+          onDelete={openDeleteDialog}
+          onPageChange={setPage}
+        />
 
         {/* Add Product Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Add Product</h2>
-              <form onSubmit={handleAddProduct} className="space-y-4">
-                <div>
-                  <label className="block mb-1 font-medium">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleFormChange}
-                    className="border p-2 rounded w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Description</label>
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleFormChange}
-                    className="border p-2 rounded w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Category</label>
-                  <select
-                    name="category"
-                    value={form.category}
-                    onChange={handleFormChange}
-                    className="border p-2 rounded w-full"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Price</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={form.price}
-                    onChange={handleFormChange}
-                    className="border p-2 rounded w-full"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={form.stock}
-                    onChange={handleFormChange}
-                    className="border p-2 rounded w-full"
-                    min="0"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Image</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    name="image"
-                    onChange={handleImageUpload}
-                    className="border p-2 rounded w-full"
-                  />
-                  {uploading && <div className="text-blue-600 mt-2">Uploading...</div>}
-                  {image && (
-                    <div className="mt-2">
-                      <img
-                        src={`http://localhost:5000/uploads/${image}`}
-                        alt="Preview"
-                        className="h-20 rounded"
-                      />
-                    </div>
-                  )}
-                  {imageError && <div className="text-red-600 mt-2">{imageError}</div>}
-                </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
-                    className="px-4 py-2 bg-gray-200 rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
-                    disabled={!form.name || !form.description || !form.price || !form.stock || !form.category}
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <Modal
+          open={showModal}
+          onClose={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
+          title="Add Product"
+        >
+          <ProductForm
+            form={form}
+            categories={categories}
+            image={image}
+            uploading={uploading}
+            imageError={imageError}
+            onChange={handleFormChange}
+            onImageUpload={handleImageUpload}
+            onSubmit={handleAddProduct}
+            onCancel={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
+            mode="add"
+          />
+        </Modal>
 
         {/* Edit Product Modal */}
-        {editModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Edit Product</h2>
-              <form onSubmit={handleEditProduct} className="space-y-4">
-                <div>
-                  <label className="block mb-1 font-medium">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleEditFormChange}
-                    className="border p-2 rounded w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Category</label>
-                  <select
-                    name="category"
-                    value={editForm.category}
-                    onChange={handleEditFormChange}
-                    className="border p-2 rounded w-full"
-                    required
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Price</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={editForm.price}
-                    onChange={handleEditFormChange}
-                    className="border p-2 rounded w-full"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={editForm.stock}
-                    onChange={handleEditFormChange}
-                    className="border p-2 rounded w-full"
-                    min="0"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium">Image</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleEditImageUpload}
-                    className="border p-2 rounded w-full"
-                  />
-                  {editUploading && <div className="text-blue-600 mt-2">Uploading...</div>}
-                  {editImage && (
-                    <div className="mt-2">
-                      <img src={editImage} alt="Preview" className="h-20 rounded" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditModal(false)}
-                    className="px-4 py-2 bg-gray-200 rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <Modal
+          open={editModal}
+          onClose={() => setEditModal(false)}
+          title="Edit Product"
+        >
+          <ProductForm
+            form={editForm}
+            categories={categories}
+            image={editImage}
+            uploading={editUploading}
+            imageError={imageError}
+            onChange={handleEditFormChange}
+            onImageUpload={handleEditImageUpload}
+            onSubmit={handleEditProduct}
+            onCancel={() => setEditModal(false)}
+            mode="edit"
+          />
+        </Modal>
 
         {/* Delete Product Dialog */}
         {deleteDialog && productToDelete && (

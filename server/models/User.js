@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// User model: stores user credentials, roles, and authentication info
+// Passwords are hashed before saving for security
+// Never return the password field in API responses!
 const userSchema = new mongoose.Schema({
   name: {
     type: String,

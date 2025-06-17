@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create a new category
+// Create a new category (admin only)
 router.post('/', protect, admin, [
   body('name').notEmpty().withMessage('Name is required'),
 ], async (req, res) => {
@@ -34,7 +34,7 @@ router.post('/', protect, admin, [
   }
 });
 
-// Update a category
+// Update a category (admin only)
 router.put('/:id', protect, admin, [
   body('name').notEmpty().withMessage('Name is required'),
 ], async (req, res) => {
@@ -57,7 +57,7 @@ router.put('/:id', protect, admin, [
   }
 });
 
-// Delete a category
+// Delete a category (admin only)
 router.delete('/:id', protect, admin, async (req, res) => {
   try {
     const category = await Category.findByIdAndDelete(req.params.id);

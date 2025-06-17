@@ -1,6 +1,8 @@
 // server/models/Product.js
 const mongoose = require('mongoose');
 
+// Product model: stores product details, category reference, and reviews
+// Each product belongs to a category and can have multiple reviews
 
 const reviewSchema = new mongoose.Schema(
   {

@@ -7,6 +7,17 @@ import React from 'react';
 //   imageError: error message for image upload
 //   onImageUpload: handler for image file input
 const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => {
+  // Helper to get the correct image URL
+  let imageUrl = '';
+  if (image) {
+    if (image.startsWith('http')) {
+      imageUrl = image;
+    } else if (image.startsWith('/')) {
+      imageUrl = `http://localhost:5000/uploads${image}`;
+    } else {
+      imageUrl = `http://localhost:5000/uploads/${image}`;
+    }
+  }
   return (
     <div>
       <input
@@ -17,14 +28,16 @@ const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => 
         className="border p-2 rounded w-full"
       />
       {uploading && <div className="text-blue-600 mt-2">Uploading...</div>}
-      {image && (
+      {imageUrl ? (
         <div className="mt-2">
           <img
-            src={`http://localhost:5000/uploads/${image}`}
+            src={imageUrl}
             alt="Preview"
             className="h-20 rounded"
           />
         </div>
+      ) : (
+        <div className="mt-2 text-gray-400">No image</div>
       )}
       {imageError && <div className="text-red-600 mt-2">{imageError}</div>}
     </div>

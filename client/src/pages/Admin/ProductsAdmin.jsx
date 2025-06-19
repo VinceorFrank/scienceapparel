@@ -80,7 +80,8 @@ const ProductsAdmin = () => {
   }, []);
 
   // Filter and search logic (client-side)
-  const filtered = products.filter((p) => {
+  const safeProducts = Array.isArray(products) ? products : [];
+  const filtered = safeProducts.filter((p) => {
     const matchesCategory = category === "All" || String(p.category) === category;
     const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;

@@ -1,29 +1,217 @@
 // server/middlewares/validators/productValidators.js
-const { body } = require('express-validator');
+const { body, param, query } = require('express-validator');
 
-const validateProductUpdate = [
+// Validation for creating a new product
+const validateProductCreate = [
   body('name')
-    .optional()
-    .isString().withMessage('Name must be a string')
-    .isLength({ min: 3 }).withMessage('Name must be at least 3 characters long'),
+    .trim()
+    .notEmpty().withMessage('Product name is required')
+    .isLength({ min: 2, max: 100 }).withMessage('Product name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.,&()]+$/).withMessage('Product name contains invalid characters'),
+
+  body('description')
+    .trim()
+    .notEmpty().withMessage('Product description is required')
+    .isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
 
   body('price')
-    .optional()
-    .isFloat({ gt: 0 }).withMessage('Price must be a number greater than 0'),
-
-  body('category')
-    .optional()
-    .isString().withMessage('Category must be a string'),
+    .notEmpty().withMessage('Price is required')
+    .isFloat({ min: 0.01, max: 999999.99 }).withMessage('Price must be between $0.01 and $999,999.99')
+    .custom(value => {
+      if (value <= 0) throw new Error('Price must be greater than 0');
+      return true;
+    }),
 
   body('stock')
+    .notEmpty().withMessage('Stock quantity is required')
+    .isInt({ min: 0, max: 999999 }).withMessage('Stock must be a non-negative integer between 0 and 999,999'),
+
+  body('category')
+    .notEmpty().withMessage('Category is required')
+    .isMongoId().withMessage('Invalid category ID format'),
+
+  body('image')
     .optional()
-    .isInt({ min: 0 }).withMessage('Stock must be a non-negative integer'),
+    .isURL().withMessage('Image must be a valid URL')
+    .isLength({ max: 500 }).withMessage('Image URL is too long'),
+
+  body('featured')
+    .optional()
+    .isBoolean().withMessage('Featured must be a boolean value'),
+
+  body('archived')
+    .optional()
+    .isBoolean().withMessage('Archived must be a boolean value'),
+
+  body('discountPrice')
+    .optional()
+    .isFloat({ min: 0, max: 999999.99 }).withMessage('Discount price must be between $0 and $999,999.99')
+    .custom((value, { req }) => {
+      if (value && req.body.price && value >= req.body.price) {
+        throw new Error('Discount price must be less than regular price');
+      }
+      return true;
+    }),
+
+  body('tags')
+    .optional()
+    .isArray().withMessage('Tags must be an array')
+    .custom(tags => {
+      if (tags && tags.length > 10) {
+        throw new Error('Maximum 10 tags allowed');
+      }
+      if (tags) {
+        for (let tag of tags) {
+          if (typeof tag !== 'string' || tag.length < 1 || tag.length > 20) {
+            throw new Error('Each tag must be a string between 1 and 20 characters');
+          }
+        }
+      }
+      return true;
+    })
+];
+
+// Validation for updating a product
+const validateProductUpdate = [
+  param('id')
+    .isMongoId().withMessage('Invalid product ID format'),
+
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 }).withMessage('Product name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.,&()]+$/).withMessage('Product name contains invalid characters'),
 
   body('description')
     .optional()
-    .isString().withMessage('Description must be a string'),
+    .trim()
+    .isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
 
-  // Add more optional fields as needed, like 'image'
+  body('price')
+    .optional()
+    .isFloat({ min: 0.01, max: 999999.99 }).withMessage('Price must be between $0.01 and $999,999.99'),
+
+  body('stock')
+    .optional()
+    .isInt({ min: 0, max: 999999 }).withMessage('Stock must be a non-negative integer between 0 and 999,999'),
+
+  body('category')
+    .optional()
+    .isMongoId().withMessage('Invalid category ID format'),
+
+  body('image')
+    .optional()
+    .isURL().withMessage('Image must be a valid URL')
+    .isLength({ max: 500 }).withMessage('Image URL is too long'),
+
+  body('featured')
+    .optional()
+    .isBoolean().withMessage('Featured must be a boolean value'),
+
+  body('archived')
+    .optional()
+    .isBoolean().withMessage('Archived must be a boolean value'),
+
+  body('discountPrice')
+    .optional()
+    .isFloat({ min: 0, max: 999999.99 }).withMessage('Discount price must be between $0 and $999,999.99')
+    .custom((value, { req }) => {
+      if (value && req.body.price && value >= req.body.price) {
+        throw new Error('Discount price must be less than regular price');
+      }
+      return true;
+    }),
+
+  body('tags')
+    .optional()
+    .isArray().withMessage('Tags must be an array')
+    .custom(tags => {
+      if (tags && tags.length > 10) {
+        throw new Error('Maximum 10 tags allowed');
+      }
+      if (tags) {
+        for (let tag of tags) {
+          if (typeof tag !== 'string' || tag.length < 1 || tag.length > 20) {
+            throw new Error('Each tag must be a string between 1 and 20 characters');
+          }
+        }
+      }
+      return true;
+    })
 ];
 
-module.exports = { validateProductUpdate };
+// Validation for product queries (search, filter, pagination)
+const validateProductQuery = [
+  query('page')
+    .optional()
+    .isInt({ min: 1, max: 1000 }).withMessage('Page must be a positive integer between 1 and 1000'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+
+  query('keyword')
+    .optional()
+    .isLength({ min: 1, max: 100 }).withMessage('Keyword must be between 1 and 100 characters'),
+
+  query('category')
+    .optional()
+    .isMongoId().withMessage('Invalid category ID format'),
+
+  query('minPrice')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Minimum price must be a non-negative number'),
+
+  query('maxPrice')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Maximum price must be a non-negative number')
+    .custom((value, { req }) => {
+      if (value && req.query.minPrice && parseFloat(value) < parseFloat(req.query.minPrice)) {
+        throw new Error('Maximum price must be greater than minimum price');
+      }
+      return true;
+    }),
+
+  query('sort')
+    .optional()
+    .isIn(['price', '-price', 'name', '-name', 'createdAt', '-createdAt', 'rating', '-rating', 'numReviews', '-numReviews'])
+    .withMessage('Invalid sort field'),
+
+  query('featured')
+    .optional()
+    .isBoolean().withMessage('Featured filter must be a boolean value'),
+
+  query('archived')
+    .optional()
+    .isBoolean().withMessage('Archived filter must be a boolean value')
+];
+
+// Validation for product ID parameter
+const validateProductId = [
+  param('id')
+    .isMongoId().withMessage('Invalid product ID format')
+];
+
+// Validation for adding a review
+const validateReviewCreate = [
+  param('id')
+    .isMongoId().withMessage('Invalid product ID format'),
+
+  body('rating')
+    .notEmpty().withMessage('Rating is required')
+    .isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+
+  body('comment')
+    .trim()
+    .notEmpty().withMessage('Comment is required')
+    .isLength({ min: 10, max: 1000 }).withMessage('Comment must be between 10 and 1000 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.,!?()]+$/).withMessage('Comment contains invalid characters')
+];
+
+module.exports = {
+  validateProductCreate,
+  validateProductUpdate,
+  validateProductQuery,
+  validateProductId,
+  validateReviewCreate
+};

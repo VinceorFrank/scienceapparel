@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 
-// Order model: stores order details, user reference, and order items
-// Each order is linked to a user and contains multiple order items
-// reviewToken is used for verified review access
-
 const orderItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   qty: { type: Number, required: true },

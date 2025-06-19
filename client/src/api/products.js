@@ -9,7 +9,8 @@ export const getProducts = async (params = {}) => {
     headers: { Authorization: `Bearer ${token}` },
     params,
   });
-  return res.data.products;
+  // Robust: handle different backend response shapes
+  return res.data.products || res.data.data || res.data || [];
 };
 
 // Add a new product

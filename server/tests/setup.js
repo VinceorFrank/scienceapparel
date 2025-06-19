@@ -134,11 +134,13 @@ global.testUtils = {
     const mongoose = require('mongoose');
     const testURI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/ecommerce-test';
     
+    // Close existing connection if it exists
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
+    
     try {
-      await mongoose.connect(testURI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      });
+      await mongoose.connect(testURI);
       console.log('✅ Test database connected');
     } catch (error) {
       console.error('❌ Test database connection failed:', error);

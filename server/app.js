@@ -76,10 +76,7 @@ app.use(helmet());
 // }));
 
 // Database connection with enhanced error handling
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(async () => {
   console.log('✅ MongoDB connected successfully');
   
@@ -250,40 +247,46 @@ app.use(notFound);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📈 Performance metrics: http://localhost:${PORT}/api/performance`);
-  console.log(`🗂️ Database indexes: http://localhost:${PORT}/api/database-indexes`);
-  console.log(`🔒 Security enhancements active`);
-  console.log(`📝 Request logging enabled`);
-  console.log(`⚡ Rate limiting active`);
-  console.log(`🧹 Input sanitization active`);
-  console.log(`🔐 Password policies enforced`);
-  console.log(`💾 Caching system active`);
-  console.log(`🗄️ Database indexes optimized`);
-});
+// Only start server if this is the main module (not during tests)
+if (require.main === module) {
+  // Start server
+  const PORT = process.env.PORT || 5000;
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📈 Performance metrics: http://localhost:${PORT}/api/performance`);
+    console.log(`🗂️ Database indexes: http://localhost:${PORT}/api/database-indexes`);
+    console.log(`🔒 Security enhancements active`);
+    console.log(`📝 Request logging enabled`);
+    console.log(`⚡ Rate limiting active`);
+    console.log(`🧹 Input sanitization active`);
+    console.log(`🔐 Password policies enforced`);
+    console.log(`💾 Caching system active`);
+    console.log(`🗄️ Database indexes optimized`);
+  });
 
-// Handle server errors
-server.on('error', (err) => {
-  console.error('❌ Server error:', err);
-  process.exit(1);
-});
+  // Handle server errors
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  });
 
-// Graceful server shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    console.log('✅ Server closed');
-    mongoose.connection.close(() => {
-      console.log('✅ MongoDB connection closed');
-      process.exit(0);
+  // Graceful server shutdown
+  process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received, shutting down gracefully');
+    server.close(() => {
+      console.log('✅ Server closed');
+      mongoose.connection.close(() => {
+        console.log('✅ MongoDB connection closed');
+        process.exit(0);
+      });
     });
   });
-});
+}
+
+// Export app for testing
+module.exports = app;
 
 
 

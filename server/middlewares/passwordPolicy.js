@@ -45,6 +45,19 @@ const validatePassword = (password) => {
   const warnings = [];
   let score = 0;
 
+  // Handle null/undefined input
+  if (!password || typeof password !== 'string') {
+    errors.push('Password is required and must be a string');
+    return {
+      isValid: false,
+      errors,
+      warnings,
+      score: 0,
+      strength: 'weak',
+      requirements: PASSWORD_REQUIREMENTS
+    };
+  }
+
   // Check length
   if (password.length < PASSWORD_REQUIREMENTS.minLength) {
     errors.push(`Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters long`);
@@ -174,6 +187,9 @@ const verifyPassword = (password, hash, salt) => {
  * @returns {string} Secure random password
  */
 const generateSecurePassword = (length = 16) => {
+  // Ensure minimum length of 8
+  const minLength = Math.max(length, 8);
+  
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
   let password = '';
   
@@ -184,12 +200,15 @@ const generateSecurePassword = (length = 16) => {
   password += '!@#$%^&*()_+-=[]{}|;:,.<>?'[Math.floor(Math.random() * 32)]; // Special char
   
   // Fill the rest with random characters
-  for (let i = 4; i < length; i++) {
+  for (let i = 4; i < minLength; i++) {
     password += charset[Math.floor(Math.random() * charset.length)];
   }
   
   // Shuffle the password
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+  password = password.split('').sort(() => Math.random() - 0.5).join('');
+  
+  // Return exactly the requested length
+  return password.substring(0, length);
 };
 
 /**

@@ -7,10 +7,7 @@ const Product = require('./models/Product');
 const DEFAULT_IMAGE = 'images/placeholder.png';
 const IMAGES_DIR = path.join(__dirname, 'uploads', 'images');
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(async () => {
   console.log('✅ Connected to MongoDB');
   await setDefaultImages();

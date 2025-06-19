@@ -34,7 +34,14 @@ const ProductsAdmin = () => {
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', category: '', price: '', stock: '', image: '' });
+  const [form, setForm] = useState({
+    name: '',
+    description: 'This is a sample product description that meets the minimum length requirement.',
+    category: '',
+    price: '',
+    stock: '',
+    image: ''
+  });
   const [image, setImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [editModal, setEditModal] = useState(false);
@@ -48,6 +55,7 @@ const ProductsAdmin = () => {
   const [importing, setImporting] = useState(false);
   const [imageError, setImageError] = useState('');
   const [categories, setCategories] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Fetch products from backend on mount
   useEffect(() => {
@@ -70,10 +78,16 @@ const ProductsAdmin = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const data = await getCategories();
-        setCategories(data);
+        const response = await getCategories();
+        if (response.success && Array.isArray(response.data)) {
+          setCategories(response.data);
+        } else {
+          console.error('Invalid categories data format:', response);
+          setCategories([]);
+        }
       } catch (err) {
-        // Optionally handle error
+        console.error('Error fetching categories:', err);
+        setCategories([]);
       }
     };
     fetchCategories();
@@ -81,6 +95,8 @@ const ProductsAdmin = () => {
 
   // Filter and search logic (client-side)
   const safeProducts = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  
   const filtered = safeProducts.filter((p) => {
     const matchesCategory = category === "All" || String(p.category) === category;
     const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
@@ -108,6 +124,9 @@ const ProductsAdmin = () => {
     try {
       const res = await fetch('http://localhost:5000/api/upload?type=image', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: formData,
       });
       const data = await res.json();
@@ -123,22 +142,45 @@ const ProductsAdmin = () => {
     setUploading(false);
   };
 
-  // Add product handler
-  const handleAddProduct = async (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    setError('');
+    setValidationErrors({});
+
     try {
-      const newProduct = await addProduct(form);
-      setProducts([newProduct, ...products]);
-      setShowModal(false);
-      setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' });
-      setImage('');
-      setPage(1);
+      const res = await axios.post('http://localhost:5000/api/products', form, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (res.data.success) {
+        // Reset form
+        setForm({
+          name: '',
+          description: 'This is a sample product description that meets the minimum length requirement.',
+          category: '',
+          price: '',
+          stock: '',
+          image: ''
+        });
+        setError('');
+        setValidationErrors({});
+        fetchProducts(); // Refresh product list
+      }
     } catch (err) {
-      setError("Failed to add product.");
+      console.error('Error creating product:', err);
+      if (err.response?.data?.error?.validationErrors) {
+        // Convert validation errors array to object for easier display
+        const errors = {};
+        err.response.data.error.validationErrors.forEach(error => {
+          errors[error.field] = error.message;
+        });
+        setValidationErrors(errors);
+      } else {
+        setError(err.response?.data?.error?.message || 'Failed to create product');
+      }
     }
-    setLoading(false);
   };
 
   // Edit modal logic
@@ -364,18 +406,108 @@ const ProductsAdmin = () => {
           onClose={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
           title="Add Product"
         >
-          <ProductForm
-            form={form}
-            categories={categories}
-            image={image}
-            uploading={uploading}
-            imageError={imageError}
-            onChange={handleFormChange}
-            onImageUpload={handleImageUpload}
-            onSubmit={handleAddProduct}
-            onCancel={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
-            mode="add"
-          />
+          <div>
+            <h2>Add Product</h2>
+            <form onSubmit={handleSubmit}>
+              {error && <div className="text-red-600 mb-4">{error}</div>}
+              
+              <div className="mb-4">
+                <label className="block mb-2">Name</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={`border p-2 rounded w-full ${validationErrors.name ? 'border-red-500' : ''}`}
+                />
+                {validationErrors.name && (
+                  <div className="text-red-600 mt-1">{validationErrors.name}</div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block mb-2">Description</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className={`border p-2 rounded w-full ${validationErrors.description ? 'border-red-500' : ''}`}
+                  rows="4"
+                />
+                {validationErrors.description && (
+                  <div className="text-red-600 mt-1">{validationErrors.description}</div>
+                )}
+                <div className="text-gray-500 text-sm mt-1">
+                  Description must be between 10 and 2000 characters
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block mb-2">Category</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className={`border p-2 rounded w-full ${validationErrors.category ? 'border-red-500' : ''}`}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(cat => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+                </select>
+                {validationErrors.category && (
+                  <div className="text-red-600 mt-1">{validationErrors.category}</div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block mb-2">Price</label>
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className={`border p-2 rounded w-full ${validationErrors.price ? 'border-red-500' : ''}`}
+                  step="0.01"
+                  min="0"
+                />
+                {validationErrors.price && (
+                  <div className="text-red-600 mt-1">{validationErrors.price}</div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block mb-2">Stock</label>
+                <input
+                  type="number"
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                  className={`border p-2 rounded w-full ${validationErrors.stock ? 'border-red-500' : ''}`}
+                  min="0"
+                />
+                {validationErrors.stock && (
+                  <div className="text-red-600 mt-1">{validationErrors.stock}</div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label className="block mb-2">Image</label>
+                <ProductImageUpload
+                  image={form.image}
+                  uploading={uploading}
+                  imageError={imageError}
+                  onImageUpload={handleImageUpload}
+                />
+                {validationErrors.image && (
+                  <div className="text-red-600 mt-1">{validationErrors.image}</div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading...' : 'Add Product'}
+              </button>
+            </form>
+          </div>
         </Modal>
 
         {/* Edit Product Modal */}

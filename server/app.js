@@ -211,47 +211,19 @@ app.get('/api/database-indexes', (req, res) => {
   });
 });
 
-// Apply routes only if they exist
-if (productRoutes) {
-  app.use('/api/products', cacheMiddleware(300000, generateCacheKey), productRoutes);
-}
+// Mount API routes
+if (userRoutes) app.use('/api/users', userRoutes);
+if (productRoutes) app.use('/api/products', productRoutes);
+if (orderRoutes) app.use('/api/orders', orderRoutes);
+if (categoryRoutes) app.use('/api/categories', categoryRoutes);
+if (dashboardRoutes) app.use('/api/dashboard', dashboardRoutes);
+if (newsletterRoutes) app.use('/api/newsletter', newsletterRoutes);
+if (supportRoutes) app.use('/api/support', supportRoutes);
+if (paymentRoutes) app.use('/api/payment', paymentRoutes);
+if (uploadRoutes) app.use('/api/upload', uploadRoutes);
 
-if (categoryRoutes) {
-  app.use('/api/categories', cacheMiddleware(600000, generateCacheKey), categoryRoutes);
-}
-
-if (userRoutes) {
-  app.use('/api/users', validateRequest, userRoutes);
-}
-
-if (orderRoutes) {
-  app.use('/api/orders', validateRequest, orderRoutes);
-}
-
-if (dashboardRoutes) {
-  app.use('/api/admin/dashboard', validateRequest, dashboardRoutes);
-}
-
-if (newsletterRoutes) {
-  app.use('/api/newsletter', validateRequest, newsletterRoutes);
-}
-
-if (supportRoutes) {
-  app.use('/api/support', validateRequest, supportRoutes);
-}
-
-if (paymentRoutes) {
-  app.use('/api/payment', validateRequest, paymentRoutes);
-}
-
-if (uploadRoutes) {
-  app.use('/api/upload', validateRequest, uploadRoutes);
-}
-
-// 404 handler for undefined routes
+// Error handling middleware
 app.use(notFound);
-
-// Global error handler (must be last)
 app.use(errorHandler);
 
 // Only start server if this is the main module (not during tests)

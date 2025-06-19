@@ -1,4 +1,5 @@
 import React from 'react';
+import api from '../../../api/config';
 
 // ProductTable.jsx - Displays a table of products with pagination and actions
 // Props:
@@ -10,6 +11,15 @@ import React from 'react';
 //   onDelete: function to call when deleting a product
 //   onPageChange: function to change the page
 const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete, onPageChange }) => {
+  // Helper to get the correct image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    // Remove any leading slashes and use direct backend URL without /api
+    const cleanPath = imagePath.replace(/^\/+/, '');
+    return `http://localhost:5000/uploads/${cleanPath}`;
+  };
+
   return (
     <>
       <table className="w-full border mt-2">
@@ -32,9 +42,14 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                 <td className="p-2">
                   {product.image ? (
                     <img
-                      src={`http://localhost:5000/uploads/${product.image}`}
+                      src={getImageUrl(product.image)}
                       alt={product.name ? `Product image for ${product.name}` : 'Product image'}
                       className="h-12 w-12 object-cover rounded"
+                      onError={(e) => {
+                        console.error('Image load error:', e);
+                        e.target.src = '/placeholder.png';
+                        e.target.onerror = null;
+                      }}
                     />
                   ) : (
                     <span className="text-gray-400">No image</span>
@@ -66,23 +81,31 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
         </tbody>
       </table>
       {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-4">
-        <button
-          onClick={() => onPageChange(Math.max(1, page - 1))}
-          disabled={page === 1}
-          className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>Page {page} of {totalPages}</span>
-        <button
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages}
-          className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+            className={`px-3 py-1 rounded ${
+              page === 1 ? 'bg-gray-200' : 'bg-blue-600 text-white'
+            }`}
+          >
+            Previous
+          </button>
+          <span className="px-3 py-1">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages}
+            className={`px-3 py-1 rounded ${
+              page === totalPages ? 'bg-gray-200' : 'bg-blue-600 text-white'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </>
   );
 };

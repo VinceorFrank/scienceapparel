@@ -1,4 +1,5 @@
 import React from 'react';
+import api from '../../../api/config';
 
 // ProductImageUpload.jsx - Handles image upload and preview for product forms
 // Props:
@@ -8,16 +9,16 @@ import React from 'react';
 //   onImageUpload: handler for image file input
 const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => {
   // Helper to get the correct image URL
-  let imageUrl = '';
-  if (image) {
-    if (image.startsWith('http')) {
-      imageUrl = image;
-    } else if (image.startsWith('/')) {
-      imageUrl = `http://localhost:5000/uploads${image}`;
-    } else {
-      imageUrl = `http://localhost:5000/uploads/${image}`;
-    }
-  }
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath;
+    // Remove any leading slashes and use direct backend URL without /api
+    const cleanPath = imagePath.replace(/^\/+/, '');
+    return `http://localhost:5000/uploads/${cleanPath}`;
+  };
+
+  const imageUrl = getImageUrl(image);
+
   return (
     <div>
       <input
@@ -34,6 +35,11 @@ const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => 
             src={imageUrl}
             alt="Preview"
             className="h-20 rounded"
+            onError={(e) => {
+              console.error('Image load error:', e);
+              e.target.src = '/placeholder.png';
+              e.target.onerror = null;
+            }}
           />
         </div>
       ) : (

@@ -19,10 +19,17 @@ const CategoriesAdmin = () => {
     setLoading(true);
     setError("");
     try {
-      const data = await getCategories();
-      setCategories(data);
+      const response = await getCategories();
+      if (response.success && Array.isArray(response.data)) {
+        setCategories(response.data);
+      } else {
+        setCategories([]);
+        setError("Invalid data format received from server");
+      }
     } catch (err) {
+      console.error('Error fetching categories:', err);
       setError("Failed to load categories.");
+      setCategories([]);
     }
     setLoading(false);
   };
@@ -37,12 +44,17 @@ const CategoriesAdmin = () => {
     setLoading(true);
     setError("");
     try {
-      const newCategory = await addCategory(form);
-      setCategories([newCategory, ...categories]);
-      setShowModal(false);
-      setForm({ name: "", description: "" });
+      const response = await addCategory(form);
+      if (response.success && response.data) {
+        setCategories([response.data, ...categories]);
+        setShowModal(false);
+        setForm({ name: "", description: "" });
+      } else {
+        throw new Error(response.error?.message || 'Failed to add category');
+      }
     } catch (err) {
-      setError("Failed to add category.");
+      console.error('Error adding category:', err);
+      setError(err.message || "Failed to add category.");
     }
     setLoading(false);
   };

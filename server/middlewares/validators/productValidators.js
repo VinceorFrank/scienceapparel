@@ -32,8 +32,25 @@ const validateProductCreate = [
 
   body('image')
     .optional()
-    .isURL().withMessage('Image must be a valid URL')
-    .isLength({ max: 500 }).withMessage('Image URL is too long'),
+    .custom(value => {
+      // Accept URLs or file paths
+      if (!value) return true;
+      if (value.startsWith('http://') || value.startsWith('https://')) {
+        // URL validation
+        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Invalid image URL format');
+        }
+      } else {
+        // File path validation
+        const pathRegex = /^(images|reviews)\/[\w-]+\.(jpg|jpeg|png)$/i;
+        if (!pathRegex.test(value)) {
+          throw new Error('Invalid image path format');
+        }
+      }
+      return true;
+    })
+    .isLength({ max: 500 }).withMessage('Image URL/path is too long'),
 
   body('featured')
     .optional()
@@ -101,8 +118,25 @@ const validateProductUpdate = [
 
   body('image')
     .optional()
-    .isURL().withMessage('Image must be a valid URL')
-    .isLength({ max: 500 }).withMessage('Image URL is too long'),
+    .custom(value => {
+      // Accept URLs or file paths
+      if (!value) return true;
+      if (value.startsWith('http://') || value.startsWith('https://')) {
+        // URL validation
+        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+        if (!urlRegex.test(value)) {
+          throw new Error('Invalid image URL format');
+        }
+      } else {
+        // File path validation
+        const pathRegex = /^(images|reviews)\/[\w-]+\.(jpg|jpeg|png)$/i;
+        if (!pathRegex.test(value)) {
+          throw new Error('Invalid image path format');
+        }
+      }
+      return true;
+    })
+    .isLength({ max: 500 }).withMessage('Image URL/path is too long'),
 
   body('featured')
     .optional()

@@ -16,7 +16,7 @@ const configureSecurityHeaders = () => {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
         fontSrc: ["'self'", "https:", "http:", "data:"],
-        imgSrc: ["'self'", "data:", "https:", "http:"],
+        imgSrc: ["'self'", "data:", "https:", "http:", "localhost:5000"],
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "http:"],
         connectSrc: ["'self'", "http://localhost:5000", "http://localhost:5173", "ws://localhost:5173"],
         frameSrc: ["'self'"],

@@ -9,9 +9,18 @@ const ActivityLog = require('../models/ActivityLog');
 router.get('/', async (req, res) => {
   try {
     const categories = await Category.find().sort({ name: 1 });
-    res.json(categories);
+    res.json({
+      success: true,
+      data: categories
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ 
+      success: false, 
+      error: {
+        message: 'Server error',
+        details: err.message
+      }
+    });
   }
 });
 

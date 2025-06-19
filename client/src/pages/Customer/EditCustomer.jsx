@@ -1,7 +1,7 @@
 // client/src/pages/Customer/EditCustomer.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/config";
 
 const EditCustomer = () => {
   const [user, setUser] = useState(null);
@@ -13,17 +13,17 @@ const EditCustomer = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("customerToken");
-    if (!token) {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("userRole");
+
+    if (!token || role !== "customer") {
       navigate("/login");
       return;
     }
 
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/users/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get("/users/profile");
         setUser(res.data);
         setName(res.data.name);
       } catch (err) {
@@ -38,14 +38,17 @@ const EditCustomer = () => {
     e.preventDefault();
     setMessage("");
     setError("");
-    const token = localStorage.getItem("customerToken");
 
     try {
-      const res = await axios.put(
-        "http://localhost:5000/api/users/profile",
-        { name, currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        "/users/profile",
+        { name, currentPassword, newPassword }
       );
+
+      // Update stored name if it was changed
+      if (name !== localStorage.getItem("userName")) {
+        localStorage.setItem("userName", name);
+      }
 
       setMessage("✅ Profil mis à jour !");
       setCurrentPassword("");
@@ -62,48 +65,57 @@ const EditCustomer = () => {
   if (!user) return <div className="p-8 text-gray-700">Chargement du profil...</div>;
 
   return (
-    <div className="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-10">
-      <h1 className="text-2xl font-bold text-blue-600 mb-4">Modifier mon profil</h1>
-      {message && <div className="text-green-600 mb-2">{message}</div>}
-      {error && <div className="text-red-500 mb-2">{error}</div>}
+    <div className="container mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Modifier mon profil</h1>
 
-      <form onSubmit={handleUpdate} className="space-y-4">
-        <input
-          type="text"
-          className="w-full border p-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nouveau nom"
-        />
-        <input
-          type="password"
-          className="w-full border p-2"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          placeholder="Mot de passe actuel (obligatoire)"
-        />
-        <input
-          type="password"
-          className="w-full border p-2"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="Nouveau mot de passe (optionnel)"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Enregistrer les modifications
-        </button>
-      </form>
+      <div className="bg-white shadow rounded-lg p-6">
+        {message && <div className="text-green-600 mb-4">{message}</div>}
+        {error && <div className="text-red-600 mb-4">{error}</div>}
 
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => navigate("/account")}
-          className="text-blue-600 underline hover:text-blue-800"
-        >
-          Retour à l’espace client
-        </button>
+        <form onSubmit={handleUpdate}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Nom
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Mot de passe actuel
+            </label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Nouveau mot de passe
+            </label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Mettre à jour
+          </button>
+        </form>
       </div>
     </div>
   );

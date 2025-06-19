@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require("express-validator");
 const ActivityLog = require('../models/ActivityLog');
+const { generateToken } = require('../middlewares/auth');
 
 
 // User signup
@@ -42,8 +43,8 @@ router.post(
 router.post(
   '/login',
   [
-    body("email").isEmail().withMessage("Veuillez fournir un email valide"),
-    body("password").notEmpty().withMessage("Le mot de passe est requis"),
+    body("email").isEmail().withMessage("Please provide a valid email"),
+    body("password").notEmpty().withMessage("Password is required"),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -54,35 +55,40 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      // Recherche l'utilisateur
+      // Find user
       const user = await User.findOne({ email });
       if (!user) {
-        return res.status(400).json({ message: 'Identifiants invalides' });
+        return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Utilise la méthode du modèle pour comparer les mots de passe
+      // Check password
       const isMatch = await user.matchPassword(password);
       if (!isMatch) {
-        return res.status(400).json({ message: 'Identifiants invalides' });
+        return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Génère un token JWT
-      const token = jwt.sign(
-        { id: user._id, isAdmin: user.isAdmin },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
+      // Generate JWT token using the auth middleware's function
+      const token = generateToken({
+        id: user._id,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        role: user.role
+      });
 
+      // Send response with complete user info
       res.status(200).json({
         token,
         user: {
           id: user._id,
           name: user.name,
-          email: user.email
+          email: user.email,
+          isAdmin: user.isAdmin,
+          role: user.role
         }
       });
     } catch (err) {
-      res.status(500).json({ message: 'Erreur serveur', error: err.message });
+      console.error('Login error:', err);
+      res.status(500).json({ message: 'Server error', error: err.message });
     }
   }
 );

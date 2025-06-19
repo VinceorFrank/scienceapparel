@@ -342,15 +342,15 @@ setInterval(() => {
   }
 }, 30 * 60 * 1000);
 
-module.exports = { 
-  protect, 
-  admin, 
-  requireRole,
-  requireOwnership,
-  preventBruteForce,
-  handleSuccessfulAuth,
-  handleFailedAuth,
+module.exports = {
+  protect,
+  admin,
   generateToken,
+  requireRole: requireRole,
+  requireOwnership: requireOwnership,
+  preventBruteForce: preventBruteForce,
+  handleSuccessfulAuth: handleSuccessfulAuth,
+  handleFailedAuth: handleFailedAuth,
   verifyToken,
   isLockedOut,
   recordFailedAttempt,

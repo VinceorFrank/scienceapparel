@@ -14,12 +14,12 @@ const configureSecurityHeaders = () => {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'"],
-        connectSrc: ["'self'"],
-        frameSrc: ["'none'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
+        fontSrc: ["'self'", "https:", "http:", "data:"],
+        imgSrc: ["'self'", "data:", "https:", "http:"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "http:"],
+        connectSrc: ["'self'", "http://localhost:5000", "http://localhost:5173", "ws://localhost:5173"],
+        frameSrc: ["'self'"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: []
       }
@@ -29,51 +29,37 @@ const configureSecurityHeaders = () => {
     crossOriginEmbedderPolicy: false,
     
     // Cross-Origin Opener Policy
-    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginOpenerPolicy: false,
     
     // Cross-Origin Resource Policy
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: false,
     
     // DNS Prefetch Control
-    dnsPrefetchControl: { allow: false },
-    
-    // Expect CT
-    expectCt: { enforce: true, maxAge: 30 },
+    dnsPrefetchControl: false,
     
     // Frameguard
-    frameguard: { action: "deny" },
+    frameguard: false,
     
     // Hide Powered-By
     hidePoweredBy: true,
     
     // HSTS
-    hsts: {
-      maxAge: 31536000,
-      includeSubDomains: true,
-      preload: true
-    },
+    hsts: false,
     
     // IE No Open
-    ieNoOpen: true,
+    ieNoOpen: false,
     
     // NoSniff
-    noSniff: true,
+    noSniff: false,
     
     // Permissions Policy
-    permissionsPolicy: {
-      features: {
-        camera: ["'none'"],
-        microphone: ["'none'"],
-        geolocation: ["'none'"],
-        payment: ["'self'"]
-      }
-    },
+    permissionsPolicy: false,
     
     // Referrer Policy
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    referrerPolicy: false,
     
     // XSS Protection
-    xssFilter: true
+    xssFilter: false
   });
 };
 

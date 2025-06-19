@@ -2,15 +2,12 @@ export const getToken = () => localStorage.getItem("token");
 
 export const isLoggedIn = () => !!getToken();
 
-export const isAdmin = () => {
-  try {
-    const token = getToken();
-    if (!token) return false;
+export const isAdmin = () => localStorage.getItem("userRole") === "admin";
 
-    const [, payload] = token.split(".");
-    const decoded = JSON.parse(atob(payload));
-    return decoded.isAdmin;
-  } catch (err) {
-    return false;
-  }
-};
+export const isCustomer = () => localStorage.getItem("userRole") === "customer";
+
+export const getUserRole = () => localStorage.getItem("userRole");
+
+export const getUserName = () => localStorage.getItem("userName");
+
+export const getUserEmail = () => localStorage.getItem("userEmail");

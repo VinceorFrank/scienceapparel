@@ -49,6 +49,14 @@ const app = express();
 // Apply security middleware first
 app.use(securityMiddleware());
 
+// Configure CORS
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Apply rate limiting
 app.use(dynamicRateLimiter());
 
@@ -65,7 +73,6 @@ app.use(passwordPolicyMiddleware());
 app.use(performanceMiddleware());
 
 // Basic middlewares
-app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(helmet());

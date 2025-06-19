@@ -3,13 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("customerToken");
-  const name = localStorage.getItem("customerName");
+  const token = localStorage.getItem("token");
+  const name = localStorage.getItem("userName");
+  const role = localStorage.getItem("userRole");
 
   const handleLogout = () => {
-    localStorage.removeItem("customerToken");
-    localStorage.removeItem("customerName");
-    localStorage.removeItem("customerEmail");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
 
     // ✅ Optional: show a logout success message
     alert("Vous avez été déconnecté avec succès.");

@@ -1,10 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 const RequireCustomer = () => {
-  const token = localStorage.getItem("customerToken");
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("userRole");
 
-  // You can customize this to check token validity later
-  if (!token) {
+  if (!token || role !== "customer") {
     return <Navigate to="/login" replace />;
   }
 

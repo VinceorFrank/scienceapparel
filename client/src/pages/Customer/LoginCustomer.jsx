@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../../api/config";
 
 const LoginCustomer = () => {
   const [email, setEmail] = useState("");
@@ -10,20 +10,21 @@ const LoginCustomer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   try {
-  const res = await axios.post("http://localhost:5000/api/users/login", {
-    email,
-    password,
-  });
+    try {
+      const res = await api.post("/users/login", {
+        email,
+        password,
+      });
 
-  localStorage.setItem("customerToken", res.data.token);
-  localStorage.setItem("customerName", res.data.user.name);
-  localStorage.setItem("customerEmail", res.data.user.email);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userName", res.data.user.name);
+      localStorage.setItem("userEmail", res.data.user.email);
+      localStorage.setItem("userRole", "customer");
 
-  navigate("/account");
-} catch (err) {
-  setError("Identifiants invalides ou erreur serveur.");
-}
+      navigate("/account");
+    } catch (err) {
+      setError("Identifiants invalides ou erreur serveur.");
+    }
   };
 
   return (

@@ -187,28 +187,30 @@ const verifyPassword = (password, hash, salt) => {
  * @returns {string} Secure random password
  */
 const generateSecurePassword = (length = 16) => {
-  // Ensure minimum length of 8
-  const minLength = Math.max(length, 8);
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+  // Ensure length is sufficient
+  const passLength = Math.max(length, 8);
   
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
   let password = '';
-  
-  // Ensure at least one character from each required category
-  password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Uppercase
-  password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Lowercase
-  password += '0123456789'[Math.floor(Math.random() * 10)]; // Number
-  password += '!@#$%^&*()_+-=[]{}|;:,.<>?'[Math.floor(Math.random() * 32)]; // Special char
-  
-  // Fill the rest with random characters
-  for (let i = 4; i < minLength; i++) {
-    password += charset[Math.floor(Math.random() * charset.length)];
+  const allChars = upper + lower + numbers + special;
+
+  // Guarantee one of each type
+  password += upper[Math.floor(Math.random() * upper.length)];
+  password += lower[Math.floor(Math.random() * lower.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+
+  // Fill the rest
+  for (let i = password.length; i < passLength; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
   }
-  
-  // Shuffle the password
-  password = password.split('').sort(() => Math.random() - 0.5).join('');
-  
-  // Return exactly the requested length
-  return password.substring(0, length);
+
+  // Shuffle the password to randomize character positions
+  return password.split('').sort(() => 0.5 - Math.random()).join('');
 };
 
 /**

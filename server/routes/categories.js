@@ -4,23 +4,26 @@ const Category = require('../models/Category');
 const { protect, admin } = require('../middlewares/auth');
 const { body, validationResult } = require('express-validator');
 const ActivityLog = require('../models/ActivityLog');
+const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 
-// Get all categories
-router.get('/', async (req, res) => {
+// Get all categories with pagination and search
+router.get('/', async (req, res, next) => {
   try {
-    const categories = await Category.find().sort({ name: 1 });
-    res.json({
-      success: true,
-      data: categories
+    const { page, limit, search } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (search) {
+      filters.name = { $regex: search, $options: 'i' };
+    }
+
+    const result = await executePaginatedQuery(Category, filters, paginationParams, {
+      sort: { name: 1 }
     });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
   } catch (err) {
-    res.status(500).json({ 
-      success: false, 
-      error: {
-        message: 'Server error',
-        details: err.message
-      }
-    });
+    next(err);
   }
 });
 

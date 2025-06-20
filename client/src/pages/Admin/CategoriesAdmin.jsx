@@ -1,193 +1,155 @@
-import React, { useEffect, useState } from "react";
-import { getCategories, addCategory, updateCategory, deleteCategory } from "../../api/categories";
+import React from 'react';
+import useCategoryManagement from '../../hooks/useCategoryManagement';
 import Modal from './components/Modal';
 
 const CategoriesAdmin = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "" });
-  const [editMode, setEditMode] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await getCategories();
-      if (response.success && Array.isArray(response.data)) {
-        setCategories(response.data);
-      } else {
-        setCategories([]);
-        setError("Invalid data format received from server");
-      }
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError("Failed to load categories.");
-      setCategories([]);
-    }
-    setLoading(false);
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddCategory = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const response = await addCategory(form);
-      if (response.success && response.data) {
-        setCategories([response.data, ...categories]);
-        setShowModal(false);
-        setForm({ name: "", description: "" });
-      } else {
-        throw new Error(response.error?.message || 'Failed to add category');
-      }
-    } catch (err) {
-      console.error('Error adding category:', err);
-      setError(err.message || "Failed to add category.");
-    }
-    setLoading(false);
-  };
-
-  const openEditModal = (category) => {
-    setEditMode(true);
-    setEditId(category._id);
-    setForm({ name: category.name, description: category.description });
-    setShowModal(true);
-  };
-
-  const handleEditCategory = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const updated = await updateCategory(editId, form);
-      setCategories((prev) => prev.map((cat) => (cat._id === updated._id ? updated : cat)));
-      setShowModal(false);
-      setEditMode(false);
-      setEditId(null);
-      setForm({ name: "", description: "" });
-    } catch (err) {
-      setError("Failed to update category.");
-    }
-    setLoading(false);
-  };
-
-  const handleDeleteCategory = async (id) => {
-    setLoading(true);
-    setError("");
-    try {
-      await deleteCategory(id);
-      setCategories((prev) => prev.filter((cat) => cat._id !== id));
-    } catch (err) {
-      setError("Failed to delete category.");
-    }
-    setLoading(false);
-  };
+  const {
+    categories,
+    loading,
+    page,
+    totalPages,
+    search,
+    setSearch,
+    setPage,
+    isModalOpen,
+    isEditMode,
+    categoryForm,
+    isDeleteConfirmOpen,
+    handleOpenModal,
+    handleCloseModal,
+    handleFormChange,
+    handleSubmit,
+    handleOpenDeleteConfirm,
+    handleCloseDeleteConfirm,
+    handleDelete,
+    categoryToDelete
+  } = useCategoryManagement();
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">📂 Categories Management</h1>
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Categories Management</h1>
+
+      {/* Toolbar */}
+      <div className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
+        <div className="flex gap-4">
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="p-2 border rounded-md"
+          />
+        </div>
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => { setShowModal(true); setEditMode(false); setForm({ name: "", description: "" }); }}
+          onClick={() => handleOpenModal()}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
         >
           + Add Category
         </button>
       </div>
-      {loading && <div className="text-blue-600 mb-4">Loading...</div>}
-      {error && <div className="text-red-600 mb-4">{error}</div>}
-      <table className="w-full border mt-2">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2 text-left">Description</th>
-            <th className="p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.length === 0 ? (
-            <tr><td colSpan={3} className="p-4 text-center text-gray-500">No categories found.</td></tr>
-          ) : (
-            categories.map((cat) => (
-              <tr key={cat._id} className="border-b">
-                <td className="p-2">{cat.name}</td>
-                <td className="p-2">{cat.description}</td>
-                <td className="p-2">
-                  <button
-                    className="text-blue-600 hover:underline mr-2"
-                    onClick={() => openEditModal(cat)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDeleteCategory(cat._id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      {/* Add/Edit Category Modal */}
-      <Modal
-        open={showModal}
-        onClose={() => { setShowModal(false); setEditMode(false); setEditId(null); setForm({ name: '', description: '' }); }}
-        title={editMode ? 'Edit Category' : 'Add Category'}
-      >
-        <form onSubmit={editMode ? handleEditCategory : handleAddCategory} className="space-y-4">
-          <div>
-            <label className="block mb-1 font-medium">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleFormChange}
-              className="border p-2 rounded w-full"
-              required
-            />
+
+      {/* Categories Table */}
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 text-left">Name</th>
+              <th className="p-2 text-left">Description</th>
+              <th className="p-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="3" className="text-center p-4">Loading...</td></tr>
+            ) : categories.length === 0 ? (
+              <tr><td colSpan="3" className="text-center p-4">No categories found.</td></tr>
+            ) : (
+              categories.map((cat) => (
+                <tr key={cat._id} className="border-b">
+                  <td className="p-2">{cat.name}</td>
+                  <td className="p-2">{cat.description}</td>
+                  <td className="p-2">
+                    <button
+                      onClick={() => handleOpenModal(cat)}
+                      className="text-blue-600 hover:underline mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleOpenDeleteConfirm(cat)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center gap-2 mt-4">
+        <button onClick={() => setPage(page - 1)} disabled={page === 1} className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50">Previous</button>
+        <span className="px-3 py-1">Page {page} of {totalPages}</span>
+        <button onClick={() => setPage(page + 1)} disabled={page === totalPages} className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50">Next</button>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {isModalOpen && (
+        <Modal onClose={handleCloseModal}>
+          <form onSubmit={handleSubmit} className="p-6">
+            <h2 className="text-xl font-semibold mb-4">{isEditMode ? 'Edit' : 'Add'} Category</h2>
+            <div className="mb-4">
+              <label className="block mb-1">Name</label>
+              <input
+                type="text"
+                name="name"
+                value={categoryForm.name}
+                onChange={handleFormChange}
+                className="p-2 border rounded-md w-full"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1">Description</label>
+              <textarea
+                name="description"
+                value={categoryForm.description}
+                onChange={handleFormChange}
+                className="p-2 border rounded-md w-full"
+              />
+            </div>
+            <div className="flex justify-end gap-4 mt-6">
+              <button type="button" onClick={handleCloseModal} className="px-4 py-2 rounded-md bg-gray-200">
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 rounded-md bg-blue-600 text-white">
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {isDeleteConfirmOpen && (
+        <Modal onClose={handleCloseDeleteConfirm}>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete the category "{categoryToDelete?.name}"?</p>
+            <div className="flex justify-end gap-4 mt-6">
+              <button onClick={handleCloseDeleteConfirm} className="px-4 py-2 rounded-md bg-gray-200">
+                Cancel
+              </button>
+              <button onClick={handleDelete} className="px-4 py-2 rounded-md bg-red-600 text-white">
+                Delete
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block mb-1 font-medium">Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleFormChange}
-              className="border p-2 rounded w-full"
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => { setShowModal(false); setEditMode(false); setEditId(null); setForm({ name: '', description: '' }); }}
-              className="px-4 py-2 bg-gray-200 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-              disabled={!form.name}
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };

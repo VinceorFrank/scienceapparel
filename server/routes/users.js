@@ -5,6 +5,8 @@ const User = require('../models/User');
 const { body, validationResult } = require("express-validator");
 const ActivityLog = require('../models/ActivityLog');
 const { generateToken } = require('../middlewares/auth');
+const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
+const mongoose = require('mongoose');
 
 
 // User signup
@@ -162,6 +164,33 @@ router.patch('/:id/role', protect, admin, async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(400).json({ message: 'Error updating user role', error: err.message });
+  }
+});
+
+// GET /api/users - Get all users (admin only)
+router.get('/', protect, admin, async (req, res, next) => {
+  try {
+    const { page, limit, search, role } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (search) {
+      filters.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (role) {
+      filters.role = role;
+    }
+
+    const result = await executePaginatedQuery(User, filters, paginationParams, {
+      select: '-password' // Exclude passwords from the result
+    });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
   }
 });
 

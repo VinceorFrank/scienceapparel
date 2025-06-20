@@ -1,566 +1,125 @@
-import React, { useState, useEffect } from "react";
-import { getProducts, addProduct, updateProduct, deleteProduct } from "../../api/products";
-import { getCategories } from "../../api/categories";
-import axios from "axios";
+import React from 'react';
+import useProductManagement from '../../hooks/useProductManagement';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
-import ProductImageUpload from './components/ProductImageUpload';
 
-// Add a simple error boundary wrapper for the main content
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-  render() {
-    if (this.state.hasError) {
-      return <h2>Something went wrong. Please reload the page.</h2>;
-    }
-    return this.props.children;
-  }
-}
-
-// ProductsAdmin.jsx - Admin page for managing products
-// Uses modular components: ProductTable, ProductForm, ProductImageUpload
-// Handles product CRUD, image upload, import/export, and filtering
 const ProductsAdmin = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [page, setPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    description: 'This is a sample product description that meets the minimum length requirement.',
-    category: '',
-    price: '',
-    stock: '',
-    image: ''
-  });
-  const [image, setImage] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [editModal, setEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ id: null, name: '', category: '', price: '', stock: '', image: '' });
-  const [editImage, setEditImage] = useState('');
-  const [editUploading, setEditUploading] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
-  const pageSize = 4;
-  const [importResults, setImportResults] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [imageError, setImageError] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [validationErrors, setValidationErrors] = useState({});
-
-  // Fetch products from backend
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await getProducts();
-      setProducts(data);
-    } catch (err) {
-      setError("Failed to load products.");
-    }
-    setLoading(false);
-  };
-
-  // Fetch products on mount
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  // Fetch categories from backend on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await getCategories();
-        if (response.success && Array.isArray(response.data)) {
-          setCategories(response.data);
-        } else {
-          console.error('Invalid categories data format:', response);
-          setCategories([]);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Filter and search logic (client-side)
-  const safeProducts = Array.isArray(products) ? products : [];
-  const safeCategories = Array.isArray(categories) ? categories : [];
-  
-  const filtered = safeProducts.filter((p) => {
-    const matchesCategory = category === "All" || String(p.category) === category;
-    const matchesSearch = (p.name || '').toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  // Pagination logic
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  // Form input change handler
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Image upload handler
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setUploading(true);
-    setImageError('');
-    try {
-      const res = await fetch('http://localhost:5000/api/upload?type=image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Image upload failed');
-      }
-      setImage(data.path);
-      setForm((prev) => ({ ...prev, image: data.path }));
-    } catch (err) {
-      setImageError(err.message || 'Image upload failed');
-      alert(err.message || 'Image upload failed');
-    }
-    setUploading(false);
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setValidationErrors({});
-
-    try {
-      const res = await axios.post('http://localhost:5000/api/products', form, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (res.data.success) {
-        // Reset form
-        setForm({
-          name: '',
-          description: 'This is a sample product description that meets the minimum length requirement.',
-          category: '',
-          price: '',
-          stock: '',
-          image: ''
-        });
-        setError('');
-        setValidationErrors({});
-        fetchProducts(); // Refresh product list
-      }
-    } catch (err) {
-      console.error('Error creating product:', err);
-      if (err.response?.data?.error?.validationErrors) {
-        // Convert validation errors array to object for easier display
-        const errors = {};
-        err.response.data.error.validationErrors.forEach(error => {
-          errors[error.field] = error.message;
-        });
-        setValidationErrors(errors);
-      } else {
-        setError(err.response?.data?.error?.message || 'Failed to create product');
-      }
-    }
-  };
-
-  // Edit modal logic
-  const openEditModal = (product) => {
-    setEditForm({ ...product });
-    setEditImage(product.image || '');
-    setEditModal(true);
-  };
-
-  // Edit form input change handler
-  const handleEditFormChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Edit product handler
-  const handleEditProduct = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const updated = await updateProduct(editForm.id, editForm);
-      setProducts((prev) =>
-        prev.map((p) => (p.id === updated.id ? updated : p))
-      );
-      setEditModal(false);
-      fetchProducts();
-    } catch (err) {
-      setError("Failed to update product.");
-    }
-    setLoading(false);
-  };
-
-  // Edit image upload handler
-  const handleEditImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setEditUploading(true);
-    try {
-      const res = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      setEditImage(data.path);
-      setEditForm((prev) => ({ ...prev, image: data.path }));
-    } catch (err) {
-      alert('Image upload failed');
-    }
-    setEditUploading(false);
-  };
-
-  // Delete dialog logic
-  const openDeleteDialog = (product) => {
-    setProductToDelete(product);
-    setDeleteDialog(true);
-  };
-
-  // Delete product handler
-  const handleDeleteProduct = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      await deleteProduct(productToDelete._id);
-      setProducts((prev) => prev.filter((p) => p._id !== productToDelete._id));
-      setDeleteDialog(false);
-      setProductToDelete(null);
-      fetchProducts();
-    } catch (err) {
-      setError("Failed to delete product. Please try again or check your connection.");
-    }
-    setLoading(false);
-  };
-
-  // Export products as CSV
-  const handleExport = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/products/export', {
-        responseType: 'blob',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'products.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      setError("Failed to export products.");
-    }
-  };
-
-  // Import products from CSV
-  const handleImport = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setImporting(true);
-    setError("");
-
-    try {
-      const response = await axios.post('http://localhost:5000/api/products/import', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      setImportResults(response.data.results);
-      
-      // Refresh products list
-      const data = await getProducts();
-      setProducts(data);
-    } catch (err) {
-      setError("Failed to import products.");
-    }
-
-    setImporting(false);
-    e.target.value = null; // Reset file input
-  };
-
-  if (!categories) return <div>Loading categories...</div>;
+  const {
+    products,
+    categories,
+    loading,
+    error,
+    page,
+    totalPages,
+    search,
+    setSearch,
+    category,
+    setCategory,
+    setPage,
+    isModalOpen,
+    isEditMode,
+    productForm,
+    imagePreview,
+    uploading,
+    isDeleteConfirmOpen,
+    productToDelete,
+    handleOpenModal,
+    handleCloseModal,
+    handleFormChange,
+    handleImageUpload,
+    handleSubmit,
+    handleOpenDeleteConfirm,
+    handleCloseDeleteConfirm,
+    handleDelete,
+  } = useProductManagement();
 
   return (
-    <ErrorBoundary>
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">📦 Products Management</h1>
-          <div className="flex gap-2">
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              onClick={handleExport}
-            >
-              Export CSV
-            </button>
-            <label className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer">
-              Import CSV
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleImport}
-                className="hidden"
-              />
-            </label>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              onClick={() => setShowModal(true)}
-            >
-              + Add Product
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-4 mb-4">
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Products Management</h1>
+
+      {/* Toolbar */}
+      <div className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
+        <div className="flex gap-4">
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="p-2 border rounded-md"
           />
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border p-2 rounded"
+            className="p-2 border rounded-md"
           >
-            <option value="All">All</option>
+            <option value="All">All Categories</option>
             {categories.map((cat) => (
               <option key={cat._id} value={cat._id}>{cat.name}</option>
             ))}
           </select>
         </div>
-        {loading && <div className="text-blue-600 mb-4">Loading...</div>}
-        {error && <div className="text-red-600 mb-4">{error}</div>}
-        {importResults && (
-          <div className="mb-4 p-4 bg-gray-100 rounded">
-            <h3 className="font-semibold mb-2">Import Results:</h3>
-            <p>Successfully imported: {importResults.success} products</p>
-            <p>Failed to import: {importResults.failed} products</p>
-            {importResults.errors.length > 0 && (
-              <div className="mt-2">
-                <h4 className="font-semibold">Errors:</h4>
-                <ul className="list-disc list-inside">
-                  {importResults.errors.map((error, index) => (
-                    <li key={index} className="text-red-600">
-                      Row: {error.row} - {error.error}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-        {importing && (
-          <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded">
-            Importing products...
-          </div>
-        )}
-        {categories.length === 0 && !loading && (
-          <div className="text-red-600 mb-4">No categories found. Please add a category first.</div>
-        )}
-        {/* Product Table and Pagination */}
-        <ProductTable
-          products={paginated}
-          categories={categories}
-          page={page}
-          totalPages={totalPages}
-          onEdit={openEditModal}
-          onDelete={openDeleteDialog}
-          onPageChange={setPage}
-        />
-
-        {/* Add Product Modal */}
-        <Modal
-          open={showModal}
-          onClose={() => { setShowModal(false); setForm({ name: '', description: '', category: '', price: '', stock: '', image: '' }); setImage(''); }}
-          title="Add Product"
+        <button
+          onClick={() => handleOpenModal()}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
         >
-          <div>
-            <h2>Add Product</h2>
-            <form onSubmit={handleSubmit}>
-              {error && <div className="text-red-600 mb-4">{error}</div>}
-              
-              <div className="mb-4">
-                <label className="block mb-2">Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className={`border p-2 rounded w-full ${validationErrors.name ? 'border-red-500' : ''}`}
-                />
-                {validationErrors.name && (
-                  <div className="text-red-600 mt-1">{validationErrors.name}</div>
-                )}
-              </div>
+          + Add Product
+        </button>
+      </div>
 
-              <div className="mb-4">
-                <label className="block mb-2">Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className={`border p-2 rounded w-full ${validationErrors.description ? 'border-red-500' : ''}`}
-                  rows="4"
-                />
-                {validationErrors.description && (
-                  <div className="text-red-600 mt-1">{validationErrors.description}</div>
-                )}
-                <div className="text-gray-500 text-sm mt-1">
-                  Description must be between 10 and 2000 characters
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block mb-2">Category</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className={`border p-2 rounded w-full ${validationErrors.category ? 'border-red-500' : ''}`}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map(cat => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
-                {validationErrors.category && (
-                  <div className="text-red-600 mt-1">{validationErrors.category}</div>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <label className="block mb-2">Price</label>
-                <input
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className={`border p-2 rounded w-full ${validationErrors.price ? 'border-red-500' : ''}`}
-                  step="0.01"
-                  min="0"
-                />
-                {validationErrors.price && (
-                  <div className="text-red-600 mt-1">{validationErrors.price}</div>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <label className="block mb-2">Stock</label>
-                <input
-                  type="number"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  className={`border p-2 rounded w-full ${validationErrors.stock ? 'border-red-500' : ''}`}
-                  min="0"
-                />
-                {validationErrors.stock && (
-                  <div className="text-red-600 mt-1">{validationErrors.stock}</div>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <label className="block mb-2">Image</label>
-                <ProductImageUpload
-                  image={form.image}
-                  uploading={uploading}
-                  imageError={imageError}
-                  onImageUpload={handleImageUpload}
-                />
-                {validationErrors.image && (
-                  <div className="text-red-600 mt-1">{validationErrors.image}</div>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                disabled={uploading}
-              >
-                {uploading ? 'Uploading...' : 'Add Product'}
-              </button>
-            </form>
-          </div>
-        </Modal>
-
-        {/* Edit Product Modal */}
-        <Modal
-          open={editModal}
-          onClose={() => setEditModal(false)}
-          title="Edit Product"
-        >
-          <ProductForm
-            form={editForm}
+      {/* Product Table */}
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
+          <ProductTable
+            products={products}
             categories={categories}
-            image={editImage}
-            uploading={editUploading}
-            imageError={imageError}
-            onChange={handleEditFormChange}
-            onImageUpload={handleEditImageUpload}
-            onSubmit={handleEditProduct}
-            onCancel={() => setEditModal(false)}
-            mode="edit"
+            page={page}
+            totalPages={totalPages}
+            onEdit={handleOpenModal}
+            onDelete={handleOpenDeleteConfirm}
+            onPageChange={setPage}
           />
-        </Modal>
-
-        {/* Delete Product Dialog */}
-        {deleteDialog && productToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-              <h2 className="text-xl font-bold mb-4 text-red-600">Delete Product</h2>
-              <p className="mb-6">Are you sure you want to delete <span className="font-semibold">{productToDelete.name}</span>?</p>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDeleteDialog(false)}
-                  className="px-4 py-2 bg-gray-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteProduct}
-                  className="px-4 py-2 bg-red-600 text-white rounded"
-                >
-                  Yes, Delete
-                </button>
-              </div>
-            </div>
-          </div>
         )}
       </div>
-    </ErrorBoundary>
+
+      {/* Add/Edit Modal */}
+      {isModalOpen && (
+        <Modal onClose={handleCloseModal}>
+          <ProductForm
+            form={productForm}
+            isEditMode={isEditMode}
+            imagePreview={imagePreview}
+            uploading={uploading}
+            categories={categories}
+            onChange={handleFormChange}
+            onImageChange={handleImageUpload}
+            onSubmit={handleSubmit}
+          />
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {isDeleteConfirmOpen && (
+        <Modal onClose={handleCloseDeleteConfirm}>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete the product "{productToDelete?.name}"?</p>
+            <div className="flex justify-end gap-4 mt-6">
+              <button onClick={handleCloseDeleteConfirm} className="px-4 py-2 rounded-md bg-gray-200">
+                Cancel
+              </button>
+              <button onClick={handleDelete} className="px-4 py-2 rounded-md bg-red-600 text-white">
+                Delete
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
   );
 };
 

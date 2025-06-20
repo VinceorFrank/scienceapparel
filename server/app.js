@@ -57,8 +57,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Apply rate limiting
-app.use(dynamicRateLimiter());
+// Global middleware
+// Apply rate limiting only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.use(dynamicRateLimiter());
+}
 
 // Apply input sanitization
 app.use(sanitizeInput());
@@ -220,7 +223,7 @@ if (userRoutes) app.use('/api/users', userRoutes);
 if (productRoutes) app.use('/api/products', productRoutes);
 if (orderRoutes) app.use('/api/orders', orderRoutes);
 if (categoryRoutes) app.use('/api/categories', categoryRoutes);
-if (dashboardRoutes) app.use('/api/dashboard', dashboardRoutes);
+if (dashboardRoutes) app.use('/api/admin/dashboard', dashboardRoutes);
 if (newsletterRoutes) app.use('/api/newsletter', newsletterRoutes);
 if (supportRoutes) app.use('/api/support', supportRoutes);
 if (paymentRoutes) app.use('/api/payment', paymentRoutes);

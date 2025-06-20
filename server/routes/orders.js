@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Order = require('../models/Order');
-const { protect } = require('../middlewares/auth'); // ✅ middleware to get logged-in user
+const { protect, admin } = require('../middlewares/auth'); // ✅ middleware to get logged-in user
 const ActivityLog = require('../models/ActivityLog');
+const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
+const mongoose = require('mongoose');
 
 // ✅ POST /api/orders - Create new order (requires token)
 router.post('/', protect, async (req, res) => {
@@ -87,6 +89,59 @@ router.get('/:id', protect, async (req, res) => {
     res.json(order);
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+});
+
+// ✅ GET /api/orders/admin - Get all orders (admin only)
+router.get('/admin', protect, admin, async (req, res, next) => {
+  try {
+    const { page, limit, search, status } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (search) {
+      // Search by order ID or user email/name
+      filters.$or = [
+        { _id: mongoose.Types.ObjectId.isValid(search) ? search : null },
+        { 'user.email': { $regex: search, $options: 'i' } },
+        { 'user.name': { $regex: search, $options: 'i' } }
+      ].filter(cond => cond._id !== null);
+    }
+    if (status) {
+      if (status === 'paid') filters.isPaid = true;
+      if (status === 'unpaid') filters.isPaid = false;
+      if (status === 'shipped') filters.isShipped = true;
+      if (status === 'pending') filters.isShipped = false;
+    }
+
+    const result = await executePaginatedQuery(Order, filters, paginationParams, {
+      populate: { path: 'user', select: 'name email' },
+      sort: { createdAt: -1 }
+    });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ✅ PUT /api/orders/:id/status - Update order status (admin only)
+router.put('/:id/status', protect, admin, async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.isShipped = req.body.isShipped ?? order.isShipped;
+    order.isPaid = req.body.isPaid ?? order.isPaid;
+    // Add other status updates as needed
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (err) {
+    next(err);
   }
 });
 

@@ -1,5 +1,6 @@
 import React from "react";
 import DashboardMetrics from "../../components/DashboardMetrics";
+import SalesChart from "./components/SalesChart";
 
 const AdminDashboard = () => {
   return (
@@ -15,11 +16,8 @@ const AdminDashboard = () => {
 
         {/* Additional sections can be added here */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Placeholder for charts and other components */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Sales Chart</h2>
-            <p className="text-gray-500">Chart component will be added here</p>
-          </div>
+          {/* Sales Chart */}
+          <SalesChart />
           
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Orders</h2>

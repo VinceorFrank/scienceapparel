@@ -72,9 +72,10 @@ const sanitizeEmail = (email) => {
   
   const sanitized = sanitizeString(email).toLowerCase();
   
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(sanitized)) {
+  // Stricter email validation regex
+  const emailRegex = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+
+  if (!emailRegex.test(sanitized) || sanitized.includes('..')) {
     return null;
   }
   
@@ -95,6 +96,22 @@ const sanitizeEmail = (email) => {
     }
   }
   
+  // Check for patterns that are often abused
+  const abusivePatterns = [
+    /\[removed\]/i,
+    /abuse@/i,
+    /postmaster@/i,
+    /webmaster@/i,
+    /noreply@/i
+  ];
+
+  for (const pattern of abusivePatterns) {
+    if (pattern.test(sanitized)) {
+      // Could log this as a warning instead of outright rejecting
+      console.warn(`Potential abusive email pattern detected: ${sanitized}`);
+    }
+  }
+
   return sanitized;
 };
 

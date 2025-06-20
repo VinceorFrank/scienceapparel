@@ -58,10 +58,8 @@ app.use(cors({
 }));
 
 // Global middleware
-// Apply rate limiting only if not in test environment
-if (process.env.NODE_ENV !== 'test') {
-  app.use(dynamicRateLimiter());
-}
+// Apply rate limiting
+app.use(dynamicRateLimiter());
 
 // Apply input sanitization
 app.use(sanitizeInput());
@@ -78,7 +76,7 @@ app.use(performanceMiddleware());
 // Basic middlewares
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(helmet());
+// app.use(helmet()); // Removed - helmet is already applied in securityMiddleware
 // app.use(fileUpload({
 //   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max file size
 //   useTempFiles: true,
@@ -136,6 +134,15 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Test endpoint for request size limiting
+app.post('/api/test-size-limit', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Request size test endpoint',
+    receivedSize: JSON.stringify(req.body).length
   });
 });
 
@@ -219,7 +226,10 @@ app.get('/api/database-indexes', (req, res) => {
 });
 
 // Mount API routes
-if (userRoutes) app.use('/api/users', userRoutes);
+if (userRoutes) {
+  app.use('/api/users', userRoutes);
+  app.use('/api/auth', userRoutes);  // Also mount auth endpoints for better API design
+}
 if (productRoutes) app.use('/api/products', productRoutes);
 if (orderRoutes) app.use('/api/orders', orderRoutes);
 if (categoryRoutes) app.use('/api/categories', categoryRoutes);

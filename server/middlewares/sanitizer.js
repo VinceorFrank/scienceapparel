@@ -277,7 +277,7 @@ const sanitizeBody = (body) => {
         if (url) {
           sanitized[sanitizedKey] = url;
         }
-      } else if (key === 'category' || key === 'user' || key === 'product') {
+      } else if ((key === 'category' || key === 'user' || key === 'product') && typeof value === 'string') {
         const objectId = sanitizeObjectId(value);
         if (objectId) {
           sanitized[sanitizedKey] = objectId;

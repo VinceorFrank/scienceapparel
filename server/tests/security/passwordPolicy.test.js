@@ -310,7 +310,8 @@ describe('Password Policy', () => {
     });
 
     test('should handle very long passwords', () => {
-      const longPassword = 'A'.repeat(126) + '1!'; // Exactly 128 characters
+      // 62 uppercase, 62 lowercase, 1 number, 1 special, 2 more to reach 128
+      const longPassword = 'A'.repeat(62) + 'a'.repeat(62) + '1!' + 'Bb'; // 62+62+2+2=128
       const result = validatePassword(longPassword);
       expect(result.isValid).toBe(true);
     });

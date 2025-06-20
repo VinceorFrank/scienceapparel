@@ -12,9 +12,9 @@ const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '';
     if (imagePath.startsWith('http')) return imagePath;
-    // Remove any leading slashes and use direct backend URL without /api
-    const cleanPath = imagePath.replace(/^\/+/, '');
-    return `http://localhost:5000/uploads/${cleanPath}`;
+    // Handle both old format ('images/file.jpg') and new format ('file.jpg')
+    const cleanPath = imagePath.startsWith('images/') ? imagePath.split('/')[1] : imagePath;
+    return `http://localhost:5000/uploads/images/${cleanPath}`;
   };
 
   const imageUrl = getImageUrl(image);
@@ -35,6 +35,7 @@ const ProductImageUpload = ({ image, uploading, imageError, onImageUpload }) => 
             src={imageUrl}
             alt="Preview"
             className="h-20 rounded"
+            crossOrigin="anonymous"
             onError={(e) => {
               console.error('Image load error:', e);
               e.target.src = '/placeholder.png';

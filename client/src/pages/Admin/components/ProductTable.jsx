@@ -13,11 +13,11 @@ import api from '../../../api/config';
 const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete, onPageChange }) => {
   // Helper to get the correct image URL
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
+    if (!imagePath) return '/placeholder.png'; // Use placeholder if no image
     if (imagePath.startsWith('http')) return imagePath;
-    // Remove any leading slashes and use direct backend URL without /api
-    const cleanPath = imagePath.replace(/^\/+/, '');
-    return `http://localhost:5000/uploads/${cleanPath}`;
+    // Handle both old format ('images/file.jpg') and new format ('file.jpg')
+    const cleanPath = imagePath.startsWith('images/') ? imagePath.split('/')[1] : imagePath;
+    return `http://localhost:5000/uploads/images/${cleanPath}`;
   };
 
   return (
@@ -45,6 +45,7 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                       src={getImageUrl(product.image)}
                       alt={product.name ? `Product image for ${product.name}` : 'Product image'}
                       className="h-12 w-12 object-cover rounded"
+                      crossOrigin="anonymous"
                       onError={(e) => {
                         console.error('Image load error:', e);
                         e.target.src = '/placeholder.png';
@@ -57,6 +58,8 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                 </td>
                 <td className="p-2">{product.name}</td>
                 <td className="p-2">
+                  {/* Debug: show actual category value */}
+                  <span style={{fontSize: '10px', color: '#888'}}>({String(product.category)})</span>
                   {categories.find((cat) => cat._id === String(product.category))?.name || "-"}
                 </td>
                 <td className="p-2">${product.price}</td>

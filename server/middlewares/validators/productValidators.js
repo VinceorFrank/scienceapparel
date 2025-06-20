@@ -42,8 +42,8 @@ const validateProductCreate = [
           throw new Error('Invalid image URL format');
         }
       } else {
-        // File path validation
-        const pathRegex = /^(images|reviews)\/[\w-]+\.(jpg|jpeg|png)$/i;
+        // File path validation: matches either 'filename.jpg' or 'images/filename.jpg'
+        const pathRegex = /^(?:images\/)?[\w.-]+\.(?:jpg|jpeg|png|gif|webp)$/i;
         if (!pathRegex.test(value)) {
           throw new Error('Invalid image path format');
         }
@@ -128,8 +128,8 @@ const validateProductUpdate = [
           throw new Error('Invalid image URL format');
         }
       } else {
-        // File path validation
-        const pathRegex = /^(images|reviews)\/[\w-]+\.(jpg|jpeg|png)$/i;
+        // File path validation: matches either 'filename.jpg' or 'images/filename.jpg'
+        const pathRegex = /^(?:images\/)?[\w.-]+\.(?:jpg|jpeg|png|gif|webp)$/i;
         if (!pathRegex.test(value)) {
           throw new Error('Invalid image path format');
         }

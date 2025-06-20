@@ -42,21 +42,12 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 
 // 📤 POST /api/upload
-router.post('/', (req, res) => {
-  upload.single('image')(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ message: err.message });
-    } else if (err) {
-      return res.status(400).json({ message: err.message });
-    } else if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded or invalid file type.' });
-    }
-    // Always return the path as 'images/filename.jpg' for DB storage
-    res.status(200).json({
-      message: 'Image uploaded',
-      path: `images/${req.file.filename}`,
-    });
-  });
+router.post('/', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No file uploaded' });
+  }
+  // Return ONLY the filename, not the folder path
+  res.json({ success: true, path: req.file.filename });
 });
 
 module.exports = router;

@@ -5,6 +5,7 @@ import axios from "axios";
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
+import ProductImageUpload from './components/ProductImageUpload';
 
 // Add a simple error boundary wrapper for the main content
 class ErrorBoundary extends React.Component {
@@ -57,21 +58,22 @@ const ProductsAdmin = () => {
   const [categories, setCategories] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // Fetch products from backend on mount
+  // Fetch products from backend
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (err) {
+      setError("Failed to load products.");
+    }
+    setLoading(false);
+  };
+
+  // Fetch products on mount
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        // You can pass filters/search/page as params if your backend supports it
-        const data = await getProducts();
-        setProducts(data);
-      } catch (err) {
-        setError("Failed to load products.");
-      }
-      setLoading(false);
-    };
-    fetchData();
+    fetchProducts();
   }, []);
 
   // Fetch categories from backend on mount
@@ -207,6 +209,7 @@ const ProductsAdmin = () => {
         prev.map((p) => (p.id === updated.id ? updated : p))
       );
       setEditModal(false);
+      fetchProducts();
     } catch (err) {
       setError("Failed to update product.");
     }
@@ -249,6 +252,7 @@ const ProductsAdmin = () => {
       setProducts((prev) => prev.filter((p) => p._id !== productToDelete._id));
       setDeleteDialog(false);
       setProductToDelete(null);
+      fetchProducts();
     } catch (err) {
       setError("Failed to delete product. Please try again or check your connection.");
     }

@@ -118,8 +118,12 @@ process.on('SIGINT', async () => {
   }
 });
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static files with CORS headers for images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
+    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+  }
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

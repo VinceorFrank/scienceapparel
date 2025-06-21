@@ -58,9 +58,8 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                 </td>
                 <td className="p-2">{product.name}</td>
                 <td className="p-2">
-                  {/* Debug: show actual category value */}
-                  <span style={{fontSize: '10px', color: '#888'}}>({String(product.category)})</span>
-                  {categories.find((cat) => cat._id === String(product.category))?.name || "-"}
+                  {/* ✅ Directly use the populated category name */}
+                  {product.category?.name || '-'}
                 </td>
                 <td className="p-2">${product.price}</td>
                 <td className="p-2">{product.stock}</td>

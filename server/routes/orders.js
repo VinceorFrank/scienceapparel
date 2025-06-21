@@ -72,6 +72,59 @@ router.get('/myorders', protect, async (req, res) => {
   }
 });
 
+// ✅ GET /api/orders/admin - Get all orders (admin only)
+router.get('/admin', protect, admin, async (req, res, next) => {
+  try {
+    const { page, limit, search, status } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (search) {
+      const isObjectId = mongoose.Types.ObjectId.isValid(search);
+      
+      // Find users that match the search query (if it's not a valid ObjectId)
+      let userIds = [];
+      if (!isObjectId) {
+        const users = await mongoose.model('User').find({
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+          ]
+        }).select('_id');
+        userIds = users.map(user => user._id);
+      }
+    
+      filters.$or = [
+        // Case 1: Search term is a valid Order ID
+        ...(isObjectId ? [{ _id: search }] : []),
+        // Case 2: Search term matches user IDs
+        ...(userIds.length > 0 ? [{ user: { $in: userIds } }] : [])
+      ];
+    
+      // If the search term didn't match anything, prevent returning all orders
+      if (filters.$or.length === 0) {
+        // This creates a query that will find no documents
+        filters._id = new mongoose.Types.ObjectId(); 
+      }
+    }
+    if (status && status !== 'all') {
+      if (status === 'paid') filters.isPaid = true;
+      if (status === 'unpaid') filters.isPaid = false;
+      if (status === 'shipped') filters.isShipped = true;
+      if (status === 'pending') filters.isShipped = false;
+    }
+
+    const result = await executePaginatedQuery(Order, filters, paginationParams, {
+      populate: { path: 'user', select: 'name email' },
+      sort: { createdAt: -1 }
+    });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ✅ GET /api/orders/:id - View specific order if owned by customer
 router.get('/:id', protect, async (req, res) => {
   try {
@@ -89,39 +142,6 @@ router.get('/:id', protect, async (req, res) => {
     res.json(order);
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
-  }
-});
-
-// ✅ GET /api/orders/admin - Get all orders (admin only)
-router.get('/admin', protect, admin, async (req, res, next) => {
-  try {
-    const { page, limit, search, status } = req.query;
-    const paginationParams = parsePaginationParams({ page, limit });
-
-    const filters = {};
-    if (search) {
-      // Search by order ID or user email/name
-      filters.$or = [
-        { _id: mongoose.Types.ObjectId.isValid(search) ? search : null },
-        { 'user.email': { $regex: search, $options: 'i' } },
-        { 'user.name': { $regex: search, $options: 'i' } }
-      ].filter(cond => cond._id !== null);
-    }
-    if (status) {
-      if (status === 'paid') filters.isPaid = true;
-      if (status === 'unpaid') filters.isPaid = false;
-      if (status === 'shipped') filters.isShipped = true;
-      if (status === 'pending') filters.isShipped = false;
-    }
-
-    const result = await executePaginatedQuery(Order, filters, paginationParams, {
-      populate: { path: 'user', select: 'name email' },
-      sort: { createdAt: -1 }
-    });
-
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
-  } catch (err) {
-    next(err);
   }
 });
 

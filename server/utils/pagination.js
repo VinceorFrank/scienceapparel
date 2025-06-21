@@ -132,8 +132,8 @@ const executePaginatedQuery = async (model, filter, paginationParams, options = 
 
   // Execute count and data queries in parallel
   const [total, data] = await Promise.all([
-    model.countDocuments(filter),
-    applyPagination(query, paginationParams)
+    model.countDocuments(filter).exec(),
+    applyPagination(query.clone(), paginationParams).exec()
   ]);
 
   return {

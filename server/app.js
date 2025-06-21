@@ -49,6 +49,13 @@ const app = express();
 // Apply security middleware first
 app.use(securityMiddleware());
 
+// Serve static files with CORS headers for images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path) => {
+    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+  }
+}));
+
 // Configure CORS
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -118,13 +125,6 @@ process.on('SIGINT', async () => {
     process.exit(1);
   }
 });
-
-// Serve static files with CORS headers for images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  setHeaders: (res, path) => {
-    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
-  }
-}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

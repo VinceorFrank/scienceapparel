@@ -4,25 +4,46 @@ import ProductImageUpload from './ProductImageUpload';
 // ProductForm.jsx - Handles add/edit product form logic and validation
 // Props:
 //   form: product form state
+//   setForm: function to update product form state
 //   categories: array of category objects for dropdown
 //   image: image file name or path
 //   uploading: boolean for upload state
 //   imageError: error message for image upload
-//   onChange: handler for form input changes
-//   onImageUpload: handler for image file input
-//   onSubmit: handler for form submission
+//   onSave: handler for form submission
 //   onCancel: handler for cancel button
-//   mode: 'add' or 'edit' (form mode)
-const ProductForm = ({ form, categories, image, uploading, imageError, onChange, onImageUpload, onSubmit, onCancel, mode }) => {
+//   product: existing product object (for edit mode)
+const ProductForm = ({ form, setForm, categories, image, uploading, imageError, onSave, onCancel, product }) => {
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+    }));
+  };
+
+  const handleImageUpload = (imagePath) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      image: imagePath,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(form);
+  };
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-xl font-semibold">{product ? 'Edit Product' : 'Add New Product'}</h2>
       <div>
         <label className="block mb-1 font-medium">Name</label>
         <input
           type="text"
           name="name"
           value={form.name}
-          onChange={onChange}
+          onChange={handleChange}
           className="border p-2 rounded w-full"
           required
         />
@@ -32,7 +53,7 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
         <textarea
           name="description"
           value={form.description}
-          onChange={onChange}
+          onChange={handleChange}
           className="border p-2 rounded w-full"
           required
         />
@@ -42,7 +63,7 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
         <select
           name="category"
           value={form.category}
-          onChange={onChange}
+          onChange={handleChange}
           className="border p-2 rounded w-full"
           required
         >
@@ -58,7 +79,7 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
           type="number"
           name="price"
           value={form.price}
-          onChange={onChange}
+          onChange={handleChange}
           className="border p-2 rounded w-full"
           min="0"
           step="0.01"
@@ -71,7 +92,7 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
           type="number"
           name="stock"
           value={form.stock}
-          onChange={onChange}
+          onChange={handleChange}
           className="border p-2 rounded w-full"
           min="0"
           required
@@ -83,7 +104,7 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
           image={image}
           uploading={uploading}
           imageError={imageError}
-          onImageUpload={onImageUpload}
+          onImageUpload={handleImageUpload}
         />
       </div>
       <div className="flex justify-end gap-2">
@@ -97,9 +118,8 @@ const ProductForm = ({ form, categories, image, uploading, imageError, onChange,
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded"
-          disabled={!form.name || !form.description || !form.price || !form.stock || !form.category}
         >
-          {mode === 'edit' ? 'Save' : 'Add'}
+          {product ? 'Save Changes' : 'Create Product'}
         </button>
       </div>
     </form>

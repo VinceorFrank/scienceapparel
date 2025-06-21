@@ -1,16 +1,17 @@
 import axios from "axios";
+import api from './config';
 
 const API_BASE = "http://localhost:5000/api";
 
 // Get all products (with optional filters, pagination)
 export const getProducts = async (params = {}) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(`${API_BASE}/products`, {
-    headers: { Authorization: `Bearer ${token}` },
-    params,
-  });
-  // Robust: handle different backend response shapes
-  return res.data.products || res.data.data || res.data || [];
+  try {
+    const res = await api.get('/products', { params });
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch products:', err.response ? err.response.data : err.message);
+    throw err;
+  }
 };
 
 // Add a new product
@@ -44,4 +45,26 @@ export async function fetchProducts() {
   const res = await fetch(import.meta.env.VITE_API_URL + "/products");
   if (!res.ok) throw new Error("Erreur lors du chargement des produits");
   return res.json();
-} 
+}
+
+export const getProductById = async (id) => {
+  try {
+    const res = await axios.get(`${API_BASE}/products/${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch product:', err.response ? err.response.data : err.message);
+    throw err;
+  }
+};
+
+export const getAdminProducts = async (params = {}) => {
+  try {
+    const res = await api.get('/products/admin', { params });
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch admin products:', err.response ? err.response.data : err.message);
+    throw err;
+  }
+}; 

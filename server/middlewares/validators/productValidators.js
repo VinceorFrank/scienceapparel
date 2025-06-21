@@ -190,7 +190,18 @@ const validateProductQuery = [
 
   query('category')
     .optional()
-    .isMongoId().withMessage('Invalid category ID format'),
+    .custom((value) => {
+      // If value is empty or undefined, skip validation
+      if (!value || value.trim() === '') {
+        return true;
+      }
+      // If value exists, validate it's a MongoDB ID
+      const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
+      if (!mongoIdRegex.test(value)) {
+        throw new Error('Invalid category ID format');
+      }
+      return true;
+    }),
 
   query('minPrice')
     .optional()

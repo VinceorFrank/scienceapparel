@@ -23,6 +23,7 @@ const Order = require('../models/Order');
 const fs = require('fs');
 const path = require('path');
 const ActivityLog = require('../models/ActivityLog');
+const mongoose = require('mongoose');
 
 // @desc    Get all products with advanced pagination and filtering
 // @route   GET /api/products
@@ -84,6 +85,38 @@ router.get('/', validateProductQuery, validateRequest, async (req, res, next) =>
       paginationParams.limit,
       result.total
     ));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// @desc    Get all products for the admin panel
+// @route   GET /api/products/admin
+// @access  Private/Admin
+router.get('/admin', protect, admin, async (req, res, next) => {
+  try {
+    const { page, limit, search, category } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (search) {
+      filters.name = { $regex: search, $options: 'i' };
+    }
+    if (category && mongoose.Types.ObjectId.isValid(category)) {
+      filters.category = category;
+    }
+
+    const result = await executePaginatedQuery(
+      Product,
+      filters,
+      paginationParams,
+      {
+        populate: 'category',
+        sort: { createdAt: -1 }
+      }
+    );
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
   } catch (err) {
     next(err);
   }

@@ -13,11 +13,18 @@ import api from '../../../api/config';
 const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete, onPageChange }) => {
   // Helper to get the correct image URL
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return '/placeholder.png'; // Use placeholder if no image
-    if (imagePath.startsWith('http')) return imagePath;
-    // Handle both old format ('images/file.jpg') and new format ('file.jpg')
-    const cleanPath = imagePath.startsWith('images/') ? imagePath.split('/')[1] : imagePath;
-    return `http://localhost:5000/uploads/images/${cleanPath}`;
+    // If no path, or path is just the directory, use placeholder
+    if (!imagePath || imagePath === '/uploads/images/') {
+      return '/placeholder.png';
+    }
+    // If it's already a full URL, use it
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    // Construct URL from the API's base URL (e.g., http://localhost:5000)
+    const serverBaseUrl = new URL(api.defaults.baseURL).origin;
+    
+    return `${serverBaseUrl}${imagePath}`;
   };
 
   return (

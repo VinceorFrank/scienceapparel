@@ -1,11 +1,19 @@
-import axios from "axios";
+import api from './config';
 
-const API_BASE = "http://localhost:5000/api";
+export const getActivityLogs = async (params = {}) => {
+  try {
+    const res = await api.get('/admin/activity-logs', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch activity logs');
+  }
+};
 
-export const getActivityLogs = async () => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(`${API_BASE}/admin/dashboard/activity-logs`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export const createActivityLog = async (logData) => {
+  try {
+    const res = await api.post('/admin/activity-logs', logData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to create activity log');
+  }
 }; 

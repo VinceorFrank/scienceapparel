@@ -33,24 +33,26 @@ const validateProductCreate = [
   body('image')
     .optional()
     .custom(value => {
-      // Accept URLs or file paths
       if (!value) return true;
-      if (value.startsWith('http://') || value.startsWith('https://')) {
-        // URL validation
-        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Invalid image URL format');
-        }
-      } else {
-        // File path validation: matches either 'filename.jpg' or 'images/filename.jpg'
-        const pathRegex = /^(?:images\/)?[\w.-]+\.(?:jpg|jpeg|png|gif|webp)$/i;
-        if (!pathRegex.test(value)) {
-          throw new Error('Invalid image path format');
-        }
+
+      // Normalize and trim
+      value = value.trim();
+
+      const isUrl = value.startsWith('http://') || value.startsWith('https://');
+      if (isUrl) {
+        // You might want to add URL validation here if needed
+        return true;
       }
+
+      // RELAX the regex to allow "uploads/images/filename.ext" and similar paths
+      const relaxedRegex = /^[\w\-./]+\.(jpg|jpeg|png|gif|webp)$/i;
+      if (!relaxedRegex.test(value)) {
+        throw new Error('Invalid image path format. Path must be valid and end with .jpg, .jpeg, .png, .gif, or .webp');
+      }
+
       return true;
     })
-    .isLength({ max: 500 }).withMessage('Image URL/path is too long'),
+    .isLength({ max: 500 }).withMessage('Image path is too long'),
 
   body('featured')
     .optional()
@@ -119,24 +121,26 @@ const validateProductUpdate = [
   body('image')
     .optional()
     .custom(value => {
-      // Accept URLs or file paths
       if (!value) return true;
-      if (value.startsWith('http://') || value.startsWith('https://')) {
-        // URL validation
-        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-        if (!urlRegex.test(value)) {
-          throw new Error('Invalid image URL format');
-        }
-      } else {
-        // File path validation: matches either 'filename.jpg' or 'images/filename.jpg'
-        const pathRegex = /^(?:images\/)?[\w.-]+\.(?:jpg|jpeg|png|gif|webp)$/i;
-        if (!pathRegex.test(value)) {
-          throw new Error('Invalid image path format');
-        }
+
+      // Normalize and trim
+      value = value.trim();
+
+      const isUrl = value.startsWith('http://') || value.startsWith('https://');
+      if (isUrl) {
+        // You might want to add URL validation here if needed
+        return true;
       }
+
+      // RELAX the regex to allow "uploads/images/filename.ext" and similar paths
+      const relaxedRegex = /^[\w\-./]+\.(jpg|jpeg|png|gif|webp)$/i;
+      if (!relaxedRegex.test(value)) {
+        throw new Error('Invalid image path format. Path must be valid and end with .jpg, .jpeg, .png, .gif, or .webp');
+      }
+
       return true;
     })
-    .isLength({ max: 500 }).withMessage('Image URL/path is too long'),
+    .isLength({ max: 500 }).withMessage('Image path is too long'),
 
   body('featured')
     .optional()

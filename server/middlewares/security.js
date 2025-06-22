@@ -31,8 +31,8 @@ const configureSecurityHeaders = () => {
     // Cross-Origin Opener Policy
     crossOriginOpenerPolicy: false,
     
-    // Cross-Origin Resource Policy
-    crossOriginResourcePolicy: false,
+    // Cross-Origin Resource Policy - Set to 'cross-origin' to allow images to be loaded from the frontend
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
     
     // DNS Prefetch Control
     dnsPrefetchControl: false,

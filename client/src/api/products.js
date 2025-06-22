@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from './config';
 
 const API_BASE = "http://localhost:5000/api";
@@ -16,42 +15,50 @@ export const getProducts = async (params = {}) => {
 
 // Add a new product
 export const addProduct = async (product) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.post(`${API_BASE}/products`, product, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.post('/products', product);
+    return res.data;
+  } catch (err) {
+    console.error('Failed to add product:', err.response ? err.response.data : err.message);
+    throw err;
+  }
 };
 
 // Update a product
 export const updateProduct = async (id, product) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.put(`${API_BASE}/products/${id}`, product, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.put(`/products/${id}`, product);
+    return res.data;
+  } catch (err) {
+    console.error('Failed to update product:', err.response ? err.response.data : err.message);
+    throw err;
+  }
 };
 
 // Delete a product
 export const deleteProduct = async (id) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.delete(`${API_BASE}/products/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.delete(`/products/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error('Failed to delete product:', err.response ? err.response.data : err.message);
+    throw err;
+  }
 };
 
 export async function fetchProducts() {
-  const res = await fetch(import.meta.env.VITE_API_URL + "/products");
-  if (!res.ok) throw new Error("Erreur lors du chargement des produits");
-  return res.json();
+  try {
+    const res = await api.get('/products');
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch products:', err.response ? err.response.data : err.message);
+    throw new Error("Erreur lors du chargement des produits");
+  }
 }
 
 export const getProductById = async (id) => {
   try {
-    const res = await axios.get(`${API_BASE}/products/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    const res = await api.get(`/products/${id}`);
     return res.data;
   } catch (err) {
     console.error('Failed to fetch product:', err.response ? err.response.data : err.message);

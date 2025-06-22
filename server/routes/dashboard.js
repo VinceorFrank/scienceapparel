@@ -42,7 +42,7 @@ router.get('/metrics', protect, admin, async (req, res) => {
     const pendingOrders = await Order.countDocuments({ isPaid: false });
 
     // Get low stock items (less than 10 items)
-    const lowStockItems = await Product.countDocuments({ countInStock: { $lt: 10 } });
+    const lowStockItems = await Product.countDocuments({ stock: { $lt: 10 } });
 
     // Get recent registrations (last 7 days)
     const recentRegistrations = await User.countDocuments({
@@ -144,9 +144,9 @@ router.get('/recent-orders', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.get('/stock-alerts', protect, admin, async (req, res) => {
   try {
-    const lowStockProducts = await Product.find({ countInStock: { $lt: 10 } })
-      .select('name countInStock price')
-      .sort({ countInStock: 1 });
+    const lowStockProducts = await Product.find({ stock: { $lt: 10 } })
+      .select('name stock price')
+      .sort({ stock: 1 });
 
     res.json(lowStockProducts);
   } catch (error) {

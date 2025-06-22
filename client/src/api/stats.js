@@ -1,15 +1,10 @@
-import axios from "axios";
+import api from './config';
 
-const API_BASE = "http://localhost:5000/api";
-
-export const fetchProductStats = async () => {
-  const token = localStorage.getItem("token");
-
-  const res = await axios.get(`${API_BASE}/products/stats`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return res.data;
+export const getStats = async () => {
+  try {
+    const res = await api.get('/stats');
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch stats');
+  }
 };

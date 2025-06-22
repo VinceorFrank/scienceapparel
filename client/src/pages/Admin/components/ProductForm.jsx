@@ -3,17 +3,20 @@ import ProductImageUpload from './ProductImageUpload';
 
 // ProductForm.jsx - Handles add/edit product form logic and validation
 // Props:
-//   form: product form state
-//   setForm: function to update product form state
+//   form: current form state
+//   setForm: function to update form state
 //   categories: array of category objects for dropdown
-//   image: image file name or path
-//   uploading: boolean for upload state
-//   imageError: error message for image upload
 //   onSave: handler for form submission
 //   onCancel: handler for cancel button
-//   product: existing product object (for edit mode)
-const ProductForm = ({ form, setForm, categories, image, uploading, imageError, onSave, onCancel, product }) => {
-  
+//   editingProduct: boolean for edit mode
+const ProductForm = ({
+  form,
+  setForm,
+  categories,
+  onSave,
+  onCancel,
+  editingProduct,
+}) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prevForm) => ({
@@ -31,12 +34,18 @@ const ProductForm = ({ form, setForm, categories, image, uploading, imageError, 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form);
+    // Convert price and stock to numbers before saving
+    const dataToSave = {
+      ...form,
+      price: parseFloat(form.price),
+      stock: parseInt(form.stock, 10),
+    };
+    onSave(dataToSave);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-semibold">{product ? 'Edit Product' : 'Add New Product'}</h2>
+      <h2 className="text-xl font-semibold">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
       <div>
         <label className="block mb-1 font-medium">Name</label>
         <input
@@ -101,9 +110,7 @@ const ProductForm = ({ form, setForm, categories, image, uploading, imageError, 
       <div>
         <label className="block mb-1 font-medium">Image</label>
         <ProductImageUpload
-          image={image}
-          uploading={uploading}
-          imageError={imageError}
+          initialImage={form.image}
           onImageUpload={handleImageUpload}
         />
       </div>
@@ -119,7 +126,7 @@ const ProductForm = ({ form, setForm, categories, image, uploading, imageError, 
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
-          {product ? 'Save Changes' : 'Create Product'}
+          {editingProduct ? 'Save Changes' : 'Create Product'}
         </button>
       </div>
     </form>

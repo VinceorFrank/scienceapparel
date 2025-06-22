@@ -1,14 +1,8 @@
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:5000/api';
+import api from './config';
 
 export const getCategories = async (params = {}) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.get(`${API_BASE}/categories`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    });
+    const res = await api.get('/categories', { params });
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to fetch categories');
@@ -16,11 +10,8 @@ export const getCategories = async (params = {}) => {
 };
 
 export const addCategory = async (category) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.post(`${API_BASE}/categories`, category, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await api.post('/categories', category);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to add category');
@@ -28,11 +19,8 @@ export const addCategory = async (category) => {
 };
 
 export const updateCategory = async (id, category) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.put(`${API_BASE}/categories/${id}`, category, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await api.put(`/categories/${id}`, category);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to update category');
@@ -40,11 +28,8 @@ export const updateCategory = async (id, category) => {
 };
 
 export const deleteCategory = async (id) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.delete(`${API_BASE}/categories/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await api.delete(`/categories/${id}`);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to delete category');

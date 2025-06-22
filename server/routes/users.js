@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require("express-validator");
 const ActivityLog = require('../models/ActivityLog');
-const { generateToken } = require('../middlewares/auth');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
-const mongoose = require('mongoose');
-
+const { generateToken, protect, admin } = require('../middlewares/auth');
 
 // User signup
 router.post(
@@ -18,30 +15,33 @@ router.post(
     body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
   ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { name, email, password } = req.body;
     try {
-      // ✅ Your original logic stays
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, email, password } = req.body;
+      
+      // Check if user already exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
       }
 
+      // Create new user
       const newUser = new User({ name, email, password });
       await newUser.save();
 
       res.status(201).json({ message: 'User created successfully' });
     } catch (err) {
+      console.error('Signup error:', err);
       res.status(500).json({ message: 'Server error', error: err.message });
     }
   }
 );
 
-// User login
+// User login - Simplified and more reliable
 router.post(
   '/login',
   [
@@ -49,14 +49,14 @@ router.post(
     body("password").notEmpty().withMessage("Password is required"),
   ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { email, password } = req.body;
-
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, password } = req.body;
+
       // Find user
       const user = await User.findOne({ email });
       if (!user) {
@@ -69,15 +69,16 @@ router.post(
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Generate JWT token using the auth middleware's function
-      const token = generateToken({
+      // Generate token
+      const tokenPayload = {
         id: user._id,
         email: user.email,
         isAdmin: user.isAdmin,
         role: user.role
-      });
+      };
+      const token = generateToken(tokenPayload);
 
-      // Send response with complete user info
+      // Send response
       res.status(200).json({
         token,
         user: {
@@ -88,14 +89,13 @@ router.post(
           role: user.role
         }
       });
+
     } catch (err) {
       console.error('Login error:', err);
       res.status(500).json({ message: 'Server error', error: err.message });
     }
   }
 );
-
-const { protect, admin } = require('../middlewares/auth'); // ✅ Make sure this is at the top of your file (if not already)
 
 // Get user profile (authenticated)
 router.get('/profile', protect, async (req, res) => {
@@ -110,19 +110,19 @@ router.get('/profile', protect, async (req, res) => {
       isAdmin: user.isAdmin || false
     });
   } catch (err) {
+    console.error('Profile error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
 // Update user profile (authenticated, with password change logic)
 router.put('/profile', protect, async (req, res) => {
-  const { name, currentPassword, newPassword } = req.body;
-
   try {
+    const { name, currentPassword, newPassword } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     if (name) user.name = name;
@@ -131,7 +131,7 @@ router.put('/profile', protect, async (req, res) => {
       // Check if current password is correct
       const isMatch = await user.matchPassword(currentPassword);
       if (!isMatch) {
-        return res.status(400).json({ message: "Mot de passe actuel incorrect" });
+        return res.status(400).json({ message: "Current password is incorrect" });
       }
 
       // Set new password
@@ -141,7 +141,7 @@ router.put('/profile', protect, async (req, res) => {
     await user.save();
 
     res.json({
-      message: "Profil mis à jour avec succès",
+      message: "Profile updated successfully",
       user: {
         id: user._id,
         name: user.name,
@@ -149,20 +149,29 @@ router.put('/profile', protect, async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ message: "Erreur serveur", error: err.message });
+    console.error('Profile update error:', err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
 // Update user role (admin only)
 router.patch('/:id/role', protect, admin, async (req, res) => {
-  const { role } = req.body;
-  if (!role) return res.status(400).json({ message: 'Role is required' });
   try {
+    const { role } = req.body;
+    if (!role) return res.status(400).json({ message: 'Role is required' });
+    
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true, runValidators: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
-    await ActivityLog.create({ user: req.user._id, action: 'update_user_role', description: `Changed role of user '${user.email}' to '${role}'` });
+    
+    await ActivityLog.create({ 
+      user: req.user._id, 
+      action: 'update_user_role', 
+      description: `Changed role of user '${user.email}' to '${role}'` 
+    });
+    
     res.json(user);
   } catch (err) {
+    console.error('Role update error:', err);
     res.status(400).json({ message: 'Error updating user role', error: err.message });
   }
 });

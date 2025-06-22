@@ -1,30 +1,51 @@
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:5000/api';
+import api from './config';
 
 // Fetch all orders for admin (with pagination, search, etc.)
 export const getAdminOrders = async (params = {}) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.get(`${API_BASE}/orders/admin`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    });
+    const res = await api.get('/orders/admin', { params });
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to fetch orders');
   }
 };
 
+// Get customer's own orders
+export const getMyOrders = async () => {
+  try {
+    const res = await api.get('/orders/myorders');
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch orders');
+  }
+};
+
+// Get single order by ID
+export const getOrderById = async (id) => {
+  try {
+    const res = await api.get(`/orders/${id}`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch order');
+  }
+};
+
 // Update an order's status (e.g., mark as shipped)
 export const updateOrderStatus = async (orderId, status) => {
-  const token = localStorage.getItem('token');
   try {
-    const res = await axios.put(`${API_BASE}/orders/${orderId}/status`, status, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await api.put(`/orders/${orderId}/status`, status);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to update order status');
+  }
+};
+
+// Create a new order
+export const createOrder = async (orderData) => {
+  try {
+    const res = await api.post('/orders', orderData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to create order');
   }
 }; 

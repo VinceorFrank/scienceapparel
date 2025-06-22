@@ -46,8 +46,9 @@ router.post('/', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });
   }
-  // Return ONLY the filename, not the folder path
-  res.json({ success: true, path: req.file.filename });
+  // Return a web-friendly, absolute path
+  const filePath = `/${req.file.path.replace(/\\/g, '/')}`; // Normalize for web and ensure leading slash
+  res.json({ success: true, filePath: filePath });
 });
 
 module.exports = router;

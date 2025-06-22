@@ -257,8 +257,9 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
       description: `Updated product '${updatedProduct.name}'` 
     });
 
-    // Invalidate related cache
-    invalidateEntityCache('products', req.params.id);
+    // Invalidate caches
+    invalidateEntityCache('products');
+    cache.del(`product:${req.params.id}`);
 
     res.json({
       success: true,
@@ -275,37 +276,52 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
 // @access  Private/Admin
 router.delete('/:id', protect, admin, validateProductId, validateRequest, async (req, res, next) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-    
-    if (!deletedProduct) {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
       throw new NotFoundError('Product not found');
     }
 
-    // Delete image file if it exists
-    if (deletedProduct.image) {
-      const imagePath = path.join(__dirname, '../uploads', deletedProduct.image);
-      fs.unlink(imagePath, (err) => {
-        // Ignore error if file does not exist
-        if (err && err.code !== 'ENOENT') {
-          console.error('Error deleting image file:', err);
-        }
+    // Check if the product is in any active orders
+    const activeOrders = await Order.find({ 'orderItems.product': product._id });
+
+    if (activeOrders.length > 0) {
+      // Instead of deleting, archive the product
+      product.archived = true;
+      await product.save();
+      
+      return res.json({ 
+        success: true,
+        message: 'Product is in active orders and has been archived instead of deleted.',
+        data: { archived: true }
       });
     }
+
+    // If no active orders, delete the product and its image
+    if (product.image && !product.image.startsWith('http')) {
+      const imagePath = path.join(__dirname, '..', product.image);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+    
+    await product.deleteOne();
 
     // Log the activity
     await ActivityLog.create({ 
       user: req.user._id, 
       action: 'delete_product', 
-      description: `Deleted product '${deletedProduct.name}'` 
+      description: `Deleted product '${product.name}'` 
     });
 
-    // Invalidate related cache
-    invalidateEntityCache('products', req.params.id);
+    // Invalidate caches
+    invalidateEntityCache('products');
+    cache.del(`product:${req.params.id}`);
 
     res.json({
       success: true,
       message: 'Product deleted successfully',
-      data: deletedProduct
+      data: { id: req.params.id }
     });
   } catch (err) {
     next(err);

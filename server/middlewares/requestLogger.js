@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const morgan = require('morgan');
 
 class RequestLogger {
   constructor() {
@@ -329,8 +330,12 @@ setInterval(() => {
   requestLogger.cleanupOldLogs();
 }, 24 * 60 * 60 * 1000);
 
+// Use morgan for request logging in development
+const morganRequestLogger = morgan('dev');
+
 module.exports = {
   requestLogger,
   logRequests,
-  logSecurityEvent
+  logSecurityEvent,
+  morganRequestLogger
 }; 

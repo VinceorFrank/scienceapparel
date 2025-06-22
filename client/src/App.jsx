@@ -7,6 +7,7 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import OrderTracking from "./pages/OrderTracking";
+import OrderDetail from "./pages/OrderDetail";
 import Account from "./pages/Account";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
@@ -59,9 +60,10 @@ const App = () => {
           <Route path="/order-tracking" element={<OrderTracking />} />
 
           <Route element={<RequireCustomer />}>
-  <Route path="/account" element={<Account />} />
-  <Route path="/account/edit" element={<EditCustomer />} />
-</Route>
+            <Route path="/account" element={<Account />} />
+            <Route path="/account/edit" element={<EditCustomer />} />
+            <Route path="/order/:id" element={<OrderDetail />} />
+          </Route>
 
           <Route path="/login" element={<LoginCustomer />} />
           <Route path="/about" element={<About />} />

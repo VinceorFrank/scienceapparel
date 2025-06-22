@@ -92,17 +92,54 @@ export const useProductManagement = () => {
 
   const handleSave = async (productData) => {
     try {
+      // Define the fields that are allowed to be sent to the backend
+      const allowedFields = ['name', 'description', 'price', 'stock', 'category', 'image', 'featured', 'tags'];
+      
+      const cleanedData = {};
+      
+      // Copy only allowed fields from productData to cleanedData
+      for (const field of allowedFields) {
+        if (productData[field] !== undefined && productData[field] !== null) {
+          cleanedData[field] = productData[field];
+        }
+      }
+
+      // Ensure price and stock are numbers
+      if (cleanedData.price) {
+        cleanedData.price = parseFloat(cleanedData.price);
+      }
+      if (cleanedData.stock) {
+        cleanedData.stock = parseInt(cleanedData.stock, 10);
+      }
+
+      // If category is an object, only send its ID
+      if (cleanedData.category && typeof cleanedData.category === 'object') {
+        cleanedData.category = cleanedData.category._id;
+      }
+
       if (editingProduct) {
-        await updateProduct(editingProduct._id, productData);
+        await updateProduct(editingProduct._id, cleanedData);
         toast.success('Product updated successfully!');
       } else {
-        await addProduct(productData);
+        await addProduct(cleanedData);
         toast.success('Product created successfully!');
       }
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      toast.error(`Error: ${error.response?.data?.message || 'Failed to save product.'}`);
+      const errorMessage = error.response?.data?.message || 'Failed to save product.';
+      const errorDetails = error.response?.data?.error;
+
+      if (errorDetails) {
+        // If there are validation errors, format and display them
+        const formattedErrors = Object.entries(errorDetails.errors)
+          .map(([field, error]) => `${field}: ${error.message}`)
+          .join('\n');
+        toast.error(<div><p>{errorMessage}</p><pre className="text-sm mt-2 whitespace-pre-wrap">{formattedErrors}</pre></div>, { autoClose: 10000 });
+      } else {
+        toast.error(`Error: ${errorMessage}`);
+      }
+      console.error("Save product error:", error.response || error);
     }
   };
 

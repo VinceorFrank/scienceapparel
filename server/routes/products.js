@@ -161,7 +161,13 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
 // @desc    Create a new product
 // @route   POST /api/products
 // @access  Private/Admin
-router.post('/', protect, admin, validateProductCreate, validateRequest, async (req, res, next) => {
+router.post('/', protect, admin, (req, res, next) => {
+  // Defensive fix: ensure tags is always an array
+  if (req.body.tags && !Array.isArray(req.body.tags)) {
+    req.body.tags = [];
+  }
+  next();
+}, validateProductCreate, validateRequest, async (req, res, next) => {
   try {
     const { name, description, price, image, stock, category, featured, archived, discountPrice, tags } = req.body;
 
@@ -218,7 +224,13 @@ router.post('/', protect, admin, validateProductCreate, validateRequest, async (
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
-router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async (req, res, next) => {
+router.put('/:id', protect, admin, (req, res, next) => {
+  // Defensive fix: ensure tags is always an array
+  if (req.body.tags && !Array.isArray(req.body.tags)) {
+    req.body.tags = [];
+  }
+  next();
+}, validateProductUpdate, validateRequest, async (req, res, next) => {
   try {
     console.log(`[products] PUT /api/products/${req.params.id} called`);
     console.log('[products] Request body:', req.body);

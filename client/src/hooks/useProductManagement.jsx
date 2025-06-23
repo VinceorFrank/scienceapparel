@@ -24,6 +24,7 @@ export const useProductManagement = () => {
     stock: '',
     category: '',
     image: '',
+    tags: [],
   });
 
   const fetchProducts = useCallback(async () => {
@@ -72,6 +73,7 @@ export const useProductManagement = () => {
       stock: '',
       category: '',
       image: '',
+      tags: [],
     });
     setIsModalOpen(true);
   };
@@ -81,6 +83,7 @@ export const useProductManagement = () => {
     setProductForm({
       ...product,
       category: product.category?._id,
+      tags: product.tags || [],
     });
     setIsModalOpen(true);
   };
@@ -125,15 +128,27 @@ export const useProductManagement = () => {
         console.log('[useProductManagement] No imageFile provided, using existing imageUrl');
       }
 
-      // Prepare the payload, ensuring image is a string and removing imageFile
+      // Build a minimal payload with only allowed fields and tags as an array
       const cleanedData = {
-        ...productData,
+        name: productData.name,
+        description: productData.description,
+        price: productData.price,
+        stock: productData.stock,
+        category: productData.category,
         image: imageUrl,
+        featured: productData.featured || false,
+        tags: [], // Always an array
       };
-      delete cleanedData.imageFile;
+      // Remove fields that should not be sent in update
+      delete cleanedData.reviews;
+      delete cleanedData.numReviews;
+      delete cleanedData.rating;
+      delete cleanedData.createdAt;
+      delete cleanedData.updatedAt;
+      delete cleanedData.__v;
+      // Log the final payload
+      console.log('FINAL PAYLOAD TO BACKEND:', cleanedData);
       
-      console.log('[useProductManagement] cleanedData before validation:', cleanedData);
-
       // Validate cleanedData fields
       if (!cleanedData || typeof cleanedData !== 'object') {
         throw new Error('Invalid cleanedData object');

@@ -92,54 +92,111 @@ export const useProductManagement = () => {
 
   const handleSave = async (productData) => {
     try {
-      // Define the fields that are allowed to be sent to the backend
-      const allowedFields = ['name', 'description', 'price', 'stock', 'category', 'image', 'featured', 'tags'];
+      console.log('[useProductManagement] handleSave called with productData:', productData);
+      console.log('[useProductManagement] imageFile type:', typeof productData.imageFile);
+      console.log('[useProductManagement] imageFile instanceof File:', productData.imageFile instanceof File);
       
-      const cleanedData = {};
-      
-      // Copy only allowed fields from productData to cleanedData
-      for (const field of allowedFields) {
-        if (productData[field] !== undefined && productData[field] !== null) {
-          cleanedData[field] = productData[field];
+      let imageUrl = productData.image;
+      console.log('[useProductManagement] Initial imageUrl:', imageUrl);
+
+      // If imageFile is present, upload it
+      if (productData.imageFile) {
+        console.log('[useProductManagement] Starting image upload...');
+        const uploadData = new FormData();
+        uploadData.append('image', productData.imageFile);
+        
+        // Debug: log FormData contents
+        console.log('[useProductManagement] FormData contents:');
+        for (let pair of uploadData.entries()) {
+          console.log('[useProductManagement] FormData entry:', pair[0], pair[1]);
         }
+        
+        console.log('[useProductManagement] Calling uploadImage...');
+        const response = await uploadImage(uploadData);
+        console.log('[useProductManagement] uploadImage response:', response);
+        
+        if (!response || !response.filePath) {
+          throw new Error(`Upload failed: ${JSON.stringify(response)}`);
+        }
+        
+        imageUrl = response.filePath;
+        console.log('[useProductManagement] Updated imageUrl from upload:', imageUrl);
+      } else {
+        console.log('[useProductManagement] No imageFile provided, using existing imageUrl');
       }
 
+      // Prepare the payload, ensuring image is a string and removing imageFile
+      const cleanedData = {
+        ...productData,
+        image: imageUrl,
+      };
+      delete cleanedData.imageFile;
+      
+      console.log('[useProductManagement] cleanedData before validation:', cleanedData);
+
+      // Validate cleanedData fields
+      if (!cleanedData || typeof cleanedData !== 'object') {
+        throw new Error('Invalid cleanedData object');
+      }
+      if (!cleanedData.name || typeof cleanedData.name !== 'string') throw new Error('Missing/invalid name');
+      if (cleanedData.price === undefined || isNaN(Number(cleanedData.price))) throw new Error('Missing/invalid price');
+      if (cleanedData.stock === undefined || isNaN(Number(cleanedData.stock))) throw new Error('Missing/invalid stock');
+      if (!cleanedData.category || typeof cleanedData.category !== 'string') throw new Error('Missing/invalid category');
+      if (!cleanedData.image || typeof cleanedData.image !== 'string') throw new Error('Missing/invalid image');
+      
       // Ensure price and stock are numbers
-      if (cleanedData.price) {
-        cleanedData.price = parseFloat(cleanedData.price);
-      }
-      if (cleanedData.stock) {
-        cleanedData.stock = parseInt(cleanedData.stock, 10);
-      }
-
+      cleanedData.price = parseFloat(cleanedData.price);
+      cleanedData.stock = parseInt(cleanedData.stock, 10);
+      
       // If category is an object, only send its ID
       if (cleanedData.category && typeof cleanedData.category === 'object') {
         cleanedData.category = cleanedData.category._id;
       }
-
+      
+      console.log('[useProductManagement] Final cleanedData to send:', cleanedData);
+      
       if (editingProduct) {
-        await updateProduct(editingProduct._id, cleanedData);
+        console.log('[useProductManagement] Editing existing product');
+        console.log('[useProductManagement] editingProduct:', editingProduct);
+        console.log('[useProductManagement] Updating ID:', editingProduct._id);
+        
+        if (!editingProduct._id) throw new Error('No product ID for update');
+        
+        console.log('[useProductManagement] Calling updateProduct...');
+        const updateResponse = await updateProduct(editingProduct._id, cleanedData);
+        console.log('[useProductManagement] updateProduct response:', updateResponse);
+        
         toast.success('Product updated successfully!');
       } else {
-        await addProduct(cleanedData);
+        console.log('[useProductManagement] Creating new product');
+        console.log('[useProductManagement] Calling addProduct...');
+        const addResponse = await addProduct(cleanedData);
+        console.log('[useProductManagement] addProduct response:', addResponse);
+        
         toast.success('Product created successfully!');
       }
+      
+      console.log('[useProductManagement] Refreshing products list...');
       fetchProducts();
       handleCloseModal();
+      
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to save product.';
+      console.error('[useProductManagement] handleSave ERROR:', error);
+      console.error('[useProductManagement] Error response:', error.response);
+      console.error('[useProductManagement] Error message:', error.message);
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save product.';
       const errorDetails = error.response?.data?.error;
-
+      
       if (errorDetails) {
         // If there are validation errors, format and display them
-        const formattedErrors = Object.entries(errorDetails.errors)
+        const formattedErrors = Object.entries(errorDetails.errors || {})
           .map(([field, error]) => `${field}: ${error.message}`)
           .join('\n');
         toast.error(<div><p>{errorMessage}</p><pre className="text-sm mt-2 whitespace-pre-wrap">{formattedErrors}</pre></div>, { autoClose: 10000 });
       } else {
         toast.error(`Error: ${errorMessage}`);
       }
-      console.error("Save product error:", error.response || error);
     }
   };
 

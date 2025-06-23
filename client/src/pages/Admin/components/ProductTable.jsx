@@ -1,6 +1,9 @@
 import React from 'react';
 import api from '../../../api/config';
 
+// Define the server's base URL for images, without the /api part.
+const SERVER_BASE_URL = 'http://localhost:5000';
+
 // ProductTable.jsx - Displays a table of products with pagination and actions
 // Props:
 //   products: array of product objects to display
@@ -13,18 +16,37 @@ import api from '../../../api/config';
 const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete, onPageChange }) => {
   // Helper to get the correct image URL
   const getImageUrl = (imagePath) => {
-    // If no path, or path is just the directory, use placeholder
-    if (!imagePath || imagePath === '/uploads/images/') {
-      return '/placeholder.png';
+    console.log('[ProductTable] getImageUrl called with:', imagePath);
+    console.log('[ProductTable] imagePath type:', typeof imagePath);
+    
+    if (!imagePath) {
+      console.log('[ProductTable] No imagePath provided, using placeholder');
+      return '/placeholder.png'; // Use a local placeholder
     }
-    // If it's already a full URL, use it
+    
+    // If it's already a full URL, use it as is
     if (imagePath.startsWith('http')) {
+      console.log('[ProductTable] Full URL detected, using as is:', imagePath);
       return imagePath;
     }
-    // Construct URL from the API's base URL (e.g., http://localhost:5000)
-    const serverBaseUrl = new URL(api.defaults.baseURL).origin;
     
-    return `${serverBaseUrl}${imagePath}`;
+    // Prepend the correct server base URL if the path is relative
+    if (imagePath.startsWith('/uploads')) {
+      const fullUrl = `${SERVER_BASE_URL}${imagePath}`;
+      console.log('[ProductTable] Relative uploads path, constructed URL:', fullUrl);
+      return fullUrl;
+    }
+    
+    // If it's just a filename, construct the full path
+    if (!imagePath.includes('/')) {
+      const fullUrl = `${SERVER_BASE_URL}/uploads/images/${imagePath}`;
+      console.log('[ProductTable] Filename only, constructed URL:', fullUrl);
+      return fullUrl;
+    }
+    
+    // Fallback
+    console.log('[ProductTable] Fallback case, using as is:', imagePath);
+    return imagePath;
   };
 
   return (
@@ -53,8 +75,12 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                       alt={product.name ? `Product image for ${product.name}` : 'Product image'}
                       className="h-12 w-12 object-cover rounded"
                       crossOrigin="anonymous"
+                      onLoad={(e) => {
+                        console.log('[ProductTable] Image loaded successfully for product:', product.name, 'URL:', e.target.src);
+                      }}
                       onError={(e) => {
-                        console.error('Image load error:', e);
+                        console.error('[ProductTable] Image load error for product:', product.name, 'URL:', e.target.src);
+                        console.error('[ProductTable] Error details:', e);
                         e.target.src = '/placeholder.png';
                         e.target.onerror = null;
                       }}

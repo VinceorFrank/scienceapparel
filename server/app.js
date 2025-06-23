@@ -13,10 +13,19 @@ const hpp = require('hpp');
 
 const app = express();
 
+// DEBUG: Log all incoming requests
+app.use((req, res, next) => {
+  console.log('DEBUG: Incoming request', req.method, req.url, req.headers['content-type']);
+  next();
+});
+
 // Connect to database
 connectDB();
 
 // --- START OF CRITICAL CONFIGURATION ---
+
+// 0. Upload route BEFORE body parsers
+app.use('/api/upload', require('./routes/upload'));
 
 // 1. JSON and URL-encoded parser middleware
 app.use(express.json({ limit: '10mb' }));
@@ -60,7 +69,6 @@ app.get('/api/health', (req, res) => {
 app.use('/api/products', require('./routes/products'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/orders', require('./routes/orders'));
-app.use('/api/upload', require('./routes/upload'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/admin/dashboard', require('./routes/dashboard'));
 app.use('/api/payment', require('./routes/payment'));

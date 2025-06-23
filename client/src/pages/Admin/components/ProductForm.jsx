@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductImageUpload from './ProductImageUpload';
+
+const SERVER_BASE_URL = 'http://localhost:5000';
 
 // ProductForm.jsx - Handles add/edit product form logic and validation
 // Props:
@@ -25,11 +27,43 @@ const ProductForm = ({
     }));
   };
 
-  const handleImageUpload = (imagePath) => {
-    setForm((prevForm) => ({
-      ...prevForm,
-      image: imagePath,
-    }));
+  const handleImageUpload = (fileOrPath) => {
+    if (fileOrPath instanceof File) {
+      console.log('ProductForm: handleImageUpload received File', fileOrPath);
+      setForm((prevForm) => ({
+        ...prevForm,
+        imageFile: fileOrPath, // Store the File object
+        image: '', // Clear image string until upload
+      }));
+    } else if (typeof fileOrPath === 'string') {
+      console.log('ProductForm: handleImageUpload received string', fileOrPath);
+      setForm((prevForm) => ({
+        ...prevForm,
+        image: fileOrPath, // Set image string path
+        imageFile: null,   // Clear File object
+      }));
+    } else {
+      setForm((prevForm) => ({
+        ...prevForm,
+        image: '',
+        imageFile: null,
+      }));
+    }
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (typeof imagePath === 'object' && imagePath instanceof File) {
+      // If it's a File object, show a preview using URL.createObjectURL
+      return URL.createObjectURL(imagePath);
+    }
+    if (typeof imagePath === 'string') {
+      if (imagePath.startsWith('/uploads')) {
+        return `${SERVER_BASE_URL}${imagePath}`;
+      }
+      return imagePath;
+    }
+    return null;
   };
 
   const handleSubmit = (e) => {
@@ -42,6 +76,19 @@ const ProductForm = ({
     };
     onSave(dataToSave);
   };
+
+  // When editing, ensure image is string and imageFile is null
+  useEffect(() => {
+    if (editingProduct) {
+      console.log('ProductForm: editingProduct.image', editingProduct.image);
+      setForm((prevForm) => ({
+        ...prevForm,
+        image: editingProduct.image || '',
+        imageFile: null,
+      }));
+    }
+    // eslint-disable-next-line
+  }, [editingProduct]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,8 +157,8 @@ const ProductForm = ({
       <div>
         <label className="block mb-1 font-medium">Image</label>
         <ProductImageUpload
-          initialImage={form.image}
-          onImageUpload={handleImageUpload}
+          initialImageUrl={getImageUrl(form.image)}
+          onImageChange={handleImageUpload}
         />
       </div>
       <div className="flex justify-end gap-2">

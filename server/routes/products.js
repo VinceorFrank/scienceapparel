@@ -220,16 +220,22 @@ router.post('/', protect, admin, validateProductCreate, validateRequest, async (
 // @access  Private/Admin
 router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async (req, res, next) => {
   try {
+    console.log(`[products] PUT /api/products/${req.params.id} called`);
+    console.log('[products] Request body:', req.body);
+    console.log('[products] Request user:', req.user._id);
+    
     const { name } = req.body;
 
     // If name is being updated, check for duplicates
     if (name) {
+      console.log('[products] Checking for duplicate product name:', name);
       const existingProduct = await Product.findOne({ 
         name: { $regex: new RegExp(`^${name}$`, 'i') },
         _id: { $ne: req.params.id }
       });
       
       if (existingProduct) {
+        console.log('[products] Duplicate product found:', existingProduct._id);
         return res.status(400).json({
           success: false,
           error: {
@@ -240,6 +246,7 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
       }
     }
 
+    console.log('[products] Updating product with data:', req.body);
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -247,8 +254,16 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
     ).populate('category', 'name');
 
     if (!updatedProduct) {
+      console.error('[products] Product not found for update:', req.params.id);
       throw new NotFoundError('Product not found');
     }
+
+    console.log('[products] Product updated successfully:', {
+      id: updatedProduct._id,
+      name: updatedProduct.name,
+      image: updatedProduct.image,
+      category: updatedProduct.category?.name
+    });
 
     // Log the activity
     await ActivityLog.create({ 
@@ -259,14 +274,20 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
 
     // Invalidate caches
     invalidateEntityCache('products');
-    cache.del(`product:${req.params.id}`);
+    invalidateEntityCache(`product:${req.params.id}`);
 
-    res.json({
+    const response = {
       success: true,
       message: 'Product updated successfully',
       data: updatedProduct
-    });
+    };
+    
+    console.log('[products] Sending response:', response);
+    res.json(response);
+    
   } catch (err) {
+    console.error('[products] PUT /api/products/:id ERROR:', err);
+    console.error('[products] Error message:', err.message);
     next(err);
   }
 });
@@ -276,53 +297,71 @@ router.put('/:id', protect, admin, validateProductUpdate, validateRequest, async
 // @access  Private/Admin
 router.delete('/:id', protect, admin, validateProductId, validateRequest, async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
 
     if (!product) {
       throw new NotFoundError('Product not found');
     }
 
-    // Check if the product is in any active orders
-    const activeOrders = await Order.find({ 'orderItems.product': product._id });
+    // Check if the product is in any existing orders
+    const orderCount = await Order.countDocuments({ 'orderItems.product': productId });
 
-    if (activeOrders.length > 0) {
-      // Instead of deleting, archive the product
+    if (orderCount > 0) {
+      // If the product is in an order, archive it instead of deleting
       product.archived = true;
       await product.save();
       
-      return res.json({ 
+      await ActivityLog.create({ 
+        user: req.user._id, 
+        action: 'archive_product', 
+        description: `Archived product '${product.name}' due to being part of ${orderCount} order(s)` 
+      });
+
+      res.json({ 
         success: true,
-        message: 'Product is in active orders and has been archived instead of deleted.',
-        data: { archived: true }
+        message: `Product is part of ${orderCount} order(s) and has been archived instead of deleted.` 
+      });
+    } else {
+      // If not in any orders, delete it permanently
+      const imagePath = product.image;
+      
+      await Product.findByIdAndDelete(productId);
+
+      // And delete its image from the server
+      if (imagePath && imagePath.startsWith('/uploads/images/')) {
+        const serverImagePath = path.join(__dirname, '..', imagePath);
+        
+        // Check if file exists before attempting deletion
+        if (fs.existsSync(serverImagePath)) {
+          fs.unlink(serverImagePath, (err) => {
+            if (err) {
+              console.error(`Failed to delete image file: ${serverImagePath}`, err);
+            } else {
+              console.log(`Successfully deleted image file: ${serverImagePath}`);
+            }
+          });
+        } else {
+          console.warn(`Image file not found for deletion: ${serverImagePath}`);
+        }
+      }
+      
+      await ActivityLog.create({ 
+        user: req.user._id, 
+        action: 'delete_product', 
+        description: `Permanently deleted product '${product.name}'` 
+      });
+
+      res.json({ 
+        success: true,
+        message: 'Product permanently deleted successfully' 
       });
     }
 
-    // If no active orders, delete the product and its image
-    if (product.image && !product.image.startsWith('http')) {
-      const imagePath = path.join(__dirname, '..', product.image);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
-    
-    await product.deleteOne();
-
-    // Log the activity
-    await ActivityLog.create({ 
-      user: req.user._id, 
-      action: 'delete_product', 
-      description: `Deleted product '${product.name}'` 
-    });
-
-    // Invalidate caches
+    // Invalidate cache after delete/archive
     invalidateEntityCache('products');
-    cache.del(`product:${req.params.id}`);
+    invalidateEntityCache(`product:${productId}`);
 
-    res.json({
-      success: true,
-      message: 'Product deleted successfully',
-      data: { id: req.params.id }
-    });
   } catch (err) {
     next(err);
   }

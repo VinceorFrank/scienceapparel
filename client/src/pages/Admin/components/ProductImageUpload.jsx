@@ -1,75 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import { uploadImage } from '../../../api/upload';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { toast } from 'react-toastify';
 
 // ProductImageUpload.jsx - Handles image upload and preview for product forms
 // Props:
-//   image: image file name or path
-//   uploading: boolean for upload state
-//   imageError: error message for image upload
-//   onImageUpload: handler for image file input
-const ProductImageUpload = ({ image: initialImage, onImageUpload }) => {
-  const [preview, setPreview] = useState('/placeholder.png');
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState(null);
+//   onImageChange: handler for image file input
+//   initialImageUrl: initial image URL
+const ProductImageUpload = ({ onImageChange, initialImageUrl }) => {
+  const [preview, setPreview] = useState(initialImageUrl);
 
   useEffect(() => {
-    // This effect runs when the initial image path from the product data changes
-    if (typeof initialImage === 'string' && initialImage) {
-      setPreview(`http://localhost:5000/uploads/images/${initialImage}`);
-    } else {
-      // It could be null or undefined when creating a new product
-      setPreview('/placeholder.png');
-    }
-  }, [initialImage]);
+    // Update preview if the initial URL changes (e.g., when editing a different product)
+    console.log('[ProductImageUpload] useEffect - initialImageUrl changed:', initialImageUrl);
+    setPreview(initialImageUrl);
+  }, [initialImageUrl]);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // 1. Basic Validation
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file.');
+  const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
+    console.log('[ProductImageUpload] onDrop called');
+    console.log('[ProductImageUpload] acceptedFiles:', acceptedFiles);
+    console.log('[ProductImageUpload] rejectedFiles:', rejectedFiles);
+    
+    if (rejectedFiles && rejectedFiles.length > 0) {
+      console.error('[ProductImageUpload] File rejected:', rejectedFiles[0]);
+      toast.error('Invalid file type. Please upload an image (jpeg, png, gif).');
       return;
     }
-    setError(null);
 
-    // 2. Create a local URL for instant preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreview(objectUrl);
-
-    // 3. Start the upload process
-    setUploading(true);
-    try {
-      const response = await uploadImage(file);
-      // 4. On success, notify the parent component of the new server path
-      onImageUpload(response.path);
-    } catch (err) {
-      setError(err.message || 'Image upload failed.');
-      // Revert preview if upload fails
-      setPreview(initialImage ? `http://localhost:5000/uploads/images/${initialImage}` : '/placeholder.png');
-    } finally {
-      setUploading(false);
-      // 5. Clean up the local object URL to prevent memory leaks
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
+    if (acceptedFiles && acceptedFiles.length > 0) {
+      const selectedFile = acceptedFiles[0];
+      console.log('[ProductImageUpload] File selected:', {
+        name: selectedFile.name,
+        type: selectedFile.type,
+        size: selectedFile.size,
+        isFile: selectedFile instanceof File
+      });
+      
+      // Create a temporary local URL for the preview
+      const previewUrl = URL.createObjectURL(selectedFile);
+      console.log('[ProductImageUpload] Created preview URL:', previewUrl);
+      setPreview(previewUrl);
+      
+      // Pass the actual file object up to the parent form
+      console.log('[ProductImageUpload] Calling onImageChange with File object');
+      onImageChange(selectedFile);
     }
+  }, [onImageChange]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': [],
+      'image/png': [],
+      'image/gif': [],
+    },
+    multiple: false,
+  });
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation(); // Prevent triggering the dropzone
+    console.log('[ProductImageUpload] Removing image');
+    
+    // Revoke the object URL to avoid memory leaks
+    if (preview && preview.startsWith('blob:')) {
+      console.log('[ProductImageUpload] Revoking blob URL:', preview);
+      URL.revokeObjectURL(preview);
+    }
+    setPreview(null);
+    onImageChange(null); // Notify parent that image is removed
   };
 
   return (
     <div>
-      <div className="w-full h-48 border-2 border-dashed rounded-lg flex items-center justify-center mb-2 overflow-hidden bg-gray-50">
-        <img src={preview} alt="Product Preview" className="h-full w-auto object-contain" />
+      <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+      <div
+        {...getRootProps()}
+        className={`relative w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer
+        ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+      >
+        <input {...getInputProps()} />
+        {preview ? (
+          <div className="relative w-full h-48">
+            <img 
+              src={preview} 
+              alt="Product Preview" 
+              className="w-full h-full object-contain rounded-lg"
+              onLoad={() => console.log('[ProductImageUpload] Preview image loaded successfully')}
+              onError={(e) => console.error('[ProductImageUpload] Preview image failed to load:', e)}
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 leading-none text-xs font-bold shadow-lg"
+              aria-label="Remove image"
+            >
+              &times;
+            </button>
+          </div>
+        ) : (
+          isDragActive ? (
+            <p>Drop the image here ...</p>
+          ) : (
+            <p>Drag 'n' drop an image here, or click to select one</p>
+          )
+        )}
       </div>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        disabled={uploading}
-        className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-      />
-      {uploading && <p className="text-sm text-blue-500 mt-2">Uploading...</p>}
-      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
     </div>
   );
 };

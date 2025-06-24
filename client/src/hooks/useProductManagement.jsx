@@ -228,13 +228,32 @@ export const useProductManagement = () => {
   const handleDelete = async () => {
     if (productToDelete) {
       try {
-        await deleteProduct(productToDelete._id);
-        toast.success('Product deleted successfully!');
+        console.log('[useProductManagement] handleDelete called');
+        console.log('[useProductManagement] Product to delete:', productToDelete);
+        console.log('[useProductManagement] Product ID:', productToDelete._id);
+        
+        console.log('[useProductManagement] Calling deleteProduct API...');
+        const response = await deleteProduct(productToDelete._id);
+        console.log('[useProductManagement] deleteProduct API response:', response);
+        
+        // Show the specific message from the backend (archived vs deleted)
+        const message = response?.message || 'Product deleted successfully!';
+        toast.success(message);
+        
+        console.log('[useProductManagement] Refreshing products list...');
         fetchProducts();
         handleCloseDeleteConfirm();
       } catch (error) {
-        toast.error('Failed to delete product.');
+        console.error('[useProductManagement] handleDelete ERROR:', error);
+        console.error('[useProductManagement] Error response:', error.response);
+        console.error('[useProductManagement] Error message:', error.message);
+        
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete product.';
+        toast.error(`Delete failed: ${errorMessage}`);
       }
+    } else {
+      console.error('[useProductManagement] handleDelete called but no productToDelete set');
+      toast.error('No product selected for deletion.');
     }
   };
 

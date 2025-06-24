@@ -105,7 +105,12 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                   </button>
                   <button
                     className="text-red-600 hover:underline"
-                    onClick={() => onDelete(product)}
+                    onClick={() => {
+                      console.log('[ProductTable] Delete button clicked for product:', product);
+                      console.log('[ProductTable] Product ID:', product._id);
+                      console.log('[ProductTable] Product name:', product.name);
+                      onDelete(product);
+                    }}
                   >
                     Delete
                   </button>

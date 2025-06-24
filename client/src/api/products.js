@@ -38,10 +38,20 @@ export const updateProduct = async (id, product) => {
 // Delete a product
 export const deleteProduct = async (id) => {
   try {
+    console.log('[products API] deleteProduct called with ID:', id);
+    console.log('[products API] Making DELETE request to:', `/products/${id}`);
+    
     const res = await api.delete(`/products/${id}`);
+    console.log('[products API] DELETE response status:', res.status);
+    console.log('[products API] DELETE response data:', res.data);
+    
     return res.data;
   } catch (err) {
-    console.error('Failed to delete product:', err.response ? err.response.data : err.message);
+    console.error('[products API] deleteProduct ERROR:', err);
+    console.error('[products API] Error response:', err.response);
+    console.error('[products API] Error status:', err.response?.status);
+    console.error('[products API] Error data:', err.response?.data);
+    console.error('[products API] Error message:', err.message);
     throw err;
   }
 };

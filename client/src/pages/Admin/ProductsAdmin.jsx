@@ -27,6 +27,10 @@ const ProductsAdmin = () => {
     category,
     productForm,
     setProductForm,
+    isDeleteConfirmOpen,
+    productToDelete,
+    handleDelete,
+    handleCloseDeleteConfirm,
   } = useProductManagement();
 
   // New state for bulk operations
@@ -336,6 +340,32 @@ const ProductsAdmin = () => {
           onCancel={handleCloseModal}
         />
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmOpen && (
+        <>
+          {console.log('[ProductsAdmin] Delete confirmation modal is open')}
+          <Modal open={true} onClose={handleCloseDeleteConfirm} title="Confirm Delete">
+            <div className="p-4">
+              <p className="mb-4 text-lg">Are you sure you want to delete the product <b>{productToDelete?.name}</b>?</p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={handleCloseDeleteConfirm}
+                  className="px-4 py-2 rounded-md bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 rounded-md bg-red-600 text-white"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </Modal>
+        </>
+      )}
     </div>
   );
 };

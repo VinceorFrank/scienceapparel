@@ -309,53 +309,79 @@ router.put('/:id', protect, admin, (req, res, next) => {
 // @access  Private/Admin
 router.delete('/:id', protect, admin, validateProductId, validateRequest, async (req, res, next) => {
   try {
+    console.log('[products] DELETE /api/products/:id called');
+    console.log('[products] Request params:', req.params);
+    console.log('[products] Request user:', req.user._id);
+    
     const productId = req.params.id;
+    console.log('[products] Product ID to delete:', productId);
+    
     const product = await Product.findById(productId);
+    console.log('[products] Found product:', product ? {
+      id: product._id,
+      name: product.name,
+      image: product.image
+    } : 'NOT FOUND');
 
     if (!product) {
+      console.log('[products] Product not found, throwing NotFoundError');
       throw new NotFoundError('Product not found');
     }
 
     // Check if the product is in any existing orders
+    console.log('[products] Checking if product is in any orders...');
     const orderCount = await Order.countDocuments({ 'orderItems.product': productId });
+    console.log('[products] Product is in', orderCount, 'order(s)');
 
     if (orderCount > 0) {
       // If the product is in an order, archive it instead of deleting
+      console.log('[products] Product is in orders, archiving instead of deleting');
       product.archived = true;
       await product.save();
+      console.log('[products] Product archived successfully');
       
       await ActivityLog.create({ 
         user: req.user._id, 
         action: 'archive_product', 
         description: `Archived product '${product.name}' due to being part of ${orderCount} order(s)` 
       });
+      console.log('[products] Activity log created for archive');
 
-      res.json({ 
+      const response = { 
         success: true,
         message: `Product is part of ${orderCount} order(s) and has been archived instead of deleted.` 
-      });
+      };
+      console.log('[products] Sending archive response:', response);
+      res.json(response);
     } else {
       // If not in any orders, delete it permanently
+      console.log('[products] Product not in any orders, deleting permanently');
       const imagePath = product.image;
+      console.log('[products] Product image path:', imagePath);
       
       await Product.findByIdAndDelete(productId);
+      console.log('[products] Product deleted from database');
 
       // And delete its image from the server
       if (imagePath && imagePath.startsWith('/uploads/images/')) {
         const serverImagePath = path.join(__dirname, '..', imagePath);
+        console.log('[products] Server image path for deletion:', serverImagePath);
         
         // Check if file exists before attempting deletion
         if (fs.existsSync(serverImagePath)) {
+          console.log('[products] Image file exists, attempting deletion');
           fs.unlink(serverImagePath, (err) => {
             if (err) {
-              console.error(`Failed to delete image file: ${serverImagePath}`, err);
+              console.error(`[products] Failed to delete image file: ${serverImagePath}`, err);
             } else {
-              console.log(`Successfully deleted image file: ${serverImagePath}`);
+              console.log(`[products] Successfully deleted image file: ${serverImagePath}`);
             }
           });
         } else {
-          console.warn(`Image file not found for deletion: ${serverImagePath}`);
+          console.warn(`[products] Image file not found for deletion: ${serverImagePath}`);
         }
+      } else {
+        console.log('[products] No image path or invalid path, skipping file deletion');
       }
       
       await ActivityLog.create({ 
@@ -363,18 +389,26 @@ router.delete('/:id', protect, admin, validateProductId, validateRequest, async 
         action: 'delete_product', 
         description: `Permanently deleted product '${product.name}'` 
       });
+      console.log('[products] Activity log created for delete');
 
-      res.json({ 
+      const response = { 
         success: true,
         message: 'Product permanently deleted successfully' 
-      });
+      };
+      console.log('[products] Sending delete response:', response);
+      res.json(response);
     }
 
     // Invalidate cache after delete/archive
+    console.log('[products] Invalidating cache...');
     invalidateEntityCache('products');
     invalidateEntityCache(`product:${productId}`);
+    console.log('[products] Cache invalidated');
 
   } catch (err) {
+    console.error('[products] DELETE /api/products/:id ERROR:', err);
+    console.error('[products] Error message:', err.message);
+    console.error('[products] Error stack:', err.stack);
     next(err);
   }
 });

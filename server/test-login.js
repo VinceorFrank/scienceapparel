@@ -6,7 +6,7 @@ const testAdminLogin = async () => {
     
     const postData = JSON.stringify({
       email: 'admin@example.com',
-      password: 'Admin123!'
+      password: 'password123'
     });
 
     const options = {

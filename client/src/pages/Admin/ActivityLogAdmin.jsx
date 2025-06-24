@@ -15,9 +15,15 @@ const ActivityLogAdmin = () => {
     setError("");
     try {
       const data = await getActivityLogs();
-      setLogs(data);
+      if (!Array.isArray(data.logs)) {
+        setError("Unexpected response format: logs is not an array.");
+        setLogs([]);
+      } else {
+        setLogs(data.logs);
+      }
     } catch (err) {
       setError("Failed to load activity logs.");
+      setLogs([]);
     }
     setLoading(false);
   };

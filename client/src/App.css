@@ -40,3 +40,20 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Pulse animation for dashboard icons */
+@keyframes pulse {
+  0% { transform: scale(0.5); }
+  50% { transform: scale(1.5); }
+  99.9% { transform: scale(0.5); }
+  100% { transform: scale(1.5); }
+}
+.pulse {
+  animation: pulse 2.33s cubic-bezier(0.4, 0, 0.2, 1) 0s 3;
+  animation-fill-mode: forwards;
+}
+
+/* After the last cycle, set to full size */
+.pulse:last-frame {
+  transform: scale(1.5);
+}

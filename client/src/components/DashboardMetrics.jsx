@@ -1,5 +1,8 @@
 import React from 'react';
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
+import { GiMoneyStack, GiAlienSkull, GiReturnArrow, GiHandTruck, GiHeartburn, GiAnatomy } from 'react-icons/gi';
+import { ImWarning } from 'react-icons/im';
+import { PiChartLineUpBold } from 'react-icons/pi';
 
 const DashboardMetrics = () => {
   const { data, isLoading, error, refetch } = useDashboardMetrics();
@@ -43,7 +46,7 @@ const DashboardMetrics = () => {
     {
       title: "Total Sales",
       value: `$${data?.totalSales?.toFixed(2) || '0.00'}`,
-      icon: "💰",
+      icon: <GiMoneyStack style={{ color: '#2ecc40', fontSize: '2.5rem' }} />,
       color: "text-green-600",
       bgColor: "bg-green-50",
       trend: "+12.5%",
@@ -52,7 +55,7 @@ const DashboardMetrics = () => {
     {
       title: "Total Orders",
       value: data?.totalOrders || 0,
-      icon: "📦",
+      icon: <span style={{ fontSize: '2.5rem' }}>📦</span>,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       trend: "+8.2%",
@@ -61,7 +64,7 @@ const DashboardMetrics = () => {
     {
       title: "Active Users",
       value: data?.activeUsers || 0,
-      icon: "👥",
+      icon: <span style={{ fontSize: '2.5rem' }}>👽</span>,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       trend: "+15.3%",
@@ -70,25 +73,32 @@ const DashboardMetrics = () => {
     {
       title: "Pending Orders",
       value: data?.pendingOrders || 0,
-      icon: "⏳",
+      icon: <span style={{ fontSize: '2.5rem' }}>⏳</span>,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
       trend: "-5.1%",
       trendColor: "text-green-600"
     },
     {
-      title: "Low Stock Items",
-      value: data?.lowStockItems || 0,
-      icon: "⚠️",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      title: "Low Stock",
+      value: data?.lowStock || 0,
+      icon: (
+        <GiHandTruck
+          style={{
+            color: (data?.lowStock > 0) ? '#FF2400' : '#2ecc40',
+            fontSize: '2.5rem',
+          }}
+        />
+      ),
+      color: (data?.lowStock > 0) ? "text-red-600" : "text-green-600",
+      bgColor: (data?.lowStock > 0) ? "bg-red-50" : "bg-green-50",
       trend: data?.lowStockItems > 0 ? "Action needed" : "All good",
       trendColor: data?.lowStockItems > 0 ? "text-red-600" : "text-green-600"
     },
     {
       title: "Recent Registrations",
       value: data?.recentRegistrations || 0,
-      icon: "📝",
+      icon: <GiAnatomy className="pulse" style={{ color: '#FF69B4', fontSize: '2.5rem' }} />,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
       trend: "+22.1%",
@@ -97,7 +107,7 @@ const DashboardMetrics = () => {
     {
       title: "Average Order Value",
       value: `$${data?.averageOrderValue?.toFixed(2) || '0.00'}`,
-      icon: "📊",
+      icon: <PiChartLineUpBold style={{ color: 'black', fontSize: '2.5rem' }} />,
       color: "text-teal-600",
       bgColor: "bg-teal-50",
       trend: "+3.7%",
@@ -106,11 +116,33 @@ const DashboardMetrics = () => {
     {
       title: "Return Rate",
       value: `${data?.returnRate?.toFixed(1) || '0'}%`,
-      icon: "↩️",
+      icon: <GiReturnArrow style={{ color: '#FF2400', fontSize: '2.5rem' }} />,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       trend: data?.returnRate > 5 ? "High" : "Low",
       trendColor: data?.returnRate > 5 ? "text-red-600" : "text-green-600"
+    },
+    {
+      title: "Alerts",
+      value: data?.alerts || 0,
+      icon: (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'black',
+            borderRadius: '0.5rem',
+            padding: '0.25rem',
+          }}
+        >
+          <ImWarning style={{ color: '#FFFF00', fontSize: '2.5rem' }} />
+        </span>
+      ),
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      trend: data?.alerts > 0 ? "Action needed" : "All good",
+      trendColor: data?.alerts > 0 ? "text-red-600" : "text-green-600"
     }
   ];
 
@@ -128,7 +160,7 @@ const MetricCard = ({ title, value, icon, color, bgColor, trend, trendColor }) =
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
       <div className={`p-2 rounded-lg ${bgColor.replace('50', '100')}`}>
-        <span className="text-2xl">{icon}</span>
+        {icon}
       </div>
     </div>
     <div className="flex items-end justify-between">

@@ -74,7 +74,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Manage Users",
-      icon: "👥",
+      icon: "👽",
       action: () => window.location.href = '/admin/users',
       color: "bg-purple-500 hover:bg-purple-600"
     },

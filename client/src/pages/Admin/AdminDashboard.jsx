@@ -3,38 +3,38 @@ import DashboardMetrics from "../../components/DashboardMetrics";
 import SalesChart from "./components/SalesChart";
 import { useQuery } from '@tanstack/react-query';
 import { fetchRecentOrders, fetchStockAlerts, fetchCustomerActivity } from '../../api/dashboard';
-import api from '../../api/config';
 import { useDashboardMetrics } from '../../hooks/useDashboardMetrics.js';
 import { useProductManagement } from '../../hooks/useProductManagement.jsx';
 import useUserManagement from '../../hooks/useUserManagement.js';
 import useOrderManagement from '../../hooks/useOrderManagement.js';
+import { useLang } from "../../utils/lang";
 
 const AdminDashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { handleCreate } = useProductManagement();
   const dashboardMetrics = useDashboardMetrics();
+  const { t } = useLang();
 
   // Fetch data with real-time updates
   const { data: recentOrders, isLoading: ordersLoading } = useQuery({
     queryKey: ['recentOrders'],
     queryFn: fetchRecentOrders,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
   const { data: stockAlerts, isLoading: stockLoading } = useQuery({
     queryKey: ['stockAlerts'],
     queryFn: fetchStockAlerts,
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 60000,
   });
 
   const { data: customerActivity, isLoading: activityLoading } = useQuery({
     queryKey: ['customerActivity'],
     queryFn: fetchCustomerActivity,
-    refetchInterval: 120000, // Refetch every 2 minutes
+    refetchInterval: 120000,
   });
 
-  // Auto-refresh timestamp
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdate(new Date());
@@ -45,7 +45,6 @@ const AdminDashboard = () => {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Refetch all data
       await Promise.all([
         fetchRecentOrders(),
         fetchStockAlerts(),
@@ -61,25 +60,25 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
-      title: "Add Product",
+      title: t("addProduct"),
       icon: "➕",
       action: () => window.location.href = '/admin/products',
       color: "bg-blue-500 hover:bg-blue-600"
     },
     {
-      title: "View Orders",
+      title: t("orders"),
       icon: "📦",
       action: () => window.location.href = '/admin/orders',
       color: "bg-green-500 hover:bg-green-600"
     },
     {
-      title: "Manage Users",
+      title: t("users"),
       icon: "👽",
       action: () => window.location.href = '/admin/users',
       color: "bg-purple-500 hover:bg-purple-600"
     },
     {
-      title: "Categories",
+      title: t("categories"),
       icon: "🏷️",
       action: () => window.location.href = '/admin/categories',
       color: "bg-orange-500 hover:bg-orange-600"
@@ -91,10 +90,10 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header with refresh button */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t("dashboard")}</h1>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
-              Last updated: {lastUpdate.toLocaleTimeString()}
+              {t("lastUpdated")}: {lastUpdate.toLocaleTimeString()}
             </div>
             <button
               onClick={handleRefresh}
@@ -102,14 +101,14 @@ const AdminDashboard = () => {
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
             >
               <span>{isRefreshing ? "🔄" : "🔄"}</span>
-              <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+              <span>{isRefreshing ? t("refreshing") : t("refresh")}</span>
             </button>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("quickActions")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
               <button
@@ -126,7 +125,7 @@ const AdminDashboard = () => {
         
         {/* Dashboard Metrics */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Overview</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("overview")}</h2>
           <DashboardMetrics />
         </div>
 
@@ -139,7 +138,7 @@ const AdminDashboard = () => {
           
           {/* Recent Orders */}
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Orders</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("recentOrders")}</h2>
             {ordersLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (
@@ -153,14 +152,14 @@ const AdminDashboard = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium text-gray-900">#{order._id.slice(-6)}</p>
-                        <p className="text-sm text-gray-500">{order.user?.name || 'Unknown'}</p>
+                        <p className="text-sm text-gray-500">{order.user?.name || t("unknown")}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-green-600">${order.totalPrice}</p>
                         <p className={`text-xs px-2 py-1 rounded-full ${
                           order.isPaid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {order.isPaid ? 'Paid' : 'Pending'}
+                          {order.isPaid ? t("paid") : t("pending")}
                         </p>
                       </div>
                     </div>
@@ -168,7 +167,7 @@ const AdminDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No recent orders</p>
+              <p className="text-gray-500">{t("noRecentOrders")}</p>
             )}
           </div>
         </div>
@@ -177,7 +176,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* Stock Alerts */}
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Stock Alerts</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("stockAlerts")}</h2>
             {stockLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (
@@ -190,20 +189,20 @@ const AdminDashboard = () => {
                   <div key={product._id} className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-500">Stock: {product.stock}</p>
+                      <p className="text-sm text-gray-500">{t("stock")}: {product.stock}</p>
                     </div>
-                    <span className="text-red-600 font-medium">Low Stock</span>
+                    <span className="text-red-600 font-medium">{t("lowStock")}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No stock alerts</p>
+              <p className="text-gray-500">{t("noStockAlerts")}</p>
             )}
           </div>
 
           {/* Customer Activity */}
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Customer Activity</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("customerActivity")}</h2>
             {activityLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (
@@ -216,14 +215,14 @@ const AdminDashboard = () => {
                   <div key={customer._id} className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">{customer.userDetails.name}</p>
-                      <p className="text-sm text-gray-500">{customer.orderCount} orders</p>
+                      <p className="text-sm text-gray-500">{customer.orderCount} {t("orders")}</p>
                     </div>
                     <span className="text-blue-600 font-medium">${customer.totalSpent}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500">No recent activity</p>
+              <p className="text-gray-500">{t("noRecentActivity")}</p>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import api from '../../../api/config';
+import { useLang } from '../../../utils/lang.jsx';
 
 // Define the server's base URL for images, without the /api part.
 const SERVER_BASE_URL = 'http://localhost:5000';
@@ -14,6 +15,7 @@ const SERVER_BASE_URL = 'http://localhost:5000';
 //   onDelete: function to call when deleting a product
 //   onPageChange: function to change the page
 const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete, onPageChange }) => {
+  const { t } = useLang();
   // Helper to get the correct image URL
   const getImageUrl = (imagePath) => {
     console.log('[ProductTable] getImageUrl called with:', imagePath);
@@ -54,17 +56,17 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
       <table className="w-full border mt-2">
         <thead>
           <tr className="bg-gray-100">
-            <th className="p-2 text-left">Image</th>
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2 text-left">Category</th>
-            <th className="p-2 text-left">Price</th>
-            <th className="p-2 text-left">Stock</th>
-            <th className="p-2 text-left">Actions</th>
+            <th className="p-2 text-left">{t('image')}</th>
+            <th className="p-2 text-left">{t('name')}</th>
+            <th className="p-2 text-left">{t('category')}</th>
+            <th className="p-2 text-left">{t('price')}</th>
+            <th className="p-2 text-left">{t('stock')}</th>
+            <th className="p-2 text-left">{t('actions')}</th>
           </tr>
         </thead>
         <tbody>
           {products.length === 0 ? (
-            <tr><td colSpan={6} className="p-4 text-center text-gray-500">No products found.</td></tr>
+            <tr><td colSpan={6} className="p-4 text-center text-gray-500">{t('noProductsFound') || 'No products found.'}</td></tr>
           ) : (
             products.map((product) => (
               <tr key={product._id} className="border-b">
@@ -101,7 +103,7 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                     className="text-blue-600 hover:underline mr-2"
                     onClick={() => onEdit(product)}
                   >
-                    Edit
+                    {t('edit')}
                   </button>
                   <button
                     className="text-red-600 hover:underline"
@@ -112,7 +114,7 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                       onDelete(product);
                     }}
                   >
-                    Delete
+                    {t('delete')}
                   </button>
                 </td>
               </tr>

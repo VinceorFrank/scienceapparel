@@ -3,9 +3,11 @@ import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
 import { GiMoneyStack, GiAlienSkull, GiReturnArrow, GiHandTruck, GiHeartburn, GiAnatomy } from 'react-icons/gi';
 import { ImWarning } from 'react-icons/im';
 import { PiChartLineUpBold } from 'react-icons/pi';
+import { useLang } from '../utils/lang';
 
 const DashboardMetrics = () => {
   const { data, isLoading, error, refetch } = useDashboardMetrics();
+  const { t } = useLang();
 
   if (isLoading) {
     return (
@@ -44,7 +46,7 @@ const DashboardMetrics = () => {
 
   const metrics = [
     {
-      title: "Total Sales",
+      title: t("totalSales"),
       value: `$${data?.totalSales?.toFixed(2) || '0.00'}`,
       icon: <GiMoneyStack style={{ color: '#2ecc40', fontSize: '2.5rem' }} />,
       color: "text-green-600",
@@ -53,7 +55,7 @@ const DashboardMetrics = () => {
       trendColor: "text-green-600"
     },
     {
-      title: "Total Orders",
+      title: t("totalOrders"),
       value: data?.totalOrders || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>📦</span>,
       color: "text-blue-600",
@@ -62,7 +64,7 @@ const DashboardMetrics = () => {
       trendColor: "text-blue-600"
     },
     {
-      title: "Active Users",
+      title: t("activeUsers"),
       value: data?.activeUsers || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>👽</span>,
       color: "text-purple-600",
@@ -71,7 +73,7 @@ const DashboardMetrics = () => {
       trendColor: "text-purple-600"
     },
     {
-      title: "Pending Orders",
+      title: t("pendingOrders"),
       value: data?.pendingOrders || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>⏳</span>,
       color: "text-yellow-600",
@@ -80,7 +82,7 @@ const DashboardMetrics = () => {
       trendColor: "text-green-600"
     },
     {
-      title: "Low Stock",
+      title: t("lowStockMetric"),
       value: data?.lowStock || 0,
       icon: (
         <GiHandTruck
@@ -92,11 +94,11 @@ const DashboardMetrics = () => {
       ),
       color: (data?.lowStock > 0) ? "text-red-600" : "text-green-600",
       bgColor: (data?.lowStock > 0) ? "bg-red-50" : "bg-green-50",
-      trend: data?.lowStockItems > 0 ? "Action needed" : "All good",
+      trend: data?.lowStockItems > 0 ? t("actionNeeded") : t("allGood"),
       trendColor: data?.lowStockItems > 0 ? "text-red-600" : "text-green-600"
     },
     {
-      title: "Recent Registrations",
+      title: t("recentRegistrations"),
       value: data?.recentRegistrations || 0,
       icon: <GiAnatomy className="pulse" style={{ color: '#FF69B4', fontSize: '2.5rem' }} />,
       color: "text-indigo-600",
@@ -105,7 +107,7 @@ const DashboardMetrics = () => {
       trendColor: "text-indigo-600"
     },
     {
-      title: "Average Order Value",
+      title: t("averageOrderValue"),
       value: `$${data?.averageOrderValue?.toFixed(2) || '0.00'}`,
       icon: <PiChartLineUpBold style={{ color: 'black', fontSize: '2.5rem' }} />,
       color: "text-teal-600",
@@ -114,16 +116,16 @@ const DashboardMetrics = () => {
       trendColor: "text-teal-600"
     },
     {
-      title: "Return Rate",
+      title: t("returnRate"),
       value: `${data?.returnRate?.toFixed(1) || '0'}%`,
       icon: <GiReturnArrow style={{ color: '#FF2400', fontSize: '2.5rem' }} />,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      trend: data?.returnRate > 5 ? "High" : "Low",
+      trend: data?.returnRate > 5 ? "High" : t("low"),
       trendColor: data?.returnRate > 5 ? "text-red-600" : "text-green-600"
     },
     {
-      title: "Alerts",
+      title: t("alerts"),
       value: data?.alerts || 0,
       icon: (
         <span
@@ -141,7 +143,7 @@ const DashboardMetrics = () => {
       ),
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
-      trend: data?.alerts > 0 ? "Action needed" : "All good",
+      trend: data?.alerts > 0 ? t("actionNeeded") : t("allGood"),
       trendColor: data?.alerts > 0 ? "text-red-600" : "text-green-600"
     }
   ];

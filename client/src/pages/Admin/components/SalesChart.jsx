@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'chart.js';
 import api from '../../../api/config';
+import { useLang } from '../../../utils/lang';
 
 ChartJS.register(
   CategoryScale,
@@ -29,6 +30,7 @@ const SalesChart = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -43,7 +45,7 @@ const SalesChart = () => {
             labels,
             datasets: [
               {
-                label: 'Daily Sales',
+                label: t('dailySales'),
                 data: data,
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
@@ -61,7 +63,7 @@ const SalesChart = () => {
     };
 
     fetchSalesData();
-  }, []);
+  }, [t]);
 
   const options = {
     responsive: true,
@@ -71,7 +73,7 @@ const SalesChart = () => {
       },
       title: {
         display: true,
-        text: 'Sales Over the Last 7 Days',
+        text: t('salesOverLast7Days'),
       },
     },
     scales: {

@@ -3,6 +3,7 @@ import { useProductManagement } from '../../hooks/useProductManagement.jsx';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
+import { useLang } from '../../utils/lang.jsx';
 
 const ProductsAdmin = () => {
   const {
@@ -32,6 +33,8 @@ const ProductsAdmin = () => {
     handleDelete,
     handleCloseDeleteConfirm,
   } = useProductManagement();
+
+  const { t } = useLang();
 
   // New state for bulk operations
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -109,20 +112,20 @@ const ProductsAdmin = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Products Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('productsManagement')}</h1>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
-            {showAdvancedSearch ? 'Hide' : 'Show'} Advanced Search
+            {showAdvancedSearch ? t('hideAdvancedSearch') || 'Hide Advanced Search' : t('showAdvancedSearch') || 'Show Advanced Search'}
           </button>
           <button
             onClick={handleCreate}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           >
             <span>➕</span>
-            <span>Add Product</span>
+            <span>{t('addProduct')}</span>
           </button>
         </div>
       </div>
@@ -133,7 +136,7 @@ const ProductsAdmin = () => {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search products by name, description, or tags..."
+              placeholder={t('searchProducts')}
               className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -144,7 +147,7 @@ const ProductsAdmin = () => {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">All Categories</option>
+            <option value="">{t('allCategories')}</option>
             {categories.map((cat) => (
               <option key={cat._id} value={cat._id}>{cat.name}</option>
             ))}
@@ -154,21 +157,21 @@ const ProductsAdmin = () => {
         {/* Advanced Search */}
         {showAdvancedSearch && (
           <div className="border-t pt-4">
-            <h3 className="text-lg font-semibold mb-3">Advanced Filters</h3>
+            <h3 className="text-lg font-semibold mb-3">{t('advancedFilters') || 'Advanced Filters'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('priceRange') || 'Price Range'}</label>
                 <div className="flex space-x-2">
                   <input
                     type="number"
-                    placeholder="Min"
+                    placeholder={t('min') || 'Min'}
                     className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                     value={advancedFilters.minPrice}
                     onChange={(e) => setAdvancedFilters({...advancedFilters, minPrice: e.target.value})}
                   />
                   <input
                     type="number"
-                    placeholder="Max"
+                    placeholder={t('max') || 'Max'}
                     className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                     value={advancedFilters.maxPrice}
                     onChange={(e) => setAdvancedFilters({...advancedFilters, maxPrice: e.target.value})}
@@ -176,18 +179,18 @@ const ProductsAdmin = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Range</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('stockRange') || 'Stock Range'}</label>
                 <div className="flex space-x-2">
                   <input
                     type="number"
-                    placeholder="Min"
+                    placeholder={t('min') || 'Min'}
                     className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                     value={advancedFilters.minStock}
                     onChange={(e) => setAdvancedFilters({...advancedFilters, minStock: e.target.value})}
                   />
                   <input
                     type="number"
-                    placeholder="Max"
+                    placeholder={t('max') || 'Max'}
                     className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                     value={advancedFilters.maxStock}
                     onChange={(e) => setAdvancedFilters({...advancedFilters, maxStock: e.target.value})}
@@ -195,27 +198,27 @@ const ProductsAdmin = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('status') || 'Status'}</label>
                 <select
                   className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                   value={advancedFilters.featured}
                   onChange={(e) => setAdvancedFilters({...advancedFilters, featured: e.target.value})}
                 >
-                  <option value="">All</option>
-                  <option value="true">Featured</option>
-                  <option value="false">Not Featured</option>
+                  <option value="">{t('all') || 'All'}</option>
+                  <option value="true">{t('featured') || 'Featured'}</option>
+                  <option value="false">{t('notFeatured') || 'Not Featured'}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Archive Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('archiveStatus') || 'Archive Status'}</label>
                 <select
                   className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
                   value={advancedFilters.archived}
                   onChange={(e) => setAdvancedFilters({...advancedFilters, archived: e.target.value})}
                 >
-                  <option value="">All</option>
-                  <option value="true">Archived</option>
-                  <option value="false">Active</option>
+                  <option value="">{t('all') || 'All'}</option>
+                  <option value="true">{t('archived') || 'Archived'}</option>
+                  <option value="false">{t('active') || 'Active'}</option>
                 </select>
               </div>
             </div>
@@ -224,7 +227,7 @@ const ProductsAdmin = () => {
                 onClick={applyAdvancedFilters}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Apply Filters
+                {t('applyFilters') || 'Apply Filters'}
               </button>
             </div>
           </div>
@@ -237,32 +240,32 @@ const ProductsAdmin = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <span className="text-yellow-800 font-medium">
-                {selectedProducts.length} product(s) selected
+                {selectedProducts.length} {t('products') || 'product(s)'} {t('selected') || 'selected'}
               </span>
               <select
                 className="border border-yellow-300 p-2 rounded focus:ring-2 focus:ring-yellow-500"
                 value={bulkAction}
                 onChange={(e) => setBulkAction(e.target.value)}
               >
-                <option value="">Select Action</option>
-                <option value="archive">Archive</option>
-                <option value="unarchive">Unarchive</option>
-                <option value="feature">Feature</option>
-                <option value="unfeature">Unfeature</option>
-                <option value="delete">Delete</option>
+                <option value="">{t('selectAction') || 'Select Action'}</option>
+                <option value="archive">{t('archive') || 'Archive'}</option>
+                <option value="unarchive">{t('unarchive') || 'Unarchive'}</option>
+                <option value="feature">{t('feature') || 'Feature'}</option>
+                <option value="unfeature">{t('unfeature') || 'Unfeature'}</option>
+                <option value="delete">{t('delete') || 'Delete'}</option>
               </select>
               <button
                 onClick={handleBulkAction}
                 className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
               >
-                Apply
+                {t('apply') || 'Apply'}
               </button>
             </div>
             <button
               onClick={() => setSelectedProducts([])}
               className="text-yellow-600 hover:text-yellow-800"
             >
-              Clear Selection
+              {t('clearSelection') || 'Clear Selection'}
             </button>
           </div>
         </div>
@@ -290,7 +293,7 @@ const ProductsAdmin = () => {
       {/* Pagination */}
       <div className="mt-6 flex justify-between items-center bg-white p-4 rounded-lg shadow">
         <div className="flex items-center space-x-4">
-          <span className="text-gray-700">Items per page:</span>
+          <span className="text-gray-700">{t('itemsPerPage') || 'Items per page:'}</span>
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
@@ -302,7 +305,7 @@ const ProductsAdmin = () => {
             <option value={50}>50</option>
           </select>
           <span className="text-gray-600">
-            Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, totalProducts)} of {totalProducts} products
+            {t('showing') || 'Showing'} {((page - 1) * pageSize) + 1} {t('to') || 'to'} {Math.min(page * pageSize, totalProducts)} {t('of') || 'of'} {totalProducts} {t('products') || 'products'}
           </span>
         </div>
         <div className="flex items-center space-x-2">
@@ -311,17 +314,17 @@ const ProductsAdmin = () => {
             disabled={page === 1}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
-            Previous
+            {t('previous') || 'Previous'}
           </button>
           <span className="px-4 py-2 text-gray-700">
-            Page {page} of {Math.ceil(totalProducts / pageSize)}
+            {t('page') || 'Page'} {page} {t('of') || 'of'} {Math.ceil(totalProducts / pageSize)}
           </span>
           <button
             onClick={() => setPage(page + 1)}
             disabled={page * pageSize >= totalProducts}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
-            Next
+            {t('next') || 'Next'}
           </button>
         </div>
       </div>
@@ -329,7 +332,7 @@ const ProductsAdmin = () => {
       <Modal
         open={isModalOpen}
         onClose={handleCloseModal}
-        title={editingProduct ? 'Edit Product' : 'Create Product'}
+        title={editingProduct ? t('editProduct') || 'Edit Product' : t('createProduct') || 'Create Product'}
       >
         <ProductForm
           form={productForm}
@@ -345,21 +348,21 @@ const ProductsAdmin = () => {
       {isDeleteConfirmOpen && (
         <>
           {console.log('[ProductsAdmin] Delete confirmation modal is open')}
-          <Modal open={true} onClose={handleCloseDeleteConfirm} title="Confirm Delete">
+          <Modal open={true} onClose={handleCloseDeleteConfirm} title={t('confirmDelete') || 'Confirm Delete'}>
             <div className="p-4">
-              <p className="mb-4 text-lg">Are you sure you want to delete the product <b>{productToDelete?.name}</b>?</p>
+              <p className="mb-4 text-lg">{t('areYouSureDelete') || 'Are you sure you want to delete the product'} <b>{productToDelete?.name}</b>?</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={handleCloseDeleteConfirm}
                   className="px-4 py-2 rounded-md bg-gray-200"
                 >
-                  Cancel
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   onClick={handleDelete}
                   className="px-4 py-2 rounded-md bg-red-600 text-white"
                 >
-                  Delete
+                  {t('delete') || 'Delete'}
                 </button>
               </div>
             </div>

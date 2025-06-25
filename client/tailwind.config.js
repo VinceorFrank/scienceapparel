@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        fun: ['"Fredoka"', 'Quicksand', 'cursive', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#f0f9ff',
@@ -18,6 +21,14 @@ export default {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
+        },
+        pastel: {
+          pink: '#FFB6C1',
+          purple: '#C3B1E1',
+          blue: '#A7EFFF',
+          yellow: '#FFFACD',
+          mint: '#B6FCD5',
+          peach: '#FFDAB9',
         },
       },
     },

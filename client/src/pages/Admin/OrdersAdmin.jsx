@@ -1,5 +1,6 @@
 import React from 'react';
 import useOrderManagement from '../../hooks/useOrderManagement';
+import { exportOrders } from '../../utils/exportUtils';
 import { useLang } from '../../utils/lang.jsx';
 
 const OrdersAdmin = () => {
@@ -16,6 +17,11 @@ const OrdersAdmin = () => {
     handleUpdateStatus,
   } = useOrderManagement();
   const { t } = useLang();
+
+  // Handle export
+  const handleExport = () => {
+    exportOrders(orders);
+  };
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -42,6 +48,15 @@ const OrdersAdmin = () => {
             <option value="shipped">{t('shipped')}</option>
             <option value="pending">{t('pendingShipment')}</option>
           </select>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+          >
+            <span>📊</span>
+            <span>Export Orders</span>
+          </button>
         </div>
       </div>
 

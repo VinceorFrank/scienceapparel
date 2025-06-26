@@ -3,6 +3,8 @@ import { useProductManagement } from '../../hooks/useProductManagement.jsx';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import Modal from './components/Modal';
+import ImportModal from '../../components/ImportModal';
+import { exportProducts } from '../../utils/exportUtils';
 import { useLang } from '../../utils/lang.jsx';
 
 const ProductsAdmin = () => {
@@ -41,6 +43,7 @@ const ProductsAdmin = () => {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [bulkAction, setBulkAction] = useState('');
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     minPrice: '',
     maxPrice: '',
@@ -51,6 +54,19 @@ const ProductsAdmin = () => {
     sortBy: 'createdAt',
     sortOrder: 'desc'
   });
+
+  // Handle export
+  const handleExport = () => {
+    exportProducts(products);
+  };
+
+  // Handle import
+  const handleImport = async (csvData) => {
+    // This will be implemented when we add the backend API
+    console.log('Importing products:', csvData);
+    // For now, just show a success message
+    return Promise.resolve();
+  };
 
   // Handle bulk selection
   const handleSelectAll = (checked) => {
@@ -119,6 +135,20 @@ const ProductsAdmin = () => {
             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
             {showAdvancedSearch ? t('hideAdvancedSearch') || 'Hide Advanced Search' : t('showAdvancedSearch') || 'Show Advanced Search'}
+          </button>
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+          >
+            <span>📊</span>
+            <span>Export CSV</span>
+          </button>
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+          >
+            <span>📥</span>
+            <span>Import CSV</span>
           </button>
           <button
             onClick={handleCreate}
@@ -369,6 +399,16 @@ const ProductsAdmin = () => {
           </Modal>
         </>
       )}
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImport}
+        title="Import Products"
+        dataType="products"
+        sampleHeaders={['Name', 'Description', 'Price', 'Stock', 'SKU', 'Brand', 'Category', 'Status']}
+      />
     </div>
   );
 };

@@ -22,6 +22,71 @@ app.use((req, res, next) => {
 // Connect to database
 connectDB();
 
+// Scheduled Newsletter Sender
+const NewsletterCampaign = require('./models/NewsletterCampaign');
+const NewsletterSubscriber = require('./models/NewsletterSubscriber');
+const transporter = require('./utils/mailer');
+
+// Function to send scheduled newsletters
+const sendScheduledNewsletters = async () => {
+  try {
+    const now = new Date();
+    const scheduledCampaigns = await NewsletterCampaign.find({
+      status: 'scheduled',
+      scheduledAt: { $lte: now }
+    });
+
+    for (const campaign of scheduledCampaigns) {
+      try {
+        // Get current subscribers
+        const subscribers = await NewsletterSubscriber.find({ status: 'subscribed' });
+        const emails = subscribers.map(sub => sub.email);
+
+        if (emails.length > 0) {
+          // Send the email
+          const mailOptions = {
+            from: process.env.SMTP_USER || 'no-reply@example.com',
+            bcc: emails,
+            subject: campaign.subject,
+            text: campaign.message,
+            html: campaign.html
+          };
+
+          await transporter.sendMail(mailOptions);
+
+          // Update campaign status
+          campaign.status = 'sent';
+          campaign.sentAt = new Date();
+          campaign.recipientCount = emails.length;
+          await campaign.save();
+
+          console.log(`Scheduled newsletter "${campaign.subject}" sent to ${emails.length} subscribers.`);
+        } else {
+          // No subscribers, mark as failed
+          campaign.status = 'failed';
+          campaign.errorMessage = 'No subscribers to send to';
+          await campaign.save();
+        }
+      } catch (error) {
+        console.error(`Error sending scheduled newsletter "${campaign.subject}":`, error);
+        
+        // Mark as failed
+        campaign.status = 'failed';
+        campaign.errorMessage = error.message;
+        await campaign.save();
+      }
+    }
+  } catch (error) {
+    console.error('Error in scheduled newsletter sender:', error);
+  }
+};
+
+// Run scheduled newsletter sender every minute
+setInterval(sendScheduledNewsletters, 60000);
+
+// Also run once on startup to catch any missed newsletters
+sendScheduledNewsletters();
+
 // --- START OF CRITICAL CONFIGURATION ---
 
 // 0. Upload route BEFORE body parsers

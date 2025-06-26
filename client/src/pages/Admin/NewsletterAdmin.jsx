@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNewsletterManagement } from '../../hooks/useNewsletterManagement';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { useLang } from '../../utils/lang';
 
 const NewsletterAdmin = () => {
   const {
@@ -36,6 +37,8 @@ const NewsletterAdmin = () => {
 
   const [sendMode, setSendMode] = useState('immediate'); // 'immediate' or 'scheduled'
 
+  const { t } = useLang();
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -66,26 +69,26 @@ const NewsletterAdmin = () => {
     <div className="min-h-screen bg-[#FCFAF6] p-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-8" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-          Newsletter Management
+          {t('newsletterManagement')}
         </h1>
 
         {/* Statistics Overview */}
         {!loadingStats && campaignStats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Campaigns</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('totalCampaigns')}</h3>
               <p className="text-3xl font-bold" style={{ color: '#6DD5ED' }}>
                 {campaignStats.totalCampaigns || 0}
               </p>
             </div>
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Recipients</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('totalRecipients')}</h3>
               <p className="text-3xl font-bold" style={{ color: '#6DD5ED' }}>
                 {campaignStats.totalRecipients || 0}
               </p>
             </div>
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Success Rate</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('successRate')}</h3>
               <p className="text-3xl font-bold text-green-600">
                 {campaignStats.totalCampaigns > 0 
                   ? Math.round((campaignStats.successfulCampaigns / campaignStats.totalCampaigns) * 100)
@@ -93,7 +96,7 @@ const NewsletterAdmin = () => {
               </p>
             </div>
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Last 30 Days</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('last30Days')}</h3>
               <p className="text-3xl font-bold" style={{ color: '#6DD5ED' }}>
                 {campaignStats.recentActivity?.recentCampaigns || 0}
               </p>
@@ -103,10 +106,10 @@ const NewsletterAdmin = () => {
 
         {/* Compose Newsletter */}
         <div className="bg-white rounded-3xl shadow-lg p-6 mb-8 border border-blue-100">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: '#6DD5ED' }}>Send Newsletter</h2>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: '#6DD5ED' }}>{t('sendNewsletter')}</h2>
           <form onSubmit={e => handleSendNewsletter(e, html)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('subject')}</label>
               <input
                 type="text"
                 className="w-full border border-gray-300 p-3 rounded-lg"
@@ -116,7 +119,7 @@ const NewsletterAdmin = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Message (Rich Text)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('messageRichText')}</label>
               <ReactQuill
                 theme="snow"
                 value={html}
@@ -128,7 +131,7 @@ const NewsletterAdmin = () => {
             
             {/* Send Mode Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Send Mode</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('sendMode') || 'Send Mode'}</label>
               <div className="flex space-x-4">
                 <label className="flex items-center">
                   <input
@@ -139,7 +142,7 @@ const NewsletterAdmin = () => {
                     onChange={(e) => setSendMode(e.target.value)}
                     className="mr-2"
                   />
-                  Send Immediately
+                  {t('sendImmediately')}
                 </label>
                 <label className="flex items-center">
                   <input
@@ -150,7 +153,7 @@ const NewsletterAdmin = () => {
                     onChange={(e) => setSendMode(e.target.value)}
                     className="mr-2"
                   />
-                  Schedule for Later
+                  {t('scheduleForLater')}
                 </label>
               </div>
             </div>
@@ -186,7 +189,7 @@ const NewsletterAdmin = () => {
         {/* Scheduled Newsletters */}
         {scheduledCampaigns.length > 0 && (
           <div className="bg-white rounded-3xl shadow-lg p-6 mb-8 border border-blue-100">
-            <h2 className="text-2xl font-bold mb-4" style={{ color: '#6DD5ED' }}>Scheduled Newsletters</h2>
+            <h2 className="text-2xl font-bold mb-4" style={{ color: '#6DD5ED' }}>{t('scheduledNewsletters')}</h2>
             {loadingScheduled ? (
               <div className="text-gray-500">Loading scheduled newsletters...</div>
             ) : scheduledError ? (
@@ -196,11 +199,11 @@ const NewsletterAdmin = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-semibold">Subject</th>
-                      <th className="text-left py-3 px-4 font-semibold">Scheduled For</th>
-                      <th className="text-left py-3 px-4 font-semibold">Recipients</th>
-                      <th className="text-left py-3 px-4 font-semibold">Sent By</th>
-                      <th className="text-left py-3 px-4 font-semibold">Actions</th>
+                      <th className="text-left py-3 px-4 font-semibold">{t('subject')}</th>
+                      <th className="text-left py-3 px-4 font-semibold">{t('scheduledFor')}</th>
+                      <th className="text-left py-3 px-4 font-semibold">{t('recipients')}</th>
+                      <th className="text-left py-3 px-4 font-semibold">{t('sentBy')}</th>
+                      <th className="text-left py-3 px-4 font-semibold">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,23 +1,24 @@
 import React from 'react';
 import { FaFacebookF, FaInstagram, FaYoutube, FaTiktok, FaLinkedinIn } from 'react-icons/fa';
 import { SiAmericanexpress, SiApplepay, SiMastercard, SiShopify, SiVisa } from 'react-icons/si';
+import { useLang } from '../utils/lang';
 
-const Footer = ({ lang }) => {
-  const t = (en, fr) => (lang === 'en' ? en : fr);
+const Footer = () => {
+  const { t } = useLang();
   const links = [
-    { path: '/', label: t('Home', 'Accueil') },
-    { path: '/products', label: t('Products', 'Produits') },
-    { path: '/cart', label: t('Cart', 'Panier') },
-    { path: '/order-tracking', label: t('Order Tracking', 'Commande en cours') },
-    { path: '/account', label: t('Account', 'Espace client') },
-    { path: '/about', label: t('About', 'À propos') },
-    { path: '/faq', label: 'FAQ' },
-    { path: '/shipping', label: t('Shipping', 'Livraison') },
-    { path: '/reviews', label: t('Reviews', 'Avis') },
-    { path: '/newsletter', label: 'Newsletter' },
-    { path: '/responsibility', label: t('Responsibility', 'Responsabilité') },
-    { path: '/calendly', label: 'Calendly' },
-    { path: '/complaint', label: t('Complaint', 'Plainte') },
+    { path: '/', label: t('home') },
+    { path: '/products', label: t('products') },
+    { path: '/cart', label: t('cart') },
+    { path: '/order-tracking', label: t('orderTracking') },
+    { path: '/account', label: t('account') },
+    { path: '/about', label: t('about') },
+    { path: '/faq', label: t('faq') },
+    { path: '/shipping', label: t('shipping') },
+    { path: '/reviews', label: t('reviews') },
+    { path: '/newsletter', label: t('newsletter') },
+    { path: '/responsibility', label: t('responsibility') },
+    { path: '/calendly', label: t('calendly') },
+    { path: '/complaint', label: t('complaint') },
   ];
 
   // Split links into 3 rows of 4 (last row may have fewer)
@@ -34,7 +35,7 @@ const Footer = ({ lang }) => {
         <div className="font-bold text-2xl mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', letterSpacing: '1px' }}>
           LOGO
         </div>
-        <p className="mb-2 text-blue-500 font-semibold">{t('Contact us at', 'Contactez-nous à')} <span className="underline">info@example.com</span></p>
+        <p className="mb-2 text-blue-500 font-semibold">{t('contactUsAt')} <span className="underline">info@example.com</span></p>
         {/* Address */}
         <p className="mb-4 text-slate-500 text-sm">234 Rue Test, Longueuil, QC J4Y2G6 Canada</p>
         {/* Social Media Icons */}
@@ -49,11 +50,11 @@ const Footer = ({ lang }) => {
         <form className="flex flex-col sm:flex-row items-center gap-2 w-full max-w-md mb-4">
           <input
             type="email"
-            placeholder={t('Your email address', 'Votre adresse e-mail')}
+            placeholder={t('yourEmailAddress')}
             className="flex-1 px-4 py-2 rounded-full border border-blue-100 bg-white shadow focus:outline-none focus:ring-2 focus:ring-pink-200"
           />
           <button type="submit" className="px-6 py-2 rounded-full bg-pink-300 text-white font-bold shadow hover:bg-pink-400 transition">
-            {t('Subscribe', "S'abonner")}
+            {t('subscribe')}
           </button>
         </form>
         {/* Payment Methods */}

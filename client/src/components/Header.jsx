@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { FiSearch, FiUser, FiShoppingCart, FiMenu } from 'react-icons/fi';
+import { useLang } from '../utils/lang';
 
-const Header = ({ lang, setLang }) => {
+const Header = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
-  const t = (en, fr) => (lang === 'en' ? en : fr);
+  const { lang, setLang, t } = useLang();
 
   const links = [
-    { path: '/', label: t('Home', 'Accueil') },
-    { path: '/products', label: t('Products', 'Produits') },
-    { path: '/cart', label: t('Cart', 'Panier') },
-    { path: '/order-tracking', label: t('Order Tracking', 'Commande en cours') },
-    { path: '/account', label: t('Account', 'Espace client') },
-    { path: '/about', label: t('About', 'À propos') },
-    { path: '/faq', label: 'FAQ' },
-    { path: '/shipping', label: t('Shipping', 'Livraison') },
-    { path: '/reviews', label: t('Reviews', 'Avis') },
-    { path: '/newsletter', label: 'Newsletter' },
-    { path: '/responsibility', label: t('Responsibility', 'Responsabilité') },
-    { path: '/calendly', label: 'Calendly' },
-    { path: '/complaint', label: t('Complaint', 'Plainte') },
+    { path: '/', label: t('home') },
+    { path: '/products', label: t('products') },
+    { path: '/cart', label: t('cart') },
+    { path: '/order-tracking', label: t('orderTracking') },
+    { path: '/account', label: t('account') },
+    { path: '/about', label: t('about') },
+    { path: '/faq', label: t('faq') },
+    { path: '/shipping', label: t('shipping') },
+    { path: '/reviews', label: t('reviews') },
+    { path: '/newsletter', label: t('newsletter') },
+    { path: '/responsibility', label: t('responsibility') },
+    { path: '/calendly', label: t('calendly') },
+    { path: '/complaint', label: t('complaint') },
   ];
 
   return (

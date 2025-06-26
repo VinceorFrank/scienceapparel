@@ -42,7 +42,7 @@ const AdminLayout = () => {
           onClick={logout}
           className="block w-full text-left px-3 py-2 rounded bg-red-600 hover:bg-red-700 text-white mt-8"
         >
-          Logout
+          {t('logout')}
         </button>
       </aside>
 

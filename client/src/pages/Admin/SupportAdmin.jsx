@@ -326,14 +326,14 @@ const SupportAdmin = () => {
                           className="rounded border-gray-300"
                         />
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('ticket') || 'Ticket'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('customer') || 'Customer'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('subject') || 'Subject'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('status') || 'Status'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('priority') || 'Priority'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('category') || 'Category'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('age') || 'Age'}</th>
-                      <th className="px-4 py-3 text-left font-semibold">{t('actions') || 'Actions'}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('ticket')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('customer')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('subject')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('status')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('priority')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('category')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('age')}</th>
+                      <th className="px-4 py-3 text-left font-semibold">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -360,26 +360,35 @@ const SupportAdmin = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="max-w-xs truncate" title={ticket.subject}>
-                            {ticket.subject}
+                            {['Order not received','Refund request','Technical issue with login','Product question','Billing error'].includes(ticket.subject)
+                              ? t(
+                                  ticket.subject === 'Order not received' ? 'orderNotReceived' :
+                                  ticket.subject === 'Refund request' ? 'refundRequest' :
+                                  ticket.subject === 'Technical issue with login' ? 'technicalIssueWithLogin' :
+                                  ticket.subject === 'Product question' ? 'productQuestion' :
+                                  ticket.subject === 'Billing error' ? 'billingError' :
+                                  ticket.subject
+                                )
+                              : ticket.subject}
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                            {ticket.status.replace('_', ' ')}
+                            {t(ticket.status) || ticket.status.replace('_', ' ')}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-                            {ticket.priority}
+                            {t(ticket.priority) || ticket.priority}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(ticket.category)}`}>
-                            {ticket.category}
+                            {t(ticket.category) || ticket.category}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
-                          {getTicketAge(ticket.createdAt)}
+                          {ticket.createdAt ? (getTicketAge(ticket.createdAt) === 'Today' ? t('today') : getTicketAge(ticket.createdAt)) : ''}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex space-x-2">
@@ -387,25 +396,25 @@ const SupportAdmin = () => {
                               onClick={() => handleViewTicket(ticket._id)}
                               className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition"
                             >
-                              {t('view') || 'View'}
+                              {t('view')}
                             </button>
                             <button
                               onClick={() => handleAddResponse(ticket._id)}
                               className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition"
                             >
-                              {t('respond') || 'Respond'}
+                              {t('respond')}
                             </button>
                             <button
                               onClick={() => handleEditTicket(ticket._id)}
                               className="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600 transition"
                             >
-                              {t('edit') || 'Edit'}
+                              {t('edit')}
                             </button>
                             <button
                               onClick={() => handleDeleteTicket(ticket._id)}
                               className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition"
                             >
-                              {t('delete') || 'Delete'}
+                              {t('delete')}
                             </button>
                           </div>
                         </td>

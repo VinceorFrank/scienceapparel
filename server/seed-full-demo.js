@@ -5,6 +5,9 @@ const Product = require('./models/Product');
 const Order = require('./models/Order');
 const ActivityLog = require('./models/ActivityLog');
 const Category = require('./models/Category');
+const Support = require('./models/Support');
+const NewsletterSubscriber = require('./models/NewsletterSubscriber');
+const NewsletterCampaign = require('./models/NewsletterCampaign');
 const config = require('./config/env');
 
 // Helper for random selection
@@ -33,11 +36,14 @@ async function seed() {
     Order.deleteMany({}),
     ActivityLog.deleteMany({}),
     Category.deleteMany({}),
+    Support.deleteMany({}),
+    NewsletterSubscriber.deleteMany({}),
+    NewsletterCampaign.deleteMany({}),
   ]);
   console.log('Cleared all collections');
 
   // --- CATEGORIES ---
-  const categoryNames = ['Apparel', 'Accessories', 'Poster', 'Lab Equipment'];
+  const categoryNames = ['Apparel', 'Accessories', 'Poster', 'Lab Equipment', 'Billing', 'Shipping', 'Technical', 'General'];
   const categories = await Category.insertMany(categoryNames.map(name => ({ name })));
 
   // --- USERS ---
@@ -45,7 +51,7 @@ async function seed() {
   const admin = await User.create({
     name: 'Admin User',
     email: 'admin@example.com',
-    password: await bcrypt.hash('password123', 10),
+    password: 'password123',
     isAdmin: true,
     role: 'admin',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
@@ -55,7 +61,7 @@ async function seed() {
   const customerData = Array.from({ length: 10 }).map((_, i) => ({
     name: `User${i + 1}`,
     email: `user${i + 1}@example.com`,
-    password: bcrypt.hashSync('password123', 10),
+    password: 'password123',
     role: 'customer',
     createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
     updatedAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
@@ -266,9 +272,136 @@ async function seed() {
   }
   const orders = await Order.insertMany(orderData);
 
+  // --- SUPPORT TICKETS ---
+  const supportTickets = [
+    {
+      customerName: customers[0].name,
+      customerEmail: customers[0].email,
+      subject: 'Order not received',
+      message: 'I placed an order last week but have not received it yet.',
+      category: 'shipping',
+      priority: 'high',
+      status: 'open',
+      orderId: orders[0]._id,
+      assignedTo: admin._id,
+      responses: [
+        {
+          adminId: admin._id,
+          adminName: admin.name,
+          message: 'We are looking into your order and will update you soon.',
+          isInternal: false,
+        }
+      ],
+      tags: ['urgent', 'order'],
+    },
+    {
+      customerName: customers[1].name,
+      customerEmail: customers[1].email,
+      subject: 'Refund request',
+      message: 'I would like a refund for my last order.',
+      category: 'refund',
+      priority: 'medium',
+      status: 'resolved',
+      orderId: orders[1]._id,
+      assignedTo: admin._id,
+      responses: [
+        {
+          adminId: admin._id,
+          adminName: admin.name,
+          message: 'Refund processed. You should see the amount in your account soon.',
+          isInternal: false,
+        }
+      ],
+      satisfaction: 5,
+      tags: ['refund'],
+    },
+    {
+      customerName: customers[2].name,
+      customerEmail: customers[2].email,
+      subject: 'Technical issue with login',
+      message: 'I cannot log in to my account.',
+      category: 'technical',
+      priority: 'urgent',
+      status: 'in_progress',
+      assignedTo: admin._id,
+      tags: ['login', 'technical'],
+    },
+    {
+      customerName: customers[3].name,
+      customerEmail: customers[3].email,
+      subject: 'Product question',
+      message: 'Is the beaker mug dishwasher safe?',
+      category: 'product',
+      priority: 'low',
+      status: 'waiting_customer',
+      productId: products[2]._id,
+      assignedTo: admin._id,
+      tags: ['product'],
+    },
+    {
+      customerName: customers[4].name,
+      customerEmail: customers[4].email,
+      subject: 'Billing error',
+      message: 'I was charged twice for my order.',
+      category: 'billing',
+      priority: 'high',
+      status: 'open',
+      orderId: orders[4]._id,
+      assignedTo: admin._id,
+      tags: ['billing', 'error'],
+    },
+  ];
+  await Support.insertMany(supportTickets);
+
+  // --- NEWSLETTER SUBSCRIBERS ---
+  const newsletterSubscribers = [
+    { email: 'subscriber1@example.com', status: 'subscribed' },
+    { email: 'subscriber2@example.com', status: 'subscribed' },
+    { email: 'subscriber3@example.com', status: 'unsubscribed', unsubscribedAt: new Date() },
+    { email: customers[0].email, status: 'subscribed' },
+    { email: customers[1].email, status: 'subscribed' },
+  ];
+  await NewsletterSubscriber.insertMany(newsletterSubscribers);
+
+  // --- NEWSLETTER CAMPAIGNS ---
+  const newsletterCampaigns = [
+    {
+      subject: 'Welcome to Science Apparel!',
+      message: 'Thank you for subscribing to our newsletter.',
+      html: '<h1>Welcome!</h1><p>Thank you for subscribing to our newsletter.</p>',
+      recipientCount: 4,
+      sentBy: admin._id,
+      status: 'sent',
+      sentAt: daysAgo(2),
+      isScheduled: false,
+    },
+    {
+      subject: 'Upcoming Sale!',
+      message: 'Don\'t miss our upcoming sale on lab equipment.',
+      html: '<h1>Upcoming Sale!</h1><p>Don\'t miss our upcoming sale on lab equipment.</p>',
+      recipientCount: 5,
+      sentBy: admin._id,
+      status: 'scheduled',
+      scheduledAt: daysAgo(-2),
+      isScheduled: true,
+    },
+    {
+      subject: 'New Products Released',
+      message: 'Check out our new science-themed products.',
+      html: '<h1>New Products!</h1><p>Check out our new science-themed products.</p>',
+      recipientCount: 5,
+      sentBy: admin._id,
+      status: 'sent',
+      sentAt: daysAgo(0),
+      isScheduled: false,
+    },
+  ];
+  await NewsletterCampaign.insertMany(newsletterCampaigns);
+
   // --- ACTIVITY LOGS ---
   const adminActions = [
-    'login', 'add_product', 'update_stock', 'delete_product', 'refund_order', 'update_category', 'view_orders', 'view_users', 'view_dashboard', 'view_activity_log'
+    'login', 'add_product', 'update_stock', 'delete_product', 'refund_order', 'update_category', 'view_orders', 'view_users', 'view_dashboard', 'view_activity_log',
+    'send_newsletter', 'schedule_newsletter', 'import_subscribers', 'resolve_support_ticket', 'assign_support_ticket', 'reply_support_ticket'
   ];
   const activityLogs = adminActions.map((action, i) => ({
     user: admin._id,

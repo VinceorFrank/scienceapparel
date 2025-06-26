@@ -10,10 +10,13 @@ import {
 import ImportModal from '../../components/ImportModal';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/config';
+import { useLang } from '../../utils/lang';
 
 const DataManagement = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedDataType, setSelectedDataType] = useState('products');
+
+  const { t } = useLang();
 
   // Fetch data for export
   const { data: products = [] } = useQuery({
@@ -184,37 +187,50 @@ const DataManagement = () => {
     }
   ];
 
+  // Map for explicit translation keys for export/import buttons
+  const exportKeys = {
+    products: 'exportProducts',
+    orders: 'exportOrders',
+    users: 'exportUsers',
+    categories: 'exportCategories',
+    subscribers: 'exportSubscribers',
+    campaigns: 'exportCampaigns',
+  };
+  const importKeys = {
+    products: 'importProducts',
+    users: 'importUsers',
+    categories: 'importCategories',
+  };
+
   return (
     <div className="min-h-screen bg-[#FCFAF6] p-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-8" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-          📊 Data Management
+          📊 {t('dataManagement')}
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dataTypes.map((dataType) => (
-            <div key={dataType.id} className="bg-white rounded-3xl shadow-lg p-6 border border-blue-100">
+            <div key={dataType.id} className="bg-white rounded-3xl shadow-lg p-8 min-h-[260px] flex flex-col justify-between border border-blue-100">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold" style={{ color: '#6DD5ED' }}>
-                  {dataType.name}
+                  {t(dataType.id)}
                 </h3>
-                <span className="text-sm text-gray-500">
-                  {dataType.exportCount} records
+                <span className="text-gray-400 text-sm">
+                  {dataType.exportCount} {t('records')}
                 </span>
               </div>
               
-              <p className="text-gray-600 mb-4 text-sm">
-                {dataType.description}
-              </p>
+              <p className="mb-4 text-gray-600">{t(dataType.id + 'Desc')}</p>
 
               <hr className="my-4 border-blue-100" />
-              <div className="flex flex-col items-center gap-3 w-full mt-2">
+              <div className="flex flex-col gap-2 w-full">
                 <button
                   onClick={() => handleExport(dataType.id)}
-                  className="w-40 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                  className="min-w-[160px] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
                 >
                   <span>📊</span>
-                  <span>Export</span>
+                  <span>{t(exportKeys[dataType.id])}</span>
                 </button>
                 {dataType.canImport && (
                   <button
@@ -222,10 +238,10 @@ const DataManagement = () => {
                       setSelectedDataType(dataType.id);
                       setIsImportModalOpen(true);
                     }}
-                    className="w-40 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                    className="min-w-[160px] px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
                   >
                     <span>📥</span>
-                    <span>Import</span>
+                    <span>{t(importKeys[dataType.id])}</span>
                   </button>
                 )}
               </div>

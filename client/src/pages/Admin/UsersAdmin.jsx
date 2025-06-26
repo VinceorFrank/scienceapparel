@@ -2,13 +2,7 @@ import React, { useState } from 'react';
 import useUserManagement from '../../hooks/useUserManagement';
 import { exportUsers } from '../../utils/exportUtils';
 import ImportModal from '../../components/ImportModal';
-
-const roleOptions = [
-  { value: "all", label: "All Roles" },
-  { value: "admin", label: "Admin" },
-  { value: "customer", label: "Customer" },
-  // Add other roles if they exist in your system
-];
+import { useLang } from '../../utils/lang.jsx';
 
 const UsersAdmin = () => {
   const {
@@ -25,6 +19,14 @@ const UsersAdmin = () => {
   } = useUserManagement();
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const { t } = useLang();
+
+  const roleOptions = [
+    { value: "all", label: t("allRoles") },
+    { value: "admin", label: t("admin") },
+    { value: "customer", label: t("customer") },
+    // Add other roles if they exist in your system
+  ];
 
   // Handle export
   const handleExport = () => {
@@ -69,14 +71,14 @@ const UsersAdmin = () => {
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Users Management</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('usersManagement')}</h1>
 
       {/* Toolbar */}
       <div className="flex justify-between items-center mb-4 bg-white p-3 rounded-lg shadow-sm">
         <div className="flex gap-4">
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder={t('searchByNameOrEmail')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="p-2 border rounded-md"
@@ -97,14 +99,14 @@ const UsersAdmin = () => {
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
           >
             <span>📊</span>
-            <span>Export Users</span>
+            <span>{t('exportUsers')}</span>
           </button>
           <button
             onClick={() => setIsImportModalOpen(true)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
           >
             <span>📥</span>
-            <span>Import Users</span>
+            <span>{t('importUsers')}</span>
           </button>
         </div>
       </div>
@@ -121,9 +123,9 @@ const UsersAdmin = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="3" className="text-center p-4">Loading...</td></tr>
+              <tr><td colSpan="3" className="text-center p-4">{t('loading')}</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan="3" className="text-center p-4">No users found.</td></tr>
+              <tr><td colSpan="3" className="text-center p-4">{t('noUsersFound')}</td></tr>
             ) : (
               users.map((user) => (
                 <tr key={user._id} className="border-b">
@@ -159,7 +161,7 @@ const UsersAdmin = () => {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImport}
-        title="Import Users"
+        title={t('importUsers')}
         dataType="users"
         sampleHeaders={['Name', 'Email', 'Role', 'Status']}
       />

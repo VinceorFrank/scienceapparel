@@ -86,19 +86,19 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-[#FCFAF6] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header with refresh button */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{t("dashboard")}</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-extrabold mb-1" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("dashboard")}</h1>
           <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-slate-500">
               {t("lastUpdated")}: {lastUpdate.toLocaleTimeString()}
             </div>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
+              className="px-4 py-2 bg-pink-300 text-white rounded-full shadow hover:bg-pink-400 disabled:opacity-50 flex items-center space-x-2 font-bold transition"
             >
               <span>{isRefreshing ? "🔄" : "🔄"}</span>
               <span>{isRefreshing ? t("refreshing") : t("refresh")}</span>
@@ -107,38 +107,41 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("quickActions")}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("quickActions")}</h2>
+          <div className="w-24 h-1 mb-6 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {quickActions.map((action, index) => (
               <button
                 key={index}
                 onClick={action.action}
-                className={`${action.color} text-white p-4 rounded-lg shadow hover:shadow-lg transition-all duration-200 flex flex-col items-center space-y-2`}
+                className={`bg-gradient-to-br from-pink-100 via-blue-100 to-white text-blue-700 p-6 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-200 flex flex-col items-center space-y-2 border border-pink-100 font-semibold`}
               >
-                <span className="text-2xl">{action.icon}</span>
-                <span className="font-medium">{action.title}</span>
+                <span className="text-3xl">{action.icon}</span>
+                <span className="font-bold" style={{ fontFamily: 'Fredoka One, cursive' }}>{action.title}</span>
               </button>
             ))}
           </div>
         </div>
         
         {/* Dashboard Metrics */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("overview")}</h2>
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("overview")}</h2>
+          <div className="w-24 h-1 mb-6 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
           <DashboardMetrics />
         </div>
 
         {/* Main Dashboard Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sales Chart */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 bg-gradient-to-br from-blue-100 via-pink-100 to-white rounded-3xl shadow-lg p-6 border border-blue-100">
             <SalesChart />
           </div>
           
           {/* Recent Orders */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("recentOrders")}</h2>
+          <div className="bg-gradient-to-br from-pink-100 via-blue-100 to-white p-6 rounded-3xl shadow-lg border border-pink-100">
+            <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("recentOrders")}</h2>
+            <div className="w-16 h-1 mb-4 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
             {ordersLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (
@@ -175,8 +178,9 @@ const AdminDashboard = () => {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* Stock Alerts */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("stockAlerts")}</h2>
+          <div className="bg-gradient-to-br from-pink-100 via-blue-100 to-white p-6 rounded-3xl shadow-lg border border-pink-100">
+            <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("stockAlerts")}</h2>
+            <div className="w-16 h-1 mb-4 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
             {stockLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (
@@ -201,8 +205,9 @@ const AdminDashboard = () => {
           </div>
 
           {/* Customer Activity */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">{t("customerActivity")}</h2>
+          <div className="bg-gradient-to-br from-pink-100 via-blue-100 to-white p-6 rounded-3xl shadow-lg border border-pink-100">
+            <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("customerActivity")}</h2>
+            <div className="w-16 h-1 mb-4 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
             {activityLoading ? (
               <div className="animate-pulse space-y-3">
                 {[1, 2, 3].map(i => (

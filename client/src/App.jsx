@@ -36,6 +36,7 @@ import CategoriesAdmin from "./pages/Admin/CategoriesAdmin";
 import ActivityLogAdmin from "./pages/Admin/ActivityLogAdmin";
 import SupportAdmin from "./pages/Admin/SupportAdmin";
 import NewsletterAdmin from "./pages/Admin/NewsletterAdmin";
+import DataManagement from "./pages/Admin/DataManagement";
 
 
 
@@ -96,6 +97,7 @@ const App = () => {
     <Route path="support" element={<SupportAdmin />} />
     <Route path="newsletter" element={<NewsletterAdmin />} />
     <Route path="activity-log" element={<ActivityLogAdmin />} />
+    <Route path="data-management" element={<DataManagement />} />
   </Route>
 </Route>
       </Routes>

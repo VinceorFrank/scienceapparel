@@ -140,6 +140,7 @@ app.use('/api/payment', require('./routes/payment'));
 app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/admin/activity-logs', require('./routes/activityLog'));
+app.use('/api/admin/csv-import', require('./routes/csvImport'));
 
 // Error Handling Middleware (must be last)
 app.use(notFound);

@@ -106,32 +106,32 @@ const SupportAdmin = () => {
 
         {/* Statistics */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-blue-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-blue-100">
-              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-                {t('totalTickets') || 'Total Tickets'}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-6 items-stretch">
+            <div className="bg-gradient-to-br from-blue-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-blue-100 min-h-[110px] flex flex-col items-center justify-center text-center">
+              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', textTransform: 'capitalize' }}>
+                {(t('totalTickets') || 'Total Tickets').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
               </h3>
               <p className="text-3xl font-bold text-gray-800">{stats?.totalTickets || 0}</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-yellow-100">
-              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-                {t('openTickets') || 'Open Tickets'}
+            <div className="bg-gradient-to-br from-yellow-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-yellow-100 min-h-[110px] flex flex-col items-center justify-center text-center">
+              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', textTransform: 'capitalize' }}>
+                {(t('openTickets') || 'Open Tickets').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
               </h3>
               <p className="text-3xl font-bold text-gray-800">
                 {stats?.byStatus?.find(s => s._id === 'open')?.count || 0}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-green-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-green-100">
-              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-                {t('resolvedTickets') || 'Resolved Tickets'}
+            <div className="bg-gradient-to-br from-green-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-green-100 min-h-[110px] flex flex-col items-center justify-center text-center">
+              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', textTransform: 'capitalize' }}>
+                {(t('resolvedTickets') || 'Resolved Tickets').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
               </h3>
               <p className="text-3xl font-bold text-gray-800">
                 {stats?.byStatus?.find(s => s._id === 'resolved')?.count || 0}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-purple-100">
-              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-                {t('avgResponseTime') || 'Avg Response Time'}
+            <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-white p-6 rounded-3xl shadow-lg border border-purple-100 min-h-[110px] flex flex-col items-center justify-center text-center">
+              <h3 className="text-lg font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', textTransform: 'capitalize' }}>
+                {(t('avgResponseTime') || 'Avg Response Time').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
               </h3>
               <p className="text-3xl font-bold text-gray-800">{stats?.averageResponseTime || 0}h</p>
             </div>

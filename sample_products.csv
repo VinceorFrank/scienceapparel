@@ -1,4 +1,9 @@
-Name,Description,Price,Stock,Category,Featured,Archived,DiscountPrice,Tags
+Name,Description,Price,Stock,SKU,Brand,Category,Status
+Test Product 1,This is a test product for import testing,29.99,50,TEST001,TestBrand,Electronics,active
+Test Product 2,Another test product with different details,45.50,25,TEST002,TestBrand,Clothing,active
+Test Product 3,Third test product for comprehensive testing,15.75,100,TEST003,AnotherBrand,Books,active
+Test Product 4,Fourth test product with special characters,99.99,10,TEST004,TestBrand,Electronics,inactive
+Test Product 5,Fifth test product for edge case testing,0.99,500,TEST005,AnotherBrand,Clothing,active
 "Classic T-Shirt","Comfortable cotton t-shirt with a modern fit",29.99,100,"Apparel",true,false,24.99,"clothing,casual,summer"
 "Leather Wallet","Genuine leather wallet with multiple card slots",49.99,50,"Accessories",false,false,,"accessories,leather,premium"
 "Notebook Set","Set of 3 premium notebooks with 100 pages each",19.99,200,"Stationery",true,false,,"stationery,office,school"

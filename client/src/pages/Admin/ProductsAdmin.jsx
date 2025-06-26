@@ -62,10 +62,30 @@ const ProductsAdmin = () => {
 
   // Handle import
   const handleImport = async (csvData) => {
-    // This will be implemented when we add the backend API
-    console.log('Importing products:', csvData);
-    // For now, just show a success message
-    return Promise.resolve();
+    try {
+      const response = await fetch('/api/admin/csv-import/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ csvData })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Import failed');
+      }
+
+      // Refresh products list
+      window.location.reload();
+      
+      return result;
+    } catch (error) {
+      console.error('Import error:', error);
+      throw error;
+    }
   };
 
   // Handle bulk selection

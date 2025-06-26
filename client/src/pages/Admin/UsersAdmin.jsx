@@ -33,9 +33,38 @@ const UsersAdmin = () => {
 
   // Handle import
   const handleImport = async (csvData) => {
-    // This will be implemented when we add the backend API
-    console.log('Importing users:', csvData);
-    return Promise.resolve();
+    try {
+      const response = await fetch('/api/admin/csv-import/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ csvData })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Import failed');
+      }
+
+      // Show new users with passwords if any were created
+      if (result.newUsersWithPasswords && result.newUsersWithPasswords.length > 0) {
+        const passwordInfo = result.newUsersWithPasswords
+          .map(user => `${user.name} (${user.email}): ${user.password}`)
+          .join('\n');
+        alert(`New users created with passwords:\n${passwordInfo}`);
+      }
+
+      // Refresh users list
+      window.location.reload();
+      
+      return result;
+    } catch (error) {
+      console.error('Import error:', error);
+      throw error;
+    }
   };
 
   return (

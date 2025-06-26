@@ -35,6 +35,7 @@ const AdminLayout = () => {
           <NavLink to="/admin/categories" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("categories")}</NavLink>
           <NavLink to="/admin/support" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("support") || "Support"}</NavLink>
           <NavLink to="/admin/newsletter" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("newsletter") || "Newsletter"}</NavLink>
+          <NavLink to="/admin/data-management" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">📊 Data Management</NavLink>
           <NavLink to="/admin/activity-log" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("activityLog")}</NavLink>
         </nav>
         <button

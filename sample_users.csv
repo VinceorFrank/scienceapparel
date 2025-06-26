@@ -1,0 +1,6 @@
+Name,Email,Role,Status
+John Doe,john.doe@example.com,customer,active
+Jane Smith,jane.smith@example.com,customer,active
+Bob Johnson,bob.johnson@example.com,admin,active
+Alice Brown,alice.brown@example.com,customer,active
+Charlie Wilson,charlie.wilson@example.com,customer,inactive 

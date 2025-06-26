@@ -1,0 +1,10 @@
+Name,Description,Slug,Parent Category,Status
+Electronics,Electronic devices and gadgets,electronics,,active
+Clothing,Apparel and fashion items,clothing,,active
+Books,Books and publications,books,,active
+Home & Garden,Home improvement and garden items,home-garden,,active
+Sports,Sports equipment and accessories,sports,,active
+Smartphones,Mobile phones and smartphones,smartphones,Electronics,active
+Laptops,Portable computers and laptops,laptops,Electronics,active
+Men's Clothing,Clothing for men,mens-clothing,Clothing,active
+Women's Clothing,Clothing for women,womens-clothing,Clothing,active 

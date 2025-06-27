@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 7
+    },
+    "auditLog": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\.0e73afc39d1d4f0833b22b0d3aa344dcf4f40ec4-audit.json",
+    "files": [
+        {
+            "date": 1751060482062,
+            "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-06-27.log",
+            "hash": "7bfeb00d80da9026e0682a992d4c2c27d26b1722b3995a691fdbe8baded164e9"
+        }
+    ],
+    "hashType": "sha256"
+}

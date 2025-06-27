@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const { logger } = require('../utils/logger');
 
 // Custom error classes for different types of errors
 class AppError extends Error {
@@ -56,9 +57,9 @@ const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error for debugging
-  console.error('Error:', {
-    message: err.message,
+  // Log error with Winston logger
+  logger.error('Application error occurred', {
+    error: err.message,
     stack: err.stack,
     url: req.originalUrl,
     method: req.method,
@@ -66,7 +67,10 @@ const errorHandler = (err, req, res, next) => {
     params: req.params,
     query: req.query,
     user: req.user ? req.user._id : 'anonymous',
-    timestamp: new Date().toISOString()
+    userEmail: req.user ? req.user.email : 'anonymous',
+    userRole: req.user ? req.user.role : 'anonymous',
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('User-Agent')
   });
 
   // Mongoose bad ObjectId

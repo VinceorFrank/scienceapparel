@@ -7,7 +7,8 @@ const config = require('./config/env');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const rateLimiter = require('./middlewares/rateLimiter');
 const sanitizer = require('./middlewares/sanitizer-simple');
-const { morganRequestLogger } = require('./middlewares/requestLogger');
+const { requestLogger, errorLogger, logger } = require('./utils/logger');
+const logCleanup = require('./utils/logCleanup');
 const compression = require('compression');
 const hpp = require('hpp');
 
@@ -15,6 +16,9 @@ const app = express();
 
 // Connect to database
 connectDB();
+
+// Schedule log cleanup (run every 24 hours)
+logCleanup.scheduleCleanup(24);
 
 // Scheduled Newsletter Sender
 const NewsletterCampaign = require('./models/NewsletterCampaign');
@@ -54,15 +58,28 @@ const sendScheduledNewsletters = async () => {
           campaign.recipientCount = emails.length;
           await campaign.save();
 
-          console.log(`Scheduled newsletter "${campaign.subject}" sent to ${emails.length} subscribers.`);
+          logger.info('Scheduled newsletter sent', {
+            campaignId: campaign._id,
+            subject: campaign.subject,
+            recipientCount: emails.length
+          });
         } else {
           // No subscribers, mark as failed
           campaign.status = 'failed';
           campaign.errorMessage = 'No subscribers to send to';
           await campaign.save();
+          
+          logger.warn('Scheduled newsletter failed - no subscribers', {
+            campaignId: campaign._id,
+            subject: campaign.subject
+          });
         }
       } catch (error) {
-        console.error(`Error sending scheduled newsletter "${campaign.subject}":`, error);
+        logger.error('Error sending scheduled newsletter', {
+          campaignId: campaign._id,
+          subject: campaign.subject,
+          error: error.message
+        });
         
         // Mark as failed
         campaign.status = 'failed';
@@ -71,7 +88,10 @@ const sendScheduledNewsletters = async () => {
       }
     }
   } catch (error) {
-    console.error('Error in scheduled newsletter sender:', error);
+    logger.error('Error in scheduled newsletter sender', {
+      error: error.message,
+      stack: error.stack
+    });
   }
 };
 
@@ -113,7 +133,7 @@ app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')
 // Other Middlewares
 app.use(rateLimiter);
 app.use(sanitizer);
-app.use(morganRequestLogger);
+app.use(requestLogger);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -137,16 +157,20 @@ app.use('/api/admin/activity-logs', require('./routes/activityLog'));
 app.use('/api/admin/csv-import', require('./routes/csvImport'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/stats', require('./routes/stats'));
+app.use('/api/monitoring', require('./routes/monitoring'));
 
 // Error Handling Middleware (must be last)
 app.use(notFound);
+app.use(errorLogger);
 app.use(errorHandler);
 
 const PORT = config.PORT;
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🌍 Environment: ${config.NODE_ENV}`);
-  console.log(`🔗 CORS Origin: ${config.CORS_ORIGIN}`);
+  logger.info('Server started successfully', {
+    port: PORT,
+    environment: config.NODE_ENV,
+    corsOrigin: config.CORS_ORIGIN
+  });
 });
 
 module.exports = app;

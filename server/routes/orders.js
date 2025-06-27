@@ -59,6 +59,30 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
+// ✅ GET /api/orders - Get orders (admin gets all, customer gets their own)
+router.get('/', protect, async (req, res) => {
+  try {
+    let orders;
+    
+    if (req.user.isAdmin) {
+      // Admin gets all orders
+      orders = await Order.find({})
+        .sort({ createdAt: -1 })
+        .populate('user', 'name email')
+        .populate('orderItems.product', 'name price image');
+    } else {
+      // Customer gets only their orders
+      orders = await Order.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .populate('orderItems.product', 'name price image');
+    }
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // ✅ GET /api/orders/myorders - All orders of current user
 router.get('/myorders', protect, async (req, res) => {
   try {

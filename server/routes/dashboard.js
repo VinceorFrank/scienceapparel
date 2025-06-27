@@ -7,24 +7,27 @@ const ActivityLog = require('../models/ActivityLog');
 // GET /api/dashboard/overview - Get comprehensive dashboard overview (admin only)
 router.get('/overview', protect, admin, async (req, res, next) => {
   try {
-    const { period = '30d' } = req.query;
+    const { period } = req.query;
     
     let dateFilter = {};
-    const now = new Date();
-    
-    switch (period) {
-      case '7d':
-        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
-        break;
-      case '30d':
-        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
-        break;
-      case '90d':
-        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
-        break;
-      case '1y':
-        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
-        break;
+    if (period) {
+      const now = new Date();
+      switch (period) {
+        case '7d':
+          dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+          break;
+        case '30d':
+          dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+          break;
+        case '90d':
+          dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+          break;
+        case '1y':
+          dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+          break;
+        default:
+          dateFilter = {};
+      }
     }
 
     // Import models
@@ -34,6 +37,13 @@ router.get('/overview', protect, admin, async (req, res, next) => {
     const Category = require('../models/Category');
     const Support = require('../models/Support');
     const NewsletterSubscriber = require('../models/NewsletterSubscriber');
+
+    // Build aggregation match stages
+    const userMatch = period ? [{ $match: { createdAt: dateFilter } }] : [];
+    const productMatch = period ? [{ $match: { createdAt: dateFilter } }] : [];
+    const orderMatch = period ? [{ $match: { createdAt: dateFilter } }] : [];
+    const supportMatch = period ? [{ $match: { createdAt: dateFilter } }] : [];
+    const newsletterMatch = period ? [{ $match: { subscribedAt: dateFilter } }] : [];
 
     // Get all metrics in parallel
     const [
@@ -47,7 +57,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
     ] = await Promise.all([
       // User statistics
       User.aggregate([
-        { $match: { createdAt: dateFilter } },
+        ...userMatch,
         {
           $group: {
             _id: null,
@@ -61,7 +71,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
 
       // Product statistics
       Product.aggregate([
-        { $match: { createdAt: dateFilter } },
+        ...productMatch,
         {
           $group: {
             _id: null,
@@ -76,7 +86,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
 
       // Order statistics
       Order.aggregate([
-        { $match: { createdAt: dateFilter } },
+        ...orderMatch,
         {
           $group: {
             _id: null,
@@ -90,7 +100,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
         }
       ]),
 
-      // Category statistics
+      // Category statistics (no date filter)
       Category.aggregate([
         {
           $lookup: {
@@ -113,7 +123,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
 
       // Support statistics
       Support.aggregate([
-        { $match: { createdAt: dateFilter } },
+        ...supportMatch,
         {
           $group: {
             _id: null,
@@ -127,7 +137,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
 
       // Newsletter statistics
       NewsletterSubscriber.aggregate([
-        { $match: { subscribedAt: dateFilter } },
+        ...newsletterMatch,
         {
           $group: {
             _id: null,
@@ -188,16 +198,32 @@ router.get('/overview', protect, admin, async (req, res, next) => {
       activeSubscribers: 0
     };
 
+    // Add lowStockProducts array to the overview response
+    const lowStockProductsArr = await Product.find({ stock: { $lte: 10 } });
+
     res.json({
       success: true,
       period,
+      // Flat metrics for frontend compatibility
+      totalSales: orderData.totalRevenue || 0,
+      totalOrders: orderData.totalOrders || 0,
+      activeUsers: userData.activeUsers || 0,
+      pendingOrders: orderData.pendingOrders || 0,
+      lowStock: productData.lowStockProducts || 0,
+      lowStockProducts: lowStockProductsArr,
+      recentRegistrations: userData.totalUsers || 0, // or another field if you track this separately
+      averageOrderValue: orderData.averageOrderValue || 0,
+      returnRate: 0, // (set to 0 or calculate if you have returns)
+      alerts: 0, // (set to 0 or calculate if you have alerts)
+      // Keep the original nested overview for backward compatibility
       overview: {
         users: userData,
         products: productData,
         orders: orderData,
         categories: categoryData,
         support: supportData,
-        newsletter: newsletterData
+        newsletter: newsletterData,
+        lowStockProducts: lowStockProductsArr
       },
       recentActivity
     });

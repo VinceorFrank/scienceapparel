@@ -20,14 +20,14 @@ export const fetchSalesMetrics = async () => {
 // Get recent orders
 export const fetchRecentOrders = async () => {
   const res = await api.get('/dashboard/recent-orders');
-  return res.data;
+  return res.data?.recentOrders || [];
 };
 
 // Get stock alerts (now part of overview)
 export const fetchStockAlerts = async () => {
   const res = await api.get('/dashboard/overview');
-  // Return just the lowStockProducts metric
-  return res.data?.overview?.products?.lowStockProducts || 0;
+  // Return the array of low stock products
+  return res.data?.lowStockProducts || [];
 };
 
 // Get customer activity (now part of overview)

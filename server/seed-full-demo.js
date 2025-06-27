@@ -25,6 +25,12 @@ function getRandom(arr, n) {
   return shuffled.slice(min);
 }
 
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d;
+}
+
 async function seed() {
   await mongoose.connect(config.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
   console.log('Connected to MongoDB');
@@ -54,8 +60,8 @@ async function seed() {
     password: 'password123',
     isAdmin: true,
     role: 'admin',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    createdAt: daysAgo(Math.floor(Math.random() * 7)),
+    updatedAt: daysAgo(Math.floor(Math.random() * 7)),
   });
   // 10 customers
   const customerData = Array.from({ length: 10 }).map((_, i) => ({
@@ -63,8 +69,8 @@ async function seed() {
     email: `user${i + 1}@example.com`,
     password: 'password123',
     role: 'customer',
-    createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
-    updatedAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
+    createdAt: daysAgo(Math.floor(Math.random() * 7)),
+    updatedAt: daysAgo(Math.floor(Math.random() * 7)),
     address: {
       address: `${100 + i} Main St`,
       city: 'Anytown',
@@ -128,11 +134,20 @@ async function seed() {
     // Add 10 more products with similar structure, varying stock, price, tags, and categories
   ];
   // Add more products to reach 15
+  const existingImages = [
+    'periodic-shirt.jpg',
+    'galaxy-poster.jpg', 
+    'beaker-mug.jpg',
+    'microscope.jpg',
+    'serotonin-necklace.jpg',
+    'cosmos-book.jpg'
+  ];
+  
   for (let i = 5; i < 15; i++) {
     productData.push({
       name: `Product ${i + 1}`,
       description: `Description for product ${i + 1}.`,
-      image: `/uploads/images/product${i + 1}.jpg`,
+      image: `/uploads/images/${existingImages[i % existingImages.length]}`,
       price: 10 + i,
       stock: i % 3 === 0 ? 0 : (i % 5 === 0 ? 5 : 20),
       category: categories[i % categories.length]._id,
@@ -157,12 +172,6 @@ async function seed() {
 
   // --- ORDERS ---
   // Helper for order dates
-  const today = new Date();
-  function daysAgo(n) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - n);
-    return d;
-  }
   const orderData = [
     // Paid order, multiple products
     {

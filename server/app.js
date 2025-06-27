@@ -13,12 +13,6 @@ const hpp = require('hpp');
 
 const app = express();
 
-// DEBUG: Log all incoming requests
-app.use((req, res, next) => {
-  console.log('DEBUG: Incoming request', req.method, req.url, req.headers['content-type']);
-  next();
-});
-
 // Connect to database
 connectDB();
 
@@ -93,8 +87,8 @@ sendScheduledNewsletters();
 app.use('/api/upload', require('./routes/upload'));
 
 // 1. JSON and URL-encoded parser middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Apply performance and security middleware
 app.use(compression());

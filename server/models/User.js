@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['admin', 'product_manager', 'order_manager', 'support_agent', 'customer'], default: 'customer' },
 }, { timestamps: true });
 
+// Add database indexes for better performance
+userSchema.index({ isAdmin: 1 }); // Admin queries
+userSchema.index({ role: 1 }); // Role-based queries
+userSchema.index({ createdAt: -1 }); // New users
+
 // Encrypt password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

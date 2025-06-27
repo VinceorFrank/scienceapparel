@@ -1,4 +1,22 @@
 {
+  "name": "ecommerce-site",
+  "version": "1.0.0",
+  "description": "MERN Stack E-commerce Platform",
+  "main": "server/app.js",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "test": "cd server && npm test",
+    "test:watch": "cd server && npm run test:watch",
+    "lint": "cd server && npm run lint && cd ../client && npm run lint",
+    "clean": "rm -rf node_modules server/node_modules client/node_modules && npm run install:all",
+    "setup": "npm run install:all && echo '✅ Setup complete! Run npm run dev to start development'",
+    "format": "prettier --write ."
+  },
   "dependencies": {
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
@@ -8,6 +26,17 @@
     "mongoose": "^8.15.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
-  }
+    "concurrently": "^9.2.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
+  },
+  "keywords": [
+    "ecommerce",
+    "mern",
+    "react",
+    "node",
+    "mongodb"
+  ],
+  "author": "Your Name",
+  "license": "ISC"
 }

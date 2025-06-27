@@ -2,10 +2,11 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add request interceptor to add token
@@ -40,6 +41,12 @@ api.interceptors.response.use(
       } else {
         window.location.href = '/login';
       }
+    }
+    
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error:', error.message);
+      // Could show a toast notification here
     }
     
     return Promise.reject(error);

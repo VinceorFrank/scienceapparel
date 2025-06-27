@@ -4,6 +4,9 @@
 
 const rateLimit = require('express-rate-limit');
 
+// In-memory store for test compatibility
+const requests = new Map();
+
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
@@ -11,5 +14,7 @@ const rateLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: 'Too many requests from this IP, please try again after 15 minutes',
 });
+
+rateLimiter.requests = requests;
 
 module.exports = rateLimiter; 

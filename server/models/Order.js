@@ -79,6 +79,13 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Add database indexes for better performance
+orderSchema.index({ user: 1, createdAt: -1 }); // User's orders
+orderSchema.index({ isPaid: 1, isDelivered: 1 }); // Order status
+orderSchema.index({ createdAt: -1 }); // Recent orders
+orderSchema.index({ totalPrice: -1 }); // High value orders
+orderSchema.index({ 'shippingAddress.country': 1 }); // Geographic queries
+
 const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;

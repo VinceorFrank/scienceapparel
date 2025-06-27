@@ -75,14 +75,15 @@ router.get('/myorders', protect, async (req, res) => {
 // ✅ GET /api/orders/admin - Get all orders (admin only)
 router.get('/admin', protect, admin, async (req, res, next) => {
   try {
-    const { page, limit, search, status } = req.query;
+    const { page, limit, search, status, dateFrom, dateTo, minAmount, maxAmount } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
 
     const filters = {};
+    
+    // Enhanced search functionality
     if (search) {
       const isObjectId = mongoose.Types.ObjectId.isValid(search);
       
-      // Find users that match the search query (if it's not a valid ObjectId)
       let userIds = [];
       if (!isObjectId) {
         const users = await mongoose.model('User').find({
@@ -95,23 +96,37 @@ router.get('/admin', protect, admin, async (req, res, next) => {
       }
     
       filters.$or = [
-        // Case 1: Search term is a valid Order ID
         ...(isObjectId ? [{ _id: search }] : []),
-        // Case 2: Search term matches user IDs
         ...(userIds.length > 0 ? [{ user: { $in: userIds } }] : [])
       ];
     
-      // If the search term didn't match anything, prevent returning all orders
       if (filters.$or.length === 0) {
-        // This creates a query that will find no documents
         filters._id = new mongoose.Types.ObjectId(); 
       }
     }
+
+    // Enhanced status filtering
     if (status && status !== 'all') {
       if (status === 'paid') filters.isPaid = true;
       if (status === 'unpaid') filters.isPaid = false;
       if (status === 'shipped') filters.isShipped = true;
       if (status === 'pending') filters.isShipped = false;
+      if (status === 'cancelled') filters.status = 'cancelled';
+      if (status === 'refunded') filters.status = 'refunded';
+    }
+
+    // Date range filtering
+    if (dateFrom || dateTo) {
+      filters.createdAt = {};
+      if (dateFrom) filters.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filters.createdAt.$lte = new Date(dateTo);
+    }
+
+    // Amount range filtering
+    if (minAmount || maxAmount) {
+      filters.totalPrice = {};
+      if (minAmount) filters.totalPrice.$gte = parseFloat(minAmount);
+      if (maxAmount) filters.totalPrice.$lte = parseFloat(maxAmount);
     }
 
     const result = await executePaginatedQuery(Order, filters, paginationParams, {
@@ -129,13 +144,15 @@ router.get('/admin', protect, admin, async (req, res, next) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate('orderItems.product', 'name price');
+      .populate('orderItems.product', 'name price image')
+      .populate('user', 'name email');
 
     if (!order) {
       return res.status(404).json({ message: 'Commande introuvable' });
     }
 
-    if (order.user.toString() !== req.user._id.toString()) {
+    // Check if user owns this order or is admin
+    if (order.user._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       return res.status(403).json({ message: 'Accès non autorisé à cette commande' });
     }
 
@@ -148,18 +165,163 @@ router.get('/:id', protect, async (req, res) => {
 // ✅ PUT /api/orders/:id/status - Update order status (admin only)
 router.put('/:id/status', protect, admin, async (req, res, next) => {
   try {
+    const { isShipped, isPaid, status, trackingNumber, notes } = req.body;
+    
     const order = await Order.findById(req.params.id);
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    order.isShipped = req.body.isShipped ?? order.isShipped;
-    order.isPaid = req.body.isPaid ?? order.isPaid;
-    // Add other status updates as needed
+    // Update order fields
+    if (isShipped !== undefined) order.isShipped = isShipped;
+    if (isPaid !== undefined) order.isPaid = isPaid;
+    if (status) order.status = status;
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    if (notes) order.adminNotes = notes;
 
     const updatedOrder = await order.save();
-    res.json(updatedOrder);
+
+    // Log the activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_order_status',
+      description: `Updated order ${order._id} status: ${status || 'modified'}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ✅ PUT /api/orders/bulk/status - Bulk update order statuses (admin only)
+router.put('/bulk/status', protect, admin, async (req, res, next) => {
+  try {
+    const { orderIds, status, isShipped, isPaid, notes } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({ message: 'Order IDs array is required' });
+    }
+
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (isShipped !== undefined) updateData.isShipped = isShipped;
+    if (isPaid !== undefined) updateData.isPaid = isPaid;
+    if (notes) updateData.adminNotes = notes;
+
+    const result = await Order.updateMany(
+      { _id: { $in: orderIds } },
+      updateData
+    );
+
+    // Log the activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'bulk_update_orders',
+      description: `Bulk updated ${result.modifiedCount} orders with status: ${status || 'modified'}`
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} orders`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ✅ GET /api/orders/analytics/summary - Get order analytics (admin only)
+router.get('/analytics/summary', protect, admin, async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    switch (period) {
+      case '7d':
+        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case '30d':
+        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        break;
+      case '90d':
+        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+        break;
+      case '1y':
+        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+        break;
+    }
+
+    const analytics = await Order.aggregate([
+      { $match: { createdAt: dateFilter } },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: '$totalPrice' },
+          averageOrderValue: { $avg: '$totalPrice' },
+          paidOrders: { $sum: { $cond: ['$isPaid', 1, 0] } },
+          shippedOrders: { $sum: { $cond: ['$isShipped', 1, 0] } }
+        }
+      }
+    ]);
+
+    const result = analytics[0] || {
+      totalOrders: 0,
+      totalRevenue: 0,
+      averageOrderValue: 0,
+      paidOrders: 0,
+      shippedOrders: 0
+    };
+
+    res.json({
+      success: true,
+      period,
+      analytics: result
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ✅ DELETE /api/orders/:id - Cancel/delete order (admin only)
+router.delete('/:id', protect, admin, async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check if order can be cancelled (not shipped or delivered)
+    if (order.isShipped) {
+      return res.status(400).json({ 
+        message: 'Cannot cancel order that has already been shipped' 
+      });
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+
+    // Log the activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'cancel_order',
+      description: `Cancelled order ${order._id}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Order cancelled successfully',
+      order
+    });
   } catch (err) {
     next(err);
   }

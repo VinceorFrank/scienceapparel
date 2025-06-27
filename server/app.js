@@ -135,7 +135,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/categories', require('./routes/categories'));
-app.use('/api/admin/dashboard', require('./routes/dashboard'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/payment', require('./routes/payment'));
 app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/support', require('./routes/support'));

@@ -36,10 +36,10 @@ const SalesChart = () => {
     const fetchSalesData = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/admin/dashboard/sales');
-        if (response.data && response.data.dailySales) {
-          const labels = response.data.dailySales.map(d => new Date(d._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-          const data = response.data.dailySales.map(d => d.total);
+        const response = await api.get('/dashboard/sales-chart');
+        if (response.data && response.data.salesData) {
+          const labels = response.data.salesData.map(d => d._id);
+          const data = response.data.salesData.map(d => d.totalRevenue);
 
           setChartData({
             labels,

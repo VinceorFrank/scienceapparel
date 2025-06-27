@@ -1,230 +1,384 @@
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middlewares/auth');
-const Order = require('../models/Order');
-const Product = require('../models/Product');
-const User = require('../models/User');
+const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 const ActivityLog = require('../models/ActivityLog');
 
-// Helper function to get date range
-const getDateRange = (days) => {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - days);
-  return { start, end };
-};
-
-// @desc    Get all dashboard metrics
-// @route   GET /api/admin/dashboard/metrics
-// @access  Private/Admin
-router.get('/metrics', protect, admin, async (req, res) => {
+// GET /api/dashboard/overview - Get comprehensive dashboard overview (admin only)
+router.get('/overview', protect, admin, async (req, res, next) => {
   try {
-    // Get date ranges
-    const today = getDateRange(1);
-    const lastWeek = getDateRange(7);
-    const lastMonth = getDateRange(30);
+    const { period = '30d' } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    switch (period) {
+      case '7d':
+        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case '30d':
+        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        break;
+      case '90d':
+        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+        break;
+      case '1y':
+        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+        break;
+    }
 
-    // Get total sales
-    const totalSales = await Order.aggregate([
-      { $match: { isPaid: true } },
-      { $group: { _id: null, total: { $sum: '$totalPrice' } } }
+    // Import models
+    const User = require('../models/User');
+    const Product = require('../models/Product');
+    const Order = require('../models/Order');
+    const Category = require('../models/Category');
+    const Support = require('../models/Support');
+    const NewsletterSubscriber = require('../models/NewsletterSubscriber');
+
+    // Get all metrics in parallel
+    const [
+      userStats,
+      productStats,
+      orderStats,
+      categoryStats,
+      supportStats,
+      newsletterStats,
+      recentActivity
+    ] = await Promise.all([
+      // User statistics
+      User.aggregate([
+        { $match: { createdAt: dateFilter } },
+        {
+          $group: {
+            _id: null,
+            totalUsers: { $sum: 1 },
+            activeUsers: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+            suspendedUsers: { $sum: { $cond: [{ $eq: ['$status', 'suspended'] }, 1, 0] } },
+            adminUsers: { $sum: { $cond: ['$isAdmin', 1, 0] } }
+          }
+        }
+      ]),
+
+      // Product statistics
+      Product.aggregate([
+        { $match: { createdAt: dateFilter } },
+        {
+          $group: {
+            _id: null,
+            totalProducts: { $sum: 1 },
+            activeProducts: { $sum: { $cond: [{ $eq: ['$archived', false] }, 1, 0] } },
+            featuredProducts: { $sum: { $cond: ['$featured', 1, 0] } },
+            lowStockProducts: { $sum: { $cond: [{ $lte: ['$stock', 10] }, 1, 0] } },
+            outOfStockProducts: { $sum: { $cond: [{ $eq: ['$stock', 0] }, 1, 0] } }
+          }
+        }
+      ]),
+
+      // Order statistics
+      Order.aggregate([
+        { $match: { createdAt: dateFilter } },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalRevenue: { $sum: '$totalPrice' },
+            averageOrderValue: { $avg: '$totalPrice' },
+            paidOrders: { $sum: { $cond: ['$isPaid', 1, 0] } },
+            shippedOrders: { $sum: { $cond: ['$isShipped', 1, 0] } },
+            pendingOrders: { $sum: { $cond: [{ $eq: ['$isShipped', false] }, 1, 0] } }
+          }
+        }
+      ]),
+
+      // Category statistics
+      Category.aggregate([
+        {
+          $lookup: {
+            from: 'products',
+            localField: '_id',
+            foreignField: 'category',
+            as: 'products'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalCategories: { $sum: 1 },
+            activeCategories: { $sum: { $cond: ['$active', 1, 0] } },
+            featuredCategories: { $sum: { $cond: ['$featured', 1, 0] } },
+            avgProductsPerCategory: { $avg: { $size: '$products' } }
+          }
+        }
+      ]),
+
+      // Support statistics
+      Support.aggregate([
+        { $match: { createdAt: dateFilter } },
+        {
+          $group: {
+            _id: null,
+            totalTickets: { $sum: 1 },
+            openTickets: { $sum: { $cond: [{ $eq: ['$status', 'open'] }, 1, 0] } },
+            resolvedTickets: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } },
+            highPriorityTickets: { $sum: { $cond: [{ $eq: ['$priority', 'high'] }, 1, 0] } }
+          }
+        }
+      ]),
+
+      // Newsletter statistics
+      NewsletterSubscriber.aggregate([
+        { $match: { subscribedAt: dateFilter } },
+        {
+          $group: {
+            _id: null,
+            totalSubscribers: { $sum: 1 },
+            activeSubscribers: { $sum: { $cond: [{ $eq: ['$status', 'subscribed'] }, 1, 0] } }
+          }
+        }
+      ]),
+
+      // Recent activity
+      ActivityLog.find()
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('user', 'name email')
     ]);
 
-    // Get total orders
-    const totalOrders = await Order.countDocuments();
+    // Process results
+    const userData = userStats[0] || {
+      totalUsers: 0,
+      activeUsers: 0,
+      suspendedUsers: 0,
+      adminUsers: 0
+    };
 
-    // Get active users (users who made orders in last 30 days)
-    const activeUsers = await Order.distinct('user', {
-      createdAt: { $gte: lastMonth.start }
-    });
+    const productData = productStats[0] || {
+      totalProducts: 0,
+      activeProducts: 0,
+      featuredProducts: 0,
+      lowStockProducts: 0,
+      outOfStockProducts: 0
+    };
 
-    // Get pending orders
-    const pendingOrders = await Order.countDocuments({ isPaid: false });
+    const orderData = orderStats[0] || {
+      totalOrders: 0,
+      totalRevenue: 0,
+      averageOrderValue: 0,
+      paidOrders: 0,
+      shippedOrders: 0,
+      pendingOrders: 0
+    };
 
-    // Get low stock items (less than 10 items)
-    const lowStockItems = await Product.countDocuments({ stock: { $lt: 10 } });
+    const categoryData = categoryStats[0] || {
+      totalCategories: 0,
+      activeCategories: 0,
+      featuredCategories: 0,
+      avgProductsPerCategory: 0
+    };
 
-    // Get recent registrations (last 7 days)
-    const recentRegistrations = await User.countDocuments({
-      createdAt: { $gte: lastWeek.start }
-    });
+    const supportData = supportStats[0] || {
+      totalTickets: 0,
+      openTickets: 0,
+      resolvedTickets: 0,
+      highPriorityTickets: 0
+    };
 
-    // Calculate average order value
-    const averageOrderValue = totalSales[0]?.total / totalOrders || 0;
-
-    // Get return rate (orders with status 'returned')
-    const returnedOrders = await Order.countDocuments({ status: 'returned' });
-    const returnRate = (returnedOrders / totalOrders) * 100 || 0;
+    const newsletterData = newsletterStats[0] || {
+      totalSubscribers: 0,
+      activeSubscribers: 0
+    };
 
     res.json({
-      totalSales: totalSales[0]?.total || 0,
-      totalOrders,
-      activeUsers: activeUsers.length,
-      pendingOrders,
-      lowStockItems,
-      recentRegistrations,
-      averageOrderValue,
-      returnRate
+      success: true,
+      period,
+      overview: {
+        users: userData,
+        products: productData,
+        orders: orderData,
+        categories: categoryData,
+        support: supportData,
+        newsletter: newsletterData
+      },
+      recentActivity
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    next(err);
   }
 });
 
-// @desc    Get sales metrics
-// @route   GET /api/admin/dashboard/sales
-// @access  Private/Admin
-router.get('/sales', protect, admin, async (req, res) => {
+// GET /api/dashboard/sales-chart - Get sales data for charts (admin only)
+router.get('/sales-chart', protect, admin, async (req, res, next) => {
   try {
-    const lastWeek = getDateRange(7);
-    const lastMonth = getDateRange(30);
+    const { period = '30d', groupBy = 'day' } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    switch (period) {
+      case '7d':
+        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case '30d':
+        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        break;
+      case '90d':
+        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+        break;
+      case '1y':
+        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+        break;
+    }
 
-    // Get daily sales for the last week
-    const dailySales = await Order.aggregate([
-      {
-        $match: {
-          isPaid: true,
-          createdAt: { $gte: lastWeek.start }
-        }
-      },
+    const Order = require('../models/Order');
+
+    let groupStage = {};
+    if (groupBy === 'day') {
+      groupStage = {
+        $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+      };
+    } else if (groupBy === 'week') {
+      groupStage = {
+        $dateToString: { format: "%Y-W%U", date: "$createdAt" }
+      };
+    } else if (groupBy === 'month') {
+      groupStage = {
+        $dateToString: { format: "%Y-%m", date: "$createdAt" }
+      };
+    }
+
+    const salesData = await Order.aggregate([
+      { $match: { createdAt: dateFilter, isPaid: true } },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          total: { $sum: '$totalPrice' }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
-
-    // Get monthly sales for the last month
-    const monthlySales = await Order.aggregate([
-      {
-        $match: {
-          isPaid: true,
-          createdAt: { $gte: lastMonth.start }
-        }
-      },
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-          total: { $sum: '$totalPrice' }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
-
-    res.json({
-      dailySales,
-      monthlySales
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// @desc    Get recent orders
-// @route   GET /api/admin/dashboard/recent-orders
-// @access  Private/Admin
-router.get('/recent-orders', protect, admin, async (req, res) => {
-  try {
-    const recentOrders = await Order.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate('user', 'name email')
-      .populate('orderItems.product', 'name price');
-
-    res.json(recentOrders);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// @desc    Get stock alerts
-// @route   GET /api/admin/dashboard/stock-alerts
-// @access  Private/Admin
-router.get('/stock-alerts', protect, admin, async (req, res) => {
-  try {
-    const lowStockProducts = await Product.find({ stock: { $lt: 10 } })
-      .select('name stock price')
-      .sort({ stock: 1 });
-
-    res.json(lowStockProducts);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// @desc    Get customer activity
-// @route   GET /api/admin/dashboard/customer-activity
-// @access  Private/Admin
-router.get('/customer-activity', protect, admin, async (req, res) => {
-  try {
-    const lastWeek = getDateRange(7);
-
-    // Get new customers
-    const newCustomers = await User.countDocuments({
-      createdAt: { $gte: lastWeek.start }
-    });
-
-    // Get active customers (made orders in last week)
-    const activeCustomers = await Order.distinct('user', {
-      createdAt: { $gte: lastWeek.start }
-    });
-
-    // Get customer orders
-    const customerOrders = await Order.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: lastWeek.start }
-        }
-      },
-      {
-        $group: {
-          _id: '$user',
+          _id: groupStage,
+          totalRevenue: { $sum: '$totalPrice' },
           orderCount: { $sum: 1 },
-          totalSpent: { $sum: '$totalPrice' }
+          averageOrderValue: { $avg: '$totalPrice' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json({
+      success: true,
+      period,
+      groupBy,
+      salesData
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/dashboard/top-products - Get top selling products (admin only)
+router.get('/top-products', protect, admin, async (req, res, next) => {
+  try {
+    const { limit = 10, period = '30d' } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    switch (period) {
+      case '7d':
+        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case '30d':
+        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        break;
+      case '90d':
+        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+        break;
+      case '1y':
+        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+        break;
+    }
+
+    const Order = require('../models/Order');
+
+    const topProducts = await Order.aggregate([
+      { $match: { createdAt: dateFilter } },
+      { $unwind: '$orderItems' },
+      {
+        $group: {
+          _id: '$orderItems.product',
+          totalSold: { $sum: '$orderItems.qty' },
+          totalRevenue: { $sum: { $multiply: ['$orderItems.price', '$orderItems.qty'] } },
+          orderCount: { $sum: 1 }
         }
       },
       {
         $lookup: {
-          from: 'users',
+          from: 'products',
           localField: '_id',
           foreignField: '_id',
-          as: 'userDetails'
+          as: 'product'
         }
       },
-      {
-        $unwind: '$userDetails'
-      },
+      { $unwind: '$product' },
       {
         $project: {
-          name: '$userDetails.name',
-          email: '$userDetails.email',
-          orderCount: 1,
-          totalSpent: 1
+          productId: '$_id',
+          productName: '$product.name',
+          productImage: '$product.image',
+          totalSold: 1,
+          totalRevenue: 1,
+          orderCount: 1
         }
-      }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: parseInt(limit) }
     ]);
 
     res.json({
-      newCustomers,
-      activeCustomers: activeCustomers.length,
-      customerOrders
+      success: true,
+      period,
+      topProducts
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    next(err);
   }
 });
 
-// @desc    Get activity logs
-// @route   GET /api/admin/dashboard/activity-logs
-// @access  Private/Admin
-router.get('/activity-logs', protect, admin, async (req, res) => {
+// GET /api/dashboard/recent-orders - Get recent orders (admin only)
+router.get('/recent-orders', protect, admin, async (req, res, next) => {
   try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(50).populate('user', 'name email role');
-    res.json(logs);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    const { limit = 10 } = req.query;
+
+    const Order = require('../models/Order');
+
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .populate('user', 'name email')
+      .populate('orderItems.product', 'name price image');
+
+    res.json({
+      success: true,
+      recentOrders
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/dashboard/activity-log - Get recent activity log (admin only)
+router.get('/activity-log', protect, admin, async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, action, user } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = {};
+    if (action) filters.action = action;
+    if (user) filters.user = user;
+
+    const result = await executePaginatedQuery(ActivityLog, filters, paginationParams, {
+      populate: 'user',
+      sort: { createdAt: -1 }
+    });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
   }
 });
 

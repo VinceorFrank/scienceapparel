@@ -157,21 +157,21 @@ const DashboardMetrics = () => {
   );
 };
 
-const MetricCard = ({ title, value, icon, color, bgColor, trend, trendColor }) => (
-  <div className={`${bgColor} p-6 rounded-lg shadow hover:shadow-lg transition-all duration-200 border border-gray-100`}>
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
-      <div className={`p-2 rounded-lg ${bgColor.replace('50', '100')}`}>
-        {icon}
+const MetricCard = ({ title, value, icon, color, bgColor, trend, trendColor }) => {
+  // Only show trend if value is not zero/null/empty string
+  const showTrend = (typeof value === 'number' && value !== 0) || (typeof value === 'string' && value !== '0' && value !== '$0.00' && value !== '0.00' && value !== '0%');
+  return (
+    <div className={`${bgColor} p-6 rounded-lg shadow hover:shadow-lg transition-all duration-200 border border-gray-100`}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
+        <div className={`p-2 rounded-lg ${bgColor.replace('50', '100')}`}>{icon}</div>
+      </div>
+      <div className="flex items-end justify-between">
+        <p className={`text-3xl font-bold ${color}`}>{value}</p>
+        <span className={`text-xs font-medium ${trendColor}`}>{showTrend ? trend : '–'}</span>
       </div>
     </div>
-    <div className="flex items-end justify-between">
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
-      <span className={`text-xs font-medium ${trendColor}`}>
-        {trend}
-      </span>
-    </div>
-  </div>
-);
+  );
+};
 
 export default DashboardMetrics; 

@@ -214,17 +214,22 @@ const AdminDashboard = () => {
                   <div key={i} className="h-12 bg-gray-200 rounded"></div>
                 ))}
               </div>
-            ) : customerActivity && customerActivity.length > 0 ? (
+            ) : customerActivity && customerActivity.users && customerActivity.orders ? (
               <div className="space-y-3">
-                {customerActivity.slice(0, 5).map((customer) => (
-                  <div key={customer._id} className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{customer.userDetails.name}</p>
-                      <p className="text-sm text-gray-500">{customer.orderCount} {t("orders")}</p>
-                    </div>
-                    <span className="text-blue-600 font-medium">${customer.totalSpent}</span>
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{t('totalUsers')}</p>
+                    <p className="text-sm text-gray-500">{customerActivity.users.totalUsers} {t('users')}</p>
                   </div>
-                ))}
+                  <span className="text-blue-600 font-medium">{customerActivity.users.activeUsers} {t('active')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{t('totalOrders')}</p>
+                    <p className="text-sm text-gray-500">{customerActivity.orders.totalOrders} {t('orders')}</p>
+                  </div>
+                  <span className="text-blue-600 font-medium">${customerActivity.orders.totalRevenue}</span>
+                </div>
               </div>
             ) : (
               <p className="text-gray-500">{t("noRecentActivity")}</p>

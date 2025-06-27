@@ -57,22 +57,27 @@ router.post(
 
       const { email, password } = req.body;
 
-      // Debug logs
-      console.log('Login attempt:', email, password);
-
       // Find user
       const user = await User.findOne({ email });
-      console.log('User found:', !!user);
       if (!user) {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
+      // Check if account is active
+      if (user.status === 'suspended') {
+        return res.status(403).json({ message: 'Account is suspended. Please contact support.' });
+      }
+
       // Check password
       const isMatch = await user.matchPassword(password);
-      console.log('Password match:', isMatch);
       if (!isMatch) {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
+
+      // Update last login
+      user.lastLogin = new Date();
+      user.loginCount = (user.loginCount || 0) + 1;
+      await user.save();
 
       // Generate token
       const tokenPayload = {
@@ -83,7 +88,14 @@ router.post(
       };
       const token = generateToken(tokenPayload);
 
-      // Send response
+      // Log activity
+      await ActivityLog.create({
+        user: user._id,
+        action: 'user_login',
+        description: `User logged in from ${req.ip}`,
+        ipAddress: req.ip
+      });
+
       res.status(200).json({
         token,
         user: {
@@ -91,7 +103,8 @@ router.post(
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
-          role: user.role
+          role: user.role,
+          status: user.status
         }
       });
 
@@ -112,7 +125,11 @@ router.get('/profile', protect, async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      isAdmin: user.isAdmin || false
+      isAdmin: user.isAdmin || false,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin
     });
   } catch (err) {
     console.error('Profile error:', err);
@@ -123,7 +140,7 @@ router.get('/profile', protect, async (req, res) => {
 // Update user profile (authenticated, with password change logic)
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, currentPassword, newPassword } = req.body;
+    const { name, currentPassword, newPassword, phone, address } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -131,6 +148,8 @@ router.put('/profile', protect, async (req, res) => {
     }
 
     if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
 
     if (newPassword) {
       // Check if current password is correct
@@ -145,12 +164,21 @@ router.put('/profile', protect, async (req, res) => {
 
     await user.save();
 
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_profile',
+      description: 'User updated their profile'
+    });
+
     res.json({
       message: "Profile updated successfully",
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone,
+        address: user.address
       }
     });
   } catch (err) {
@@ -174,7 +202,16 @@ router.patch('/:id/role', protect, admin, async (req, res) => {
       description: `Changed role of user '${user.email}' to '${role}'` 
     });
     
-    res.json(user);
+    res.json({
+      success: true,
+      message: 'User role updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (err) {
     console.error('Role update error:', err);
     res.status(400).json({ message: 'Error updating user role', error: err.message });
@@ -184,25 +221,249 @@ router.patch('/:id/role', protect, admin, async (req, res) => {
 // GET /api/users - Get all users (admin only)
 router.get('/', protect, admin, async (req, res, next) => {
   try {
-    const { page, limit, search, role } = req.query;
+    const { page, limit, search, role, status, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
 
     const filters = {};
+    
+    // Enhanced search
     if (search) {
       filters.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
       ];
     }
-    if (role) {
+    
+    if (role && role !== 'all') {
       filters.role = role;
     }
+    
+    if (status && status !== 'all') {
+      filters.status = status;
+    }
+
+    // Date range filtering
+    if (dateFrom || dateTo) {
+      filters.createdAt = {};
+      if (dateFrom) filters.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filters.createdAt.$lte = new Date(dateTo);
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const result = await executePaginatedQuery(User, filters, paginationParams, {
-      select: '-password' // Exclude passwords from the result
+      select: '-password',
+      sort: sort
     });
 
     res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/users/:id - Get specific user (admin only)
+router.get('/:id', protect, admin, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/:id/status - Update user status (admin only)
+router.put('/:id/status', protect, admin, async (req, res, next) => {
+  try {
+    const { status, reason } = req.body;
+    
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const oldStatus = user.status;
+    user.status = status;
+    
+    if (reason) {
+      user.statusReason = reason;
+    }
+
+    await user.save();
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_user_status',
+      description: `Changed status of user '${user.email}' from '${oldStatus}' to '${status}'${reason ? ` - Reason: ${reason}` : ''}`
+    });
+
+    res.json({
+      success: true,
+      message: 'User status updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+        statusReason: user.statusReason
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/bulk/status - Bulk update user statuses (admin only)
+router.put('/bulk/status', protect, admin, async (req, res, next) => {
+  try {
+    const { userIds, status, reason } = req.body;
+
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: 'User IDs array is required' });
+    }
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required' });
+    }
+
+    const updateData = { status };
+    if (reason) updateData.statusReason = reason;
+
+    const result = await User.updateMany(
+      { _id: { $in: userIds } },
+      updateData
+    );
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'bulk_update_user_status',
+      description: `Bulk updated ${result.modifiedCount} users to status: ${status}${reason ? ` - Reason: ${reason}` : ''}`
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} users`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/users/analytics/summary - Get user analytics (admin only)
+router.get('/analytics/summary', protect, admin, async (req, res, next) => {
+  try {
+    const { period = '30d' } = req.query;
+    
+    let dateFilter = {};
+    const now = new Date();
+    
+    switch (period) {
+      case '7d':
+        dateFilter = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+        break;
+      case '30d':
+        dateFilter = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+        break;
+      case '90d':
+        dateFilter = { $gte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000) };
+        break;
+      case '1y':
+        dateFilter = { $gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) };
+        break;
+    }
+
+    const analytics = await User.aggregate([
+      { $match: { createdAt: dateFilter } },
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          activeUsers: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+          suspendedUsers: { $sum: { $cond: [{ $eq: ['$status', 'suspended'] }, 1, 0] } },
+          adminUsers: { $sum: { $cond: ['$isAdmin', 1, 0] } }
+        }
+      }
+    ]);
+
+    const result = analytics[0] || {
+      totalUsers: 0,
+      activeUsers: 0,
+      suspendedUsers: 0,
+      adminUsers: 0
+    };
+
+    res.json({
+      success: true,
+      period,
+      analytics: result
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/users/:id - Delete user (admin only)
+router.delete('/:id', protect, admin, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user has any orders
+    const Order = require('../models/Order');
+    const orderCount = await Order.countDocuments({ user: user._id });
+    
+    if (orderCount > 0) {
+      // If user has orders, suspend instead of delete
+      user.status = 'suspended';
+      user.statusReason = 'Account suspended due to deletion request (has orders)';
+      await user.save();
+      
+      await ActivityLog.create({
+        user: req.user._id,
+        action: 'suspend_user',
+        description: `Suspended user '${user.email}' instead of deletion (has ${orderCount} orders)`
+      });
+
+      res.json({
+        success: true,
+        message: `User has ${orderCount} orders and has been suspended instead of deleted`
+      });
+    } else {
+      // Delete user if no orders
+      await User.findByIdAndDelete(user._id);
+      
+      await ActivityLog.create({
+        user: req.user._id,
+        action: 'delete_user',
+        description: `Deleted user '${user.email}'`
+      });
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully'
+      });
+    }
   } catch (err) {
     next(err);
   }

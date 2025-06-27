@@ -51,6 +51,11 @@ const ProductsAdmin = () => {
     maxStock: '',
     featured: '',
     archived: '',
+    brand: '',
+    stockLevel: '',
+    status: '',
+    dateFrom: '',
+    dateTo: '',
     sortBy: 'createdAt',
     sortOrder: 'desc'
   });
@@ -167,7 +172,7 @@ const ProductsAdmin = () => {
             onClick={() => setIsImportModalOpen(true)}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
           >
-            <span>📥</span>
+            <span>��</span>
             <span>Import CSV</span>
           </button>
           <button
@@ -248,31 +253,68 @@ const ProductsAdmin = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('status') || 'Status'}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('stockLevel') || 'Stock Level'}</label>
                 <select
                   className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
-                  value={advancedFilters.featured}
-                  onChange={(e) => setAdvancedFilters({...advancedFilters, featured: e.target.value})}
+                  value={advancedFilters.stockLevel}
+                  onChange={(e) => setAdvancedFilters({...advancedFilters, stockLevel: e.target.value})}
                 >
                   <option value="">{t('all') || 'All'}</option>
-                  <option value="true">{t('featured') || 'Featured'}</option>
-                  <option value="false">{t('notFeatured') || 'Not Featured'}</option>
+                  <option value="inStock">{t('inStock') || 'In Stock'}</option>
+                  <option value="lowStock">{t('lowStock') || 'Low Stock'}</option>
+                  <option value="outOfStock">{t('outOfStock') || 'Out of Stock'}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('archiveStatus') || 'Archive Status'}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('brand') || 'Brand'}</label>
                 <select
                   className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
-                  value={advancedFilters.archived}
-                  onChange={(e) => setAdvancedFilters({...advancedFilters, archived: e.target.value})}
+                  value={advancedFilters.brand}
+                  onChange={(e) => setAdvancedFilters({...advancedFilters, brand: e.target.value})}
                 >
                   <option value="">{t('all') || 'All'}</option>
-                  <option value="true">{t('archived') || 'Archived'}</option>
-                  <option value="false">{t('active') || 'Active'}</option>
+                  {/* TODO: Map over brands array if available */}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('status') || 'Status'}</label>
+                <select
+                  className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
+                  value={advancedFilters.status}
+                  onChange={(e) => setAdvancedFilters({...advancedFilters, status: e.target.value})}
+                >
+                  <option value="">{t('all') || 'All'}</option>
+                  <option value="active">{t('active') || 'Active'}</option>
+                  <option value="inactive">{t('inactive') || 'Inactive'}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dateAdded') || 'Date Added'}</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
+                    value={advancedFilters.dateFrom}
+                    onChange={(e) => setAdvancedFilters({...advancedFilters, dateFrom: e.target.value})}
+                  />
+                  <input
+                    type="date"
+                    className="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500"
+                    value={advancedFilters.dateTo}
+                    onChange={(e) => setAdvancedFilters({...advancedFilters, dateTo: e.target.value})}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-between mt-4">
+              <div className="flex gap-2">
+                <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg" onClick={() => {/* TODO: Load saved filter */}}>
+                  {t('loadFilter') || 'Load Saved Filter'}
+                </button>
+                <button className="px-4 py-2 bg-blue-200 text-blue-800 rounded-lg" onClick={() => {/* TODO: Save current filter */}}>
+                  {t('saveFilter') || 'Save Filter'}
+                </button>
+              </div>
               <button
                 onClick={applyAdvancedFilters}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

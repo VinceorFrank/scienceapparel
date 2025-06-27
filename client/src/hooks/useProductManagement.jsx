@@ -26,9 +26,11 @@ export const useProductManagement = () => {
     image: '',
     tags: [],
   });
+  const [error, setError] = useState(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = {
         page,
@@ -39,9 +41,29 @@ export const useProductManagement = () => {
       const response = await getAdminProducts(params);
       setProducts(response.data || []);
       setTotalProducts(response.total || 0);
-    } catch (error) {
-      toast.error('Failed to fetch products.');
-      console.error(error);
+    } catch (err) {
+      console.error('Product fetch failed:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+        stack: err.stack
+      });
+      
+      setError('Failed to load products. Please try again.');
+      
+      // Provide specific error messages based on status codes
+      if (err.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else if (err.response?.status === 403) {
+        toast.error('Access denied. You do not have permission to view products.');
+      } else if (err.response?.status === 404) {
+        toast.error('Products not found. Please check your connection.');
+      } else if (err.response?.status >= 500) {
+        toast.error('Server error. Please try again later.');
+      } else {
+        toast.error('Failed to load products. Please check your connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -195,22 +217,36 @@ export const useProductManagement = () => {
       fetchProducts();
       handleCloseModal();
       
-    } catch (error) {
-      console.error('[useProductManagement] handleSave ERROR:', error);
-      console.error('[useProductManagement] Error response:', error.response);
-      console.error('[useProductManagement] Error message:', error.message);
-      
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save product.';
-      const errorDetails = error.response?.data?.error;
-      
-      if (errorDetails) {
-        // If there are validation errors, format and display them
-        const formattedErrors = Object.entries(errorDetails.errors || {})
-          .map(([field, error]) => `${field}: ${error.message}`)
-          .join('\n');
-        toast.error(<div><p>{errorMessage}</p><pre className="text-sm mt-2 whitespace-pre-wrap">{formattedErrors}</pre></div>, { autoClose: 10000 });
+    } catch (err) {
+      console.error('Product operation failed:', {
+        operation: editingProduct ? 'update' : 'create',
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+        productData: productData
+      });
+
+      // Handle validation errors
+      if (err.message.includes('required') || err.message.includes('Valid')) {
+        toast.error(err.message);
+        return;
+      }
+
+      // Handle server errors
+      if (err.response?.status === 400) {
+        const errorMessage = err.response.data?.message || 'Invalid product data. Please check all fields.';
+        toast.error(errorMessage);
+      } else if (err.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else if (err.response?.status === 403) {
+        toast.error('Access denied. You do not have permission to manage products.');
+      } else if (err.response?.status === 409) {
+        toast.error('Product already exists. Please use a different name.');
+      } else if (err.response?.status >= 500) {
+        toast.error('Server error. Please try again later.');
       } else {
-        toast.error(`Error: ${errorMessage}`);
+        toast.error(`Failed to ${editingProduct ? 'update' : 'create'} product. Please try again.`);
       }
     }
   };
@@ -226,34 +262,52 @@ export const useProductManagement = () => {
   };
 
   const handleDelete = async () => {
-    if (productToDelete) {
-      try {
-        console.log('[useProductManagement] handleDelete called');
-        console.log('[useProductManagement] Product to delete:', productToDelete);
-        console.log('[useProductManagement] Product ID:', productToDelete._id);
-        
-        console.log('[useProductManagement] Calling deleteProduct API...');
-        const response = await deleteProduct(productToDelete._id);
-        console.log('[useProductManagement] deleteProduct API response:', response);
-        
-        // Show the specific message from the backend (archived vs deleted)
-        const message = response?.message || 'Product deleted successfully!';
-        toast.success(message);
-        
-        console.log('[useProductManagement] Refreshing products list...');
-        fetchProducts();
-        handleCloseDeleteConfirm();
-      } catch (error) {
-        console.error('[useProductManagement] handleDelete ERROR:', error);
-        console.error('[useProductManagement] Error response:', error.response);
-        console.error('[useProductManagement] Error message:', error.message);
-        
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to delete product.';
-        toast.error(`Delete failed: ${errorMessage}`);
+    try {
+      if (!productToDelete) return;
+
+      setLoading(true);
+      setError(null);
+
+      console.log('[useProductManagement] handleDelete called');
+      console.log('[useProductManagement] Product to delete:', productToDelete);
+      console.log('[useProductManagement] Product ID:', productToDelete._id);
+      
+      console.log('[useProductManagement] Calling deleteProduct API...');
+      const response = await deleteProduct(productToDelete._id);
+      console.log('[useProductManagement] deleteProduct API response:', response);
+      
+      // Show the specific message from the backend (archived vs deleted)
+      const message = response?.message || 'Product deleted successfully!';
+      toast.success(message);
+      
+      console.log('[useProductManagement] Refreshing products list...');
+      fetchProducts();
+      handleCloseDeleteConfirm();
+    } catch (err) {
+      console.error('Product deletion failed:', {
+        productId: productToDelete?._id,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message
+      });
+
+      // Handle specific error cases
+      if (err.response?.status === 404) {
+        toast.error('Product not found. It may have been already deleted.');
+      } else if (err.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else if (err.response?.status === 403) {
+        toast.error('Access denied. You do not have permission to delete products.');
+      } else if (err.response?.status === 409) {
+        toast.error('Cannot delete product. It may be associated with existing orders.');
+      } else if (err.response?.status >= 500) {
+        toast.error('Server error. Please try again later.');
+      } else {
+        toast.error('Failed to delete product. Please try again.');
       }
-    } else {
-      console.error('[useProductManagement] handleDelete called but no productToDelete set');
-      toast.error('No product selected for deletion.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -283,5 +337,6 @@ export const useProductManagement = () => {
     handleDelete,
     productForm,
     setProductForm,
+    error,
   };
 }; 

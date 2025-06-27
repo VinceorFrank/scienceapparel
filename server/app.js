@@ -141,6 +141,8 @@ app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/admin/activity-logs', require('./routes/activityLog'));
 app.use('/api/admin/csv-import', require('./routes/csvImport'));
+app.use('/api/customers', require('./routes/customers'));
+app.use('/api/stats', require('./routes/stats'));
 
 // Error Handling Middleware (must be last)
 app.use(notFound);

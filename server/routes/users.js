@@ -469,6 +469,9 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
   }
 });
 
+// GET /api/users (with advanced filters)
+router.get('/', require('../controllers/usersController').getUsersWithFilters);
+
 module.exports = router;
 
 

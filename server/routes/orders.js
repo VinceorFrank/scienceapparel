@@ -69,12 +69,12 @@ router.get('/', protect, async (req, res) => {
       orders = await Order.find({})
         .sort({ createdAt: -1 })
         .populate('user', 'name email')
-        .populate('orderItems.product', 'name price image');
+        .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } });
     } else {
       // Customer gets only their orders
       orders = await Order.find({ user: req.user._id })
         .sort({ createdAt: -1 })
-        .populate('orderItems.product', 'name price image');
+        .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } });
     }
 
     res.json(orders);
@@ -88,7 +88,7 @@ router.get('/myorders', protect, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
-      .populate('orderItems.product', 'name price');
+      .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } });
 
     res.json(orders);
   } catch (err) {
@@ -168,7 +168,7 @@ router.get('/admin', protect, admin, async (req, res, next) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate('orderItems.product', 'name price image')
+      .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } })
       .populate('user', 'name email');
 
     if (!order) {

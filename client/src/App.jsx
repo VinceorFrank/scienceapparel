@@ -37,6 +37,8 @@ import ActivityLogAdmin from "./pages/Admin/ActivityLogAdmin";
 import SupportAdmin from "./pages/Admin/SupportAdmin";
 import NewsletterAdmin from "./pages/Admin/NewsletterAdmin";
 import DataManagement from "./pages/Admin/DataManagement";
+import CustomerInsights from "./pages/Admin/CustomerInsights";
+import MarkdownPage from "./pages/Admin/MarkdownPage";
 
 
 
@@ -98,6 +100,8 @@ const App = () => {
     <Route path="newsletter" element={<NewsletterAdmin />} />
     <Route path="activity-log" element={<ActivityLogAdmin />} />
     <Route path="data-management" element={<DataManagement />} />
+    <Route path="customer-insights" element={<CustomerInsights />} />
+    <Route path="troubleshoot" element={<MarkdownPage fileName='troubleshoot-admin-panel.md' title='Admin Panel Troubleshooting' />} />
   </Route>
 </Route>
       </Routes>

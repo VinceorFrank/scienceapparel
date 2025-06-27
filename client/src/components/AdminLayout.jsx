@@ -37,6 +37,8 @@ const AdminLayout = () => {
           <NavLink to="/admin/newsletter" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("newsletter") || "Newsletter"}</NavLink>
           <NavLink to="/admin/data-management" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">📊 Data Management</NavLink>
           <NavLink to="/admin/activity-log" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">{t("activityLog")}</NavLink>
+          <NavLink to="/admin/customer-insights" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">👥 Customer Insights</NavLink>
+          <NavLink to="/admin/troubleshoot" className="text-lg font-bold text-pastel-blue hover:text-pastel-yellow">🛠️ Troubleshooting</NavLink>
         </nav>
         <button
           onClick={logout}

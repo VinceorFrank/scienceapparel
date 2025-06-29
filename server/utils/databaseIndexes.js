@@ -232,6 +232,50 @@ const createActivityLogIndexes = async () => {
 };
 
 /**
+ * Create indexes for Payment collection
+ */
+const createPaymentIndexes = async () => {
+  try {
+    const Payment = mongoose.model('Payment');
+    
+    // Compound indexes for common queries
+    await Payment.collection.createIndex(
+      { order: 1 },
+      { name: 'payment_order' }
+    );
+
+    await Payment.collection.createIndex(
+      { customer: 1, createdAt: -1 },
+      { name: 'payment_customer_date' }
+    );
+
+    await Payment.collection.createIndex(
+      { status: 1, createdAt: -1 },
+      { name: 'payment_status_date' }
+    );
+
+    await Payment.collection.createIndex(
+      { stripePaymentIntentId: 1 },
+      { name: 'payment_stripe_intent' }
+    );
+
+    await Payment.collection.createIndex(
+      { paypalPaymentId: 1 },
+      { name: 'payment_paypal_id' }
+    );
+
+    await Payment.collection.createIndex(
+      { createdAt: -1 },
+      { name: 'payment_created_date' }
+    );
+
+    console.log('✅ Payment indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating Payment indexes:', error.message);
+  }
+};
+
+/**
  * Create all database indexes
  */
 const createAllIndexes = async () => {
@@ -243,7 +287,8 @@ const createAllIndexes = async () => {
       createUserIndexes(),
       createOrderIndexes(),
       createCategoryIndexes(),
-      createActivityLogIndexes()
+      createActivityLogIndexes(),
+      createPaymentIndexes()
     ]);
     
     console.log('✅ All database indexes created successfully');
@@ -257,7 +302,7 @@ const createAllIndexes = async () => {
  */
 const getIndexInfo = async () => {
   try {
-    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs'];
+    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs', 'payments'];
     const indexInfo = {};
 
     for (const collectionName of collections) {
@@ -289,7 +334,7 @@ const dropAllIndexes = async () => {
   console.log('⚠️ Dropping all database indexes...');
   
   try {
-    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs'];
+    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs', 'payments'];
     
     for (const collectionName of collections) {
       try {
@@ -314,6 +359,7 @@ module.exports = {
   createOrderIndexes,
   createCategoryIndexes,
   createActivityLogIndexes,
+  createPaymentIndexes,
   getIndexInfo,
   dropAllIndexes
 }; 

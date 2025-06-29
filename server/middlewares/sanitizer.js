@@ -28,21 +28,42 @@ const sanitizer = (req, res, next) => {
   }
 };
 
-// Simple sanitization utilities for test compatibility
+// Enhanced sanitization utilities for test compatibility
 const sanitizers = {
-  string: (input) => typeof input === 'string' ? input.replace(/<.*?>/g, '').replace(/\0/g, '').replace(/[\x00-\x1F\x7F]/g, '').trim() : input,
+  string: (input) => {
+    if (typeof input !== 'string') return input;
+    // Remove script tags and their content
+    let sanitized = input.replace(/<script[^>]*>.*?<\/script>/gi, '');
+    // Remove any remaining script-like content
+    sanitized = sanitized.replace(/<.*?>/g, '');
+    // Remove null bytes and control characters
+    sanitized = sanitized.replace(/\0/g, '').replace(/[\x00-\x1F\x7F]/g, '');
+    return sanitized.trim();
+  },
   email: (input) => {
     if (typeof input !== 'string') return null;
-    const email = input.toLowerCase();
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!valid || /\s|script|<|>|\$/.test(email)) return null;
+    const email = input.toLowerCase().trim();
+    
+    // Check for suspicious patterns
+    if (/\s|script|<|>|\$|javascript:|data:|vbscript:/.test(email)) return null;
+    
+    // Check for valid email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return null;
+    
+    // Check for consecutive dots
+    if (email.includes('..')) return null;
+    
     return email;
   },
   url: (input) => {
+    if (typeof input !== 'string') return null;
     try {
       const url = new URL(input);
-      if (!/^https?:/.test(url.protocol)) return null;
-      return url.toString();
+      // Only allow http and https protocols
+      if (!/^https?:$/.test(url.protocol)) return null;
+      // Remove trailing slash for consistency
+      return url.toString().replace(/\/$/, '');
     } catch {
       return null;
     }
@@ -59,7 +80,16 @@ const sanitizers = {
     if (!query || typeof query !== 'object') return query;
     const sanitized = {};
     for (const key in query) {
-      sanitized[key] = typeof query[key] === 'string' ? query[key].replace(/<.*?>/g, '') : query[key];
+      const value = query[key];
+      if (typeof value === 'string') {
+        sanitized[key] = sanitizers.string(value);
+      } else if (typeof value === 'number') {
+        sanitized[key] = Number(value);
+      } else if (typeof value === 'boolean') {
+        sanitized[key] = Boolean(value);
+      } else {
+        sanitized[key] = value;
+      }
     }
     return sanitized;
   },
@@ -67,7 +97,20 @@ const sanitizers = {
     if (!body || typeof body !== 'object') return body;
     const sanitized = {};
     for (const key in body) {
-      sanitized[key] = typeof body[key] === 'string' ? body[key].replace(/<.*?>/g, '') : body[key];
+      const value = body[key];
+      if (typeof value === 'string') {
+        sanitized[key] = sanitizers.string(value);
+      } else if (typeof value === 'number') {
+        sanitized[key] = Number(value);
+      } else if (typeof value === 'boolean') {
+        sanitized[key] = Boolean(value);
+      } else if (Array.isArray(value)) {
+        sanitized[key] = value.map(item => typeof item === 'string' ? sanitizers.string(item) : item);
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = sanitizers.body(value);
+      } else {
+        sanitized[key] = value;
+      }
     }
     return sanitized;
   },

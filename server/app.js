@@ -130,12 +130,7 @@ app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')
 
 // --- END OF CRITICAL CONFIGURATION ---
 
-// Other Middlewares
-app.use(rateLimiter);
-app.use(sanitizer);
-app.use(requestLogger);
-
-// Health check endpoint
+// Health check endpoint (move here, before other middleware)
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -143,6 +138,11 @@ app.get('/api/health', (req, res) => {
     environment: config.NODE_ENV 
   });
 });
+
+// Other Middlewares
+app.use(rateLimiter);
+app.use(sanitizer);
+app.use(requestLogger);
 
 // API Routes
 app.use('/api/products', require('./routes/products'));

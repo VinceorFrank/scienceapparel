@@ -8,7 +8,7 @@ const app = require('../../app');
 describe('API Integration Tests', () => {
   beforeEach(() => {
     // Clear rate limiter data before each test to prevent interference
-    const { rateLimiter } = require('../../middlewares/rateLimiter');
+    const rateLimiter = require('../../middlewares/rateLimiter');
     rateLimiter.requests.clear();
   });
 

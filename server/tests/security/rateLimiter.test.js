@@ -4,7 +4,7 @@
 
 const request = require('supertest');
 const app = require('../../app');
-const { rateLimiter } = require('../../middlewares/rateLimiter');
+const rateLimiter = require('../../middlewares/rateLimiter');
 
 describe('Rate Limiter', () => {
   beforeEach(() => {

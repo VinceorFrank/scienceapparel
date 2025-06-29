@@ -9,6 +9,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import OrderTracking from "./pages/OrderTracking";
 import OrderDetail from "./pages/OrderDetail";
+import Payment from "./pages/Payment";
 import Account from "./pages/Account";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
@@ -69,6 +70,7 @@ const App = () => {
             <Route path="/account" element={<Account />} />
             <Route path="/account/edit" element={<EditCustomer />} />
             <Route path="/order/:id" element={<OrderDetail />} />
+            <Route path="/payment/:orderId" element={<Payment />} />
           </Route>
 
           <Route path="/login" element={<LoginCustomer />} />
@@ -81,6 +83,7 @@ const App = () => {
           <Route path="/calendly" element={<Calendly />} />
           <Route path="/complaint" element={<Complaint />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

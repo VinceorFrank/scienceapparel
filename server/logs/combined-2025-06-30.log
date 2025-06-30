@@ -1,0 +1,92 @@
+{"timestamp":"2025-06-30 11:36:08","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:36:08.283Z"}
+{"timestamp":"2025-06-30 11:36:08","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:36:13","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 11:36:20","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:36:20.260Z"}
+{"timestamp":"2025-06-30 11:36:20","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:38:05","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 11:38:09","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:38:09.335Z"}
+{"timestamp":"2025-06-30 11:38:09","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:41:22","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:41:22.787Z"}
+{"timestamp":"2025-06-30 11:41:22","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:41:23","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:41:23.985Z"}
+{"timestamp":"2025-06-30 11:41:24","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:42:05","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:42:05.061Z"}
+{"timestamp":"2025-06-30 11:42:05","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:44:02","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:44:02.111Z"}
+{"timestamp":"2025-06-30 11:44:02","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:47:41","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:47:41.395Z"}
+{"timestamp":"2025-06-30 11:47:41","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:56:25","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:56:25.077Z"}
+{"timestamp":"2025-06-30 11:56:25","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 11:56:56","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 11:57:20","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T15:57:20.879Z"}
+{"timestamp":"2025-06-30 11:57:21","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:22:25","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 12:22:40","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:22:40.377Z"}
+{"timestamp":"2025-06-30 12:22:40","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:23:00","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 12:33:16","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:33:16.921Z"}
+{"timestamp":"2025-06-30 12:33:17","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:33:46","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 12:36:04","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:36:04.898Z"}
+{"timestamp":"2025-06-30 12:36:05","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:36:29","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 12:44:54","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:44:54.492Z"}
+{"timestamp":"2025-06-30 12:44:54","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:46:05","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:46:05.548Z"}
+{"timestamp":"2025-06-30 12:46:05","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:47:46","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 12:49:32","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T16:49:32.802Z"}
+{"timestamp":"2025-06-30 12:49:32","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 12:52:37","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:01:15","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:01:15.934Z"}
+{"timestamp":"2025-06-30 13:01:16","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:01:21","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:01:28","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:01:28.956Z"}
+{"timestamp":"2025-06-30 13:01:29","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:01:52","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:02:32","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:02:32.794Z"}
+{"timestamp":"2025-06-30 13:02:32","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:02:55","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:03:15","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:03:15.925Z"}
+{"timestamp":"2025-06-30 13:03:16","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:03:32","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:04:14","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:04:14.948Z"}
+{"timestamp":"2025-06-30 13:04:15","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:04:22","level":"INFO","message":"Getting live rate from Canada Post","origin":"M5V3A8","destination":"V6B1A1","weight":null}
+{"timestamp":"2025-06-30 13:04:22","level":"INFO","message":"Getting live rate from UPS","origin":"M5V3A8","destination":"V6B1A1","weight":null}
+{"timestamp":"2025-06-30 13:04:22","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V3A8","destination":"V6B1A1","weight":null}
+{"timestamp":"2025-06-30 13:04:23","level":"INFO","message":"Shipping rates calculated successfully","totalItems":null,"totalWeight":null,"optionsCount":3}
+{"timestamp":"2025-06-30 13:04:32","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:04:52","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:04:52.959Z"}
+{"timestamp":"2025-06-30 13:04:53","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:05:11","level":"INFO","message":"Getting live rate from Canada Post","origin":"M5V3A8","destination":"V6B1A1","weight":3}
+{"timestamp":"2025-06-30 13:05:11","level":"INFO","message":"Getting live rate from UPS","origin":"M5V3A8","destination":"V6B1A1","weight":3}
+{"timestamp":"2025-06-30 13:05:11","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V3A8","destination":"V6B1A1","weight":3}
+{"timestamp":"2025-06-30 13:05:11","level":"INFO","message":"Shipping rates calculated successfully","totalItems":2,"totalWeight":3,"optionsCount":3}
+{"timestamp":"2025-06-30 13:05:17","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:06:54","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:06:54.307Z"}
+{"timestamp":"2025-06-30 13:06:54","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:16:52","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:27:53","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:27:53.936Z"}
+{"timestamp":"2025-06-30 13:27:54","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:28:33","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 13:30:39","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T17:30:39.477Z"}
+{"timestamp":"2025-06-30 13:30:39","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 13:33:18","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 14:45:27","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T18:45:27.265Z"}
+{"timestamp":"2025-06-30 14:45:27","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 14:45:31","level":"INFO","message":"Getting live rate from Canada Post","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:45:31","level":"INFO","message":"Getting live rate from UPS","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:45:31","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:45:31","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 14:45:45","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 14:46:33","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T18:46:33.300Z"}
+{"timestamp":"2025-06-30 14:46:33","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 14:47:52","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 14:48:01","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T18:48:01.922Z"}
+{"timestamp":"2025-06-30 14:48:02","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Getting live rate from Canada Post","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Getting live rate from UPS","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}

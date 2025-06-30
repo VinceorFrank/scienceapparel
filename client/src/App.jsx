@@ -40,6 +40,7 @@ import NewsletterAdmin from "./pages/Admin/NewsletterAdmin";
 import DataManagement from "./pages/Admin/DataManagement";
 import CustomerInsights from "./pages/Admin/CustomerInsights";
 import MarkdownPage from "./pages/Admin/MarkdownPage";
+import ShippingAdmin from "./pages/Admin/ShippingAdmin";
 
 
 
@@ -105,6 +106,7 @@ const App = () => {
     <Route path="data-management" element={<DataManagement />} />
     <Route path="customer-insights" element={<CustomerInsights />} />
     <Route path="troubleshoot" element={<MarkdownPage fileName='troubleshoot-admin-panel.md' title='Admin Panel Troubleshooting' />} />
+    <Route path="shipping" element={<ShippingAdmin />} />
   </Route>
 </Route>
       </Routes>

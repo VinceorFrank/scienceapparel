@@ -14,6 +14,9 @@ const hpp = require('hpp');
 
 const app = express();
 
+// Parse JSON bodies FIRST, before any other middleware or routes
+app.use(express.json({ limit: '1mb' }));
+
 // Connect to database
 connectDB();
 
@@ -107,8 +110,7 @@ sendScheduledNewsletters();
 app.use('/api/upload', require('./routes/upload'));
 
 // 1. JSON and URL-encoded parser middleware
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+// app.use(express.urlencoded({ extended: true, limit: '1mb' })); // Disabled to fix array/object issue for JSON APIs
 
 // Apply performance and security middleware
 app.use(compression());
@@ -158,6 +160,7 @@ app.use('/api/admin/csv-import', require('./routes/csvImport'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/monitoring', require('./routes/monitoring'));
+app.use('/api/shipping', require('./routes/shipping'));
 
 // Error Handling Middleware (must be last)
 app.use(notFound);

@@ -442,3 +442,16 @@
 {"timestamp":"2025-07-02 15:06:22","level":"INFO","message":"API Success Response Login successful","statusCode":200,"dataType":"object","hasMeta":false}
 {"timestamp":"2025-07-02 15:06:23","level":"INFO","message":"API Success Response Profile retrieved successfully","statusCode":200,"dataType":"object","hasMeta":false}
 {"timestamp":"2025-07-02 15:06:55","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-03T19:08:39.146Z"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Cart cleanup scheduled","intervalHours":24,"nextRun":"2025-07-03T19:08:39.161Z"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Starting newsletter scheduler","intervalMinutes":1,"maxRetries":3}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Starting newsletter processing cycle"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Newsletter scheduler started successfully"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Newsletter scheduler initialized successfully"}
+{"timestamp":"2025-07-02 15:08:39","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-07-02 15:08:50","level":"INFO","message":"API Success Response Login successful","statusCode":200,"dataType":"object","hasMeta":false}
+{"timestamp":"2025-07-02 15:08:50","level":"INFO","message":"API Success Response Profile retrieved successfully","statusCode":200,"dataType":"object","hasMeta":false}
+{"timestamp":"2025-07-02 15:09:39","level":"INFO","message":"Starting newsletter processing cycle"}
+{"timestamp":"2025-07-02 15:10:39","level":"INFO","message":"Starting newsletter processing cycle"}
+{"timestamp":"2025-07-02 15:11:39","level":"INFO","message":"Starting newsletter processing cycle"}
+{"timestamp":"2025-07-02 15:12:39","level":"INFO","message":"Starting newsletter processing cycle"}

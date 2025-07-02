@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth, admin } = require('../middlewares/auth');
 const { 
   getShippingOptions, 
   getShippingSettingsForAdmin, 
@@ -198,7 +198,7 @@ router.get('/carriers', async (req, res) => {
  * GET /api/shipping/settings
  * Get shipping settings (admin only)
  */
-router.get('/settings', protect, admin, async (req, res) => {
+router.get('/settings', requireAuth, admin, async (req, res) => {
   try {
     const result = await getShippingSettingsForAdmin();
     
@@ -220,7 +220,7 @@ router.get('/settings', protect, admin, async (req, res) => {
  * PUT /api/shipping/settings
  * Update shipping settings (admin only)
  */
-router.put('/settings', protect, admin, async (req, res) => {
+router.put('/settings', requireAuth, admin, async (req, res) => {
   try {
     const updates = req.body;
     
@@ -349,7 +349,7 @@ router.post('/estimate', async (req, res) => {
  * GET /api/shipping/analytics
  * Get shipping analytics (admin only)
  */
-router.get('/analytics', protect, admin, async (req, res) => {
+router.get('/analytics', requireAuth, admin, async (req, res) => {
   try {
     const { period = '30d' } = req.query;
     
@@ -386,7 +386,7 @@ router.get('/analytics', protect, admin, async (req, res) => {
  * POST /api/shipping/test-carrier
  * Test carrier API connection (admin only)
  */
-router.post('/test-carrier', protect, admin, async (req, res) => {
+router.post('/test-carrier', requireAuth, admin, async (req, res) => {
   try {
     const { carrierName, apiKey, apiSecret } = req.body;
 

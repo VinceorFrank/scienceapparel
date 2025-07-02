@@ -10,7 +10,7 @@ const {
   getCampaignHistory,
   getCampaignStats
 } = require('../controllers/newsletterController');
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth: protect, admin } = require('../middlewares/auth');
 
 // Public routes
 router.post('/subscribe', subscribe);

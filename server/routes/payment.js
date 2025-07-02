@@ -8,7 +8,7 @@ const {
   getPaymentStats,
   processRefund
 } = require('../controllers/paymentController');
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth: protect, admin } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
 
 // Public webhook endpoint (no authentication required)

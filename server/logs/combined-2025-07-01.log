@@ -76,3 +76,4 @@
 {"timestamp":"2025-07-01 14:51:36","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-02T18:51:36.440Z"}
 {"timestamp":"2025-07-01 14:51:36","level":"INFO","message":"Cart cleanup scheduled","intervalHours":24,"nextRun":"2025-07-02T18:51:36.455Z"}
 {"timestamp":"2025-07-01 14:51:36","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-07-01 20:44:29","level":"INFO","message":"SIGINT received, shutting down gracefully"}

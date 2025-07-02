@@ -2,13 +2,19 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Order = require('../models/Order');
-const { protect, admin } = require('../middlewares/auth'); // ✅ middleware to get logged-in user
+const { requireAuth, admin } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 const mongoose = require('mongoose');
+const { 
+  validateCreateOrder, 
+  validateUpdateOrderStatus, 
+  validateOrderQueries, 
+  validateOrderId 
+} = require('../middlewares/validators/orderValidators');
 
 // ✅ POST /api/orders - Create new order (requires token)
-router.post('/', protect, async (req, res) => {
+router.post('/', requireAuth, validateCreateOrder, async (req, res) => {
   const {
     orderItems,
     shippingAddress,
@@ -60,7 +66,7 @@ router.post('/', protect, async (req, res) => {
 });
 
 // ✅ GET /api/orders - Get orders (admin gets all, customer gets their own)
-router.get('/', protect, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     let orders;
     
@@ -84,7 +90,7 @@ router.get('/', protect, async (req, res) => {
 });
 
 // ✅ GET /api/orders/myorders - All orders of current user
-router.get('/myorders', protect, async (req, res) => {
+router.get('/myorders', requireAuth, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
@@ -97,7 +103,7 @@ router.get('/myorders', protect, async (req, res) => {
 });
 
 // ✅ GET /api/orders/admin - Get all orders (admin only)
-router.get('/admin', protect, admin, async (req, res, next) => {
+router.get('/admin', requireAuth, admin, validateOrderQueries, async (req, res, next) => {
   try {
     const { page, limit, search, status, dateFrom, dateTo, minAmount, maxAmount } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -165,7 +171,7 @@ router.get('/admin', protect, admin, async (req, res, next) => {
 });
 
 // ✅ GET /api/orders/:id - View specific order if owned by customer
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', requireAuth, validateOrderId, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } })
@@ -187,7 +193,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // ✅ PUT /api/orders/:id/status - Update order status (admin only)
-router.put('/:id/status', protect, admin, async (req, res, next) => {
+router.put('/:id/status', requireAuth, admin, validateUpdateOrderStatus, async (req, res, next) => {
   try {
     const { isShipped, isPaid, status, trackingNumber, notes } = req.body;
     
@@ -224,7 +230,7 @@ router.put('/:id/status', protect, admin, async (req, res, next) => {
 });
 
 // ✅ PUT /api/orders/bulk/status - Bulk update order statuses (admin only)
-router.put('/bulk/status', protect, admin, async (req, res, next) => {
+router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
   try {
     const { orderIds, status, isShipped, isPaid, notes } = req.body;
 
@@ -261,7 +267,7 @@ router.put('/bulk/status', protect, admin, async (req, res, next) => {
 });
 
 // ✅ GET /api/orders/analytics/summary - Get order analytics (admin only)
-router.get('/analytics/summary', protect, admin, async (req, res, next) => {
+router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
   try {
     const { period = '30d' } = req.query;
     
@@ -316,7 +322,7 @@ router.get('/analytics/summary', protect, admin, async (req, res, next) => {
 });
 
 // ✅ DELETE /api/orders/:id - Cancel/delete order (admin only)
-router.delete('/:id', protect, admin, async (req, res, next) => {
+router.delete('/:id', requireAuth, admin, async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
 
@@ -356,7 +362,7 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
 // ========================================
 
 // GET /api/orders/me - Get current user's orders with pagination
-router.get('/me', protect, async (req, res, next) => {
+router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const { page = 1, limit = 10, status, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -402,7 +408,7 @@ router.get('/me', protect, async (req, res, next) => {
 });
 
 // GET /api/orders/me/:id - Get specific order for current user
-router.get('/me/:id', protect, async (req, res, next) => {
+router.get('/me/:id', requireAuth, async (req, res, next) => {
   try {
     const order = await Order.findOne({ 
       _id: req.params.id, 
@@ -429,7 +435,7 @@ router.get('/me/:id', protect, async (req, res, next) => {
 });
 
 // GET /api/orders/me/:id/tracking - Get order tracking information
-router.get('/me/:id/tracking', protect, async (req, res, next) => {
+router.get('/me/:id/tracking', requireAuth, async (req, res, next) => {
   try {
     const order = await Order.findOne({ 
       _id: req.params.id, 
@@ -463,7 +469,7 @@ router.get('/me/:id/tracking', protect, async (req, res, next) => {
 });
 
 // POST /api/orders/me/:id/cancel - Cancel order (customer only, with restrictions)
-router.post('/me/:id/cancel', protect, async (req, res, next) => {
+router.post('/me/:id/cancel', requireAuth, async (req, res, next) => {
   try {
     const { reason } = req.body;
     
@@ -524,7 +530,7 @@ router.post('/me/:id/cancel', protect, async (req, res, next) => {
 });
 
 // POST /api/orders/me/:id/review - Submit order review
-router.post('/me/:id/review', protect, async (req, res, next) => {
+router.post('/me/:id/review', requireAuth, async (req, res, next) => {
   try {
     const { productId, rating, comment, reviewToken } = req.body;
     
@@ -590,7 +596,7 @@ router.post('/me/:id/review', protect, async (req, res, next) => {
 });
 
 // GET /api/orders/me/stats - Get customer order statistics
-router.get('/me/stats', protect, async (req, res, next) => {
+router.get('/me/stats', requireAuth, async (req, res, next) => {
   try {
     const stats = await Order.aggregate([
       { $match: { user: req.user._id } },
@@ -630,7 +636,7 @@ router.get('/me/stats', protect, async (req, res, next) => {
 });
 
 // GET /api/orders/me/recent - Get recent orders (last 5)
-router.get('/me/recent', protect, async (req, res, next) => {
+router.get('/me/recent', requireAuth, async (req, res, next) => {
   try {
     const recentOrders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })

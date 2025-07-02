@@ -9,7 +9,8 @@ const RequireAdmin = () => {
   useEffect(() => {
     const verifyAdmin = async () => {
       const token = localStorage.getItem("token");
-      
+      console.log("RequireAdmin: token in localStorage:", token);
+
       if (!token) {
         setIsAuthenticated(false);
         setIsLoading(false);
@@ -18,9 +19,15 @@ const RequireAdmin = () => {
 
       try {
         // Verify token and admin status with the server
-        const response = await api.get("/users/profile");
-        const isAdmin = response.data.isAdmin;
-        
+        const response = await api.get("/users/auth/profile");
+        console.log("RequireAdmin: full response", response.data);
+
+        const user = response.data.data;
+        console.log("RequireAdmin: extracted user", user);
+
+        const isAdmin = user && user.isAdmin === true;
+        console.log("RequireAdmin: isAdmin", isAdmin);
+
         if (!isAdmin) {
           // Clear invalid admin session
           localStorage.clear();
@@ -40,6 +47,8 @@ const RequireAdmin = () => {
 
     verifyAdmin();
   }, []);
+
+  console.log("RequireAdmin: isLoading:", isLoading, "isAuthenticated:", isAuthenticated);
 
   if (isLoading) {
     return (

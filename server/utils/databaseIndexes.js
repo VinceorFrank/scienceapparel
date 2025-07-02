@@ -276,6 +276,116 @@ const createPaymentIndexes = async () => {
 };
 
 /**
+ * Create indexes for Cart collection
+ */
+const createCartIndexes = async () => {
+  try {
+    const Cart = mongoose.model('Cart');
+    
+    // Compound indexes for common queries
+    await Cart.collection.createIndex(
+      { user: 1, updatedAt: -1 },
+      { name: 'cart_user_updated' }
+    );
+
+    await Cart.collection.createIndex(
+      { expiresAt: 1 },
+      { name: 'cart_expires_at' }
+    );
+
+    await Cart.collection.createIndex(
+      { 'items.product': 1 },
+      { name: 'cart_items_product' }
+    );
+
+    // TTL index for automatic cleanup
+    await Cart.collection.createIndex(
+      { expiresAt: 1 },
+      { 
+        name: 'cart_ttl',
+        expireAfterSeconds: 0 
+      }
+    );
+
+    console.log('✅ Cart indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating Cart indexes:', error.message);
+  }
+};
+
+/**
+ * Create indexes for Newsletter collections
+ */
+const createNewsletterIndexes = async () => {
+  try {
+    const NewsletterCampaign = mongoose.model('NewsletterCampaign');
+    const NewsletterSubscriber = mongoose.model('NewsletterSubscriber');
+    
+    // NewsletterCampaign indexes
+    await NewsletterCampaign.collection.createIndex(
+      { status: 1, scheduledAt: 1 },
+      { name: 'newsletter_campaign_status_scheduled' }
+    );
+
+    await NewsletterCampaign.collection.createIndex(
+      { createdAt: -1 },
+      { name: 'newsletter_campaign_created' }
+    );
+
+    // NewsletterSubscriber indexes
+    await NewsletterSubscriber.collection.createIndex(
+      { email: 1 },
+      { 
+        name: 'newsletter_subscriber_email_unique',
+        unique: true 
+      }
+    );
+
+    await NewsletterSubscriber.collection.createIndex(
+      { status: 1 },
+      { name: 'newsletter_subscriber_status' }
+    );
+
+    console.log('✅ Newsletter indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating Newsletter indexes:', error.message);
+  }
+};
+
+/**
+ * Create indexes for Support collection
+ */
+const createSupportIndexes = async () => {
+  try {
+    const Support = mongoose.model('Support');
+    
+    await Support.collection.createIndex(
+      { user: 1, createdAt: -1 },
+      { name: 'support_user_date' }
+    );
+
+    await Support.collection.createIndex(
+      { status: 1, priority: 1 },
+      { name: 'support_status_priority' }
+    );
+
+    await Support.collection.createIndex(
+      { category: 1, status: 1 },
+      { name: 'support_category_status' }
+    );
+
+    await Support.collection.createIndex(
+      { createdAt: -1 },
+      { name: 'support_created_date' }
+    );
+
+    console.log('✅ Support indexes created successfully');
+  } catch (error) {
+    console.error('❌ Error creating Support indexes:', error.message);
+  }
+};
+
+/**
  * Create all database indexes
  */
 const createAllIndexes = async () => {
@@ -288,7 +398,10 @@ const createAllIndexes = async () => {
       createOrderIndexes(),
       createCategoryIndexes(),
       createActivityLogIndexes(),
-      createPaymentIndexes()
+      createPaymentIndexes(),
+      createCartIndexes(),
+      createNewsletterIndexes(),
+      createSupportIndexes()
     ]);
     
     console.log('✅ All database indexes created successfully');
@@ -360,6 +473,9 @@ module.exports = {
   createCategoryIndexes,
   createActivityLogIndexes,
   createPaymentIndexes,
+  createCartIndexes,
+  createNewsletterIndexes,
+  createSupportIndexes,
   getIndexInfo,
   dropAllIndexes
 }; 

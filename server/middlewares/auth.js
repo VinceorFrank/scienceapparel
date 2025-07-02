@@ -107,7 +107,7 @@ const requireOwnership = (resourceModel, resourceIdField = 'id') => {
 module.exports = {
   generateToken,
   verifyToken,
-  protect,
+  requireAuth: protect,
   admin,
   requireRole,
   requireOwnership,

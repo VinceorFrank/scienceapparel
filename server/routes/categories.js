@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth, admin } = require('../middlewares/auth');
 const { body, validationResult } = require('express-validator');
 const ActivityLog = require('../models/ActivityLog');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
@@ -54,7 +54,7 @@ router.get('/featured', async (req, res, next) => {
 });
 
 // Create a new category (admin only)
-router.post('/', protect, admin, [
+router.post('/', requireAuth, admin, [
   body('name').notEmpty().withMessage('Name is required'),
   body('description').optional().isLength({ max: 500 }).withMessage('Description must be less than 500 characters')
 ], async (req, res) => {
@@ -103,7 +103,7 @@ router.post('/', protect, admin, [
 });
 
 // Update a category (admin only)
-router.put('/:id', protect, admin, [
+router.put('/:id', requireAuth, admin, [
   body('name').notEmpty().withMessage('Name is required'),
   body('description').optional().isLength({ max: 500 }).withMessage('Description must be less than 500 characters')
 ], async (req, res) => {
@@ -153,7 +153,7 @@ router.put('/:id', protect, admin, [
 });
 
 // Delete a category (admin only)
-router.delete('/:id', protect, admin, async (req, res) => {
+router.delete('/:id', requireAuth, admin, async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: 'Category not found' });
@@ -187,7 +187,7 @@ router.delete('/:id', protect, admin, async (req, res) => {
 });
 
 // PUT /api/categories/bulk/status - Bulk update category statuses (admin only)
-router.put('/bulk/status', protect, admin, async (req, res, next) => {
+router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
   try {
     const { categoryIds, active, featured } = req.body;
 
@@ -222,7 +222,7 @@ router.put('/bulk/status', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/categories/analytics/summary - Get category analytics (admin only)
-router.get('/analytics/summary', protect, admin, async (req, res, next) => {
+router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
   try {
     const Product = require('../models/Product');
     

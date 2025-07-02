@@ -2,16 +2,23 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-const { protect } = require('../middlewares/auth');
+const { requireAuth } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
 const { logger } = require('../utils/logger');
+const { 
+  validateAddToCart, 
+  validateUpdateCartItem, 
+  validateRemoveCartItem, 
+  validateCartQueries 
+} = require('../middlewares/validators/cartValidators');
+const { sendSuccess, sendError, sendNotFound } = require('../utils/responseHandler');
 
 // ========================================
 // 🛒 CART MANAGEMENT ROUTES
 // ========================================
 
 // GET /api/cart - Get user's cart
-router.get('/', protect, async (req, res, next) => {
+router.get('/', requireAuth, validateCartQueries, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     const populatedCart = await cart.getPopulatedCart();
@@ -19,8 +26,7 @@ router.get('/', protect, async (req, res, next) => {
     // Validate cart items
     const validation = await cart.validateCart();
     
-    res.json({
-      success: true,
+    sendSuccess(res, 200, 'Cart retrieved successfully', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -38,32 +44,24 @@ router.get('/', protect, async (req, res, next) => {
 });
 
 // POST /api/cart/items - Add item to cart
-router.post('/items', protect, async (req, res, next) => {
+router.post('/items', requireAuth, validateAddToCart, async (req, res, next) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
-    if (!productId) {
-      return res.status(400).json({ message: 'Product ID is required' });
-    }
-
-    if (quantity <= 0) {
-      return res.status(400).json({ message: 'Quantity must be greater than 0' });
-    }
+    // Validation is now handled by middleware
 
     // Verify product exists and is available
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return sendNotFound(res, 'Product');
     }
 
     if (product.archived) {
-      return res.status(400).json({ message: 'Product is no longer available' });
+      return sendError(res, 400, 'Product is no longer available', null, 'PRODUCT_UNAVAILABLE');
     }
 
     if (product.stock < quantity) {
-      return res.status(400).json({ 
-        message: `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}` 
-      });
+      return sendError(res, 400, `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}`, null, 'INSUFFICIENT_STOCK');
     }
 
     // Get or create cart
@@ -89,9 +87,7 @@ router.post('/items', protect, async (req, res, next) => {
       productName: product.name
     });
 
-    res.json({
-      success: true,
-      message: 'Item added to cart successfully',
+    sendSuccess(res, 200, 'Item added to cart successfully', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -106,7 +102,7 @@ router.post('/items', protect, async (req, res, next) => {
 });
 
 // PUT /api/cart/items/:productId - Update item quantity
-router.put('/items/:productId', protect, async (req, res, next) => {
+router.put('/items/:productId', requireAuth, validateUpdateCartItem, async (req, res, next) => {
   try {
     const { productId } = req.params;
     const { quantity } = req.body;
@@ -178,7 +174,7 @@ router.put('/items/:productId', protect, async (req, res, next) => {
 });
 
 // DELETE /api/cart/items/:productId - Remove item from cart
-router.delete('/items/:productId', protect, async (req, res, next) => {
+router.delete('/items/:productId', requireAuth, validateRemoveCartItem, async (req, res, next) => {
   try {
     const { productId } = req.params;
 
@@ -222,7 +218,7 @@ router.delete('/items/:productId', protect, async (req, res, next) => {
 });
 
 // DELETE /api/cart - Clear entire cart
-router.delete('/', protect, async (req, res, next) => {
+router.delete('/', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     
@@ -253,7 +249,7 @@ router.delete('/', protect, async (req, res, next) => {
 });
 
 // GET /api/cart/validate - Validate cart items
-router.get('/validate', protect, async (req, res, next) => {
+router.get('/validate', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     const validation = await cart.validateCart();
@@ -268,7 +264,7 @@ router.get('/validate', protect, async (req, res, next) => {
 });
 
 // GET /api/cart/summary - Get cart summary (for header display)
-router.get('/summary', protect, async (req, res, next) => {
+router.get('/summary', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     
@@ -287,7 +283,7 @@ router.get('/summary', protect, async (req, res, next) => {
 });
 
 // POST /api/cart/merge - Merge guest cart with user cart (for login)
-router.post('/merge', protect, async (req, res, next) => {
+router.post('/merge', requireAuth, async (req, res, next) => {
   try {
     const { guestCartItems } = req.body;
 
@@ -354,7 +350,7 @@ router.post('/merge', protect, async (req, res, next) => {
 // ========================================
 
 // POST /api/cart/cleanup - Clean up expired carts (admin only)
-router.post('/cleanup', protect, async (req, res, next) => {
+router.post('/cleanup', requireAuth, async (req, res, next) => {
   try {
     // Check if user is admin
     if (!req.user.isAdmin) {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth, admin } = require('../middlewares/auth');
 const { buildFilters, buildSortObject } = require('../utils/buildFilters');
 const { validateRequest } = require('../middlewares/errorHandler');
 const { 
@@ -93,7 +93,7 @@ router.get('/', validateProductQuery, validateRequest, async (req, res, next) =>
 // @desc    Get all products for the admin panel
 // @route   GET /api/products/admin
 // @access  Private/Admin
-router.get('/admin', protect, admin, async (req, res, next) => {
+router.get('/admin', requireAuth, admin, async (req, res, next) => {
   try {
     const { page, limit, search, category } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -161,7 +161,7 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
 // @desc    Create a new product
 // @route   POST /api/products
 // @access  Private/Admin
-router.post('/', protect, admin, (req, res, next) => {
+router.post('/', requireAuth, admin, (req, res, next) => {
   // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
@@ -224,7 +224,7 @@ router.post('/', protect, admin, (req, res, next) => {
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
-router.put('/:id', protect, admin, (req, res, next) => {
+router.put('/:id', requireAuth, admin, (req, res, next) => {
   // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
@@ -307,7 +307,7 @@ router.put('/:id', protect, admin, (req, res, next) => {
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
 // @access  Private/Admin
-router.delete('/:id', protect, admin, validateProductId, validateRequest, async (req, res, next) => {
+router.delete('/:id', requireAuth, admin, validateProductId, validateRequest, async (req, res, next) => {
   try {
     console.log('[products] DELETE /api/products/:id called');
     console.log('[products] Request params:', req.params);
@@ -416,7 +416,7 @@ router.delete('/:id', protect, admin, validateProductId, validateRequest, async 
 // @desc    Add a review to a product
 // @route   POST /api/products/:id/reviews
 // @access  Private
-router.post('/:id/reviews', protect, validateReviewCreate, validateRequest, async (req, res, next) => {
+router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, async (req, res, next) => {
   try {
     const { rating, comment } = req.body;
     const userId = req.user._id;
@@ -532,7 +532,7 @@ router.post('/:id/review-token', async (req, res) => {
 // @desc    Get product review statistics (admin only)
 // @route   GET /api/products/stats/reviews
 // @access  Private/Admin
-router.get('/stats/reviews', protect, admin, async (req, res, next) => {
+router.get('/stats/reviews', requireAuth, admin, async (req, res, next) => {
   try {
     const totalProducts = await Product.countDocuments();
 
@@ -636,7 +636,7 @@ router.get('/stats/reviews', protect, admin, async (req, res, next) => {
 // @desc    Export products to CSV
 // @route   GET /api/products/export
 // @access  Private/Admin
-router.get('/export', protect, admin, async (req, res, next) => {
+router.get('/export', requireAuth, admin, async (req, res, next) => {
   try {
     const products = await Product.find().select('-reviews');
     
@@ -677,7 +677,7 @@ router.get('/export', protect, admin, async (req, res, next) => {
 // @desc    Import products from CSV
 // @route   POST /api/products/import
 // @access  Private/Admin
-router.post('/import', protect, admin, async (req, res, next) => {
+router.post('/import', requireAuth, admin, async (req, res, next) => {
   try {
     if (!req.files || !req.files.file) {
       return res.status(400).json({

@@ -23,7 +23,7 @@ const AdminLogin = () => {
       });
 
       console.log('Login response:', res.data);
-      const { user, token } = res.data;
+      const { user, token } = res.data.data;
 
       // Check if user exists and is admin
       if (!user || !user.isAdmin) {
@@ -42,8 +42,8 @@ const AdminLogin = () => {
       localStorage.setItem("isAdmin", user.isAdmin.toString());
 
       console.log('Navigating to dashboard');
-      // Navigate to dashboard
-      navigate("/admin/dashboard");
+      // Force a full page reload to /admin/dashboard
+      window.location.href = "/admin/dashboard";
     } catch (err) {
       console.error("Login error details:", {
         error: err,

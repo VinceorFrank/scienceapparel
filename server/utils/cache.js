@@ -1,144 +1,274 @@
 /**
- * In-memory caching utility with TTL support
+ * Enhanced Caching System
+ * Provides in-memory and Redis caching with intelligent cache management
  */
 
-class Cache {
-  constructor() {
-    this.store = new Map();
-    this.timers = new Map();
-  }
+const { logger } = require('./logger');
 
-  /**
-   * Set a value in cache with optional TTL
-   * @param {string} key - Cache key
-   * @param {*} value - Value to cache
-   * @param {number} ttl - Time to live in milliseconds
-   */
-  set(key, value, ttl = 300000) { // Default 5 minutes
-    // Clear existing timer if any
-    if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
-    }
+// In-memory cache store
+const memoryCache = new Map();
+const cacheStats = {
+  hits: 0,
+  misses: 0,
+  sets: 0,
+  deletes: 0,
+  size: 0
+};
 
-    // Set the value
-    this.store.set(key, {
-      value,
-      timestamp: Date.now(),
-      ttl
+// Cache configuration
+const CACHE_CONFIG = {
+  DEFAULT_TTL: 300, // 5 minutes
+  MAX_SIZE: 1000, // Maximum number of items in memory cache
+  CLEANUP_INTERVAL: 60000, // 1 minute
+  REDIS_ENABLED: process.env.REDIS_URL ? true : false
+};
+
+// Redis client (if available)
+let redisClient = null;
+if (CACHE_CONFIG.REDIS_ENABLED) {
+  try {
+    const redis = require('redis');
+    redisClient = redis.createClient({
+      url: process.env.REDIS_URL
     });
-
-    // Set expiration timer
-    const timer = setTimeout(() => {
-      this.delete(key);
-    }, ttl);
-
-    this.timers.set(key, timer);
-  }
-
-  /**
-   * Get a value from cache
-   * @param {string} key - Cache key
-   * @returns {*} Cached value or undefined if not found/expired
-   */
-  get(key) {
-    const item = this.store.get(key);
     
-    if (!item) {
-      return undefined;
-    }
-
-    // Check if expired
-    if (Date.now() - item.timestamp > item.ttl) {
-      this.delete(key);
-      return undefined;
-    }
-
-    return item.value;
-  }
-
-  /**
-   * Delete a value from cache
-   * @param {string} key - Cache key
-   */
-  delete(key) {
-    this.store.delete(key);
-    
-    if (this.timers.has(key)) {
-      clearTimeout(this.timers.get(key));
-      this.timers.delete(key);
-    }
-  }
-
-  /**
-   * Clear all cached values
-   */
-  clear() {
-    this.store.clear();
-    
-    // Clear all timers
-    this.timers.forEach(timer => clearTimeout(timer));
-    this.timers.clear();
-  }
-
-  /**
-   * Get cache statistics
-   * @returns {Object} Cache statistics
-   */
-  getStats() {
-    const now = Date.now();
-    let expiredCount = 0;
-    let validCount = 0;
-
-    this.store.forEach(item => {
-      if (now - item.timestamp > item.ttl) {
-        expiredCount++;
-      } else {
-        validCount++;
-      }
+    redisClient.on('error', (err) => {
+      logger.error('Redis connection error:', err);
+      redisClient = null;
     });
-
-    return {
-      total: this.store.size,
-      valid: validCount,
-      expired: expiredCount,
-      timers: this.timers.size
-    };
-  }
-
-  /**
-   * Clean up expired entries
-   */
-  cleanup() {
-    const now = Date.now();
-    const keysToDelete = [];
-
-    this.store.forEach((item, key) => {
-      if (now - item.timestamp > item.ttl) {
-        keysToDelete.push(key);
-      }
+    
+    redisClient.on('connect', () => {
+      logger.info('Redis connected successfully');
     });
-
-    keysToDelete.forEach(key => this.delete(key));
+    
+    redisClient.connect().catch(err => {
+      logger.error('Failed to connect to Redis:', err);
+      redisClient = null;
+    });
+  } catch (error) {
+    logger.warn('Redis not available, using in-memory cache only');
+    redisClient = null;
   }
 }
 
-// Create global cache instance
-const cache = new Cache();
+/**
+ * Generate cache key
+ * @param {string} prefix - Cache key prefix
+ * @param {string} key - Cache key
+ * @returns {string} Formatted cache key
+ */
+const generateKey = (prefix, key) => {
+  return `${prefix}:${key}`;
+};
+
+/**
+ * Set cache value
+ * @param {string} prefix - Cache key prefix
+ * @param {string} key - Cache key
+ * @param {*} value - Value to cache
+ * @param {number} ttl - Time to live in seconds
+ */
+const set = async (prefix, key, value, ttl = CACHE_CONFIG.DEFAULT_TTL) => {
+  const cacheKey = generateKey(prefix, key);
+  const cacheValue = {
+    value,
+    timestamp: Date.now(),
+    ttl: ttl * 1000
+  };
+
+  try {
+    // Set in memory cache
+    if (memoryCache.size >= CACHE_CONFIG.MAX_SIZE) {
+      cleanupMemoryCache();
+    }
+    
+    memoryCache.set(cacheKey, cacheValue);
+    cacheStats.sets++;
+    cacheStats.size = memoryCache.size;
+
+    // Set in Redis if available
+    if (redisClient) {
+      await redisClient.setEx(cacheKey, ttl, JSON.stringify(cacheValue));
+    }
+
+    logger.debug('Cache set', { key: cacheKey, ttl });
+  } catch (error) {
+    logger.error('Cache set error:', error);
+  }
+};
+
+/**
+ * Get cache value
+ * @param {string} prefix - Cache key prefix
+ * @param {string} key - Cache key
+ * @returns {*} Cached value or null
+ */
+const get = async (prefix, key) => {
+  const cacheKey = generateKey(prefix, key);
+
+  try {
+    // Try memory cache first
+    const memoryValue = memoryCache.get(cacheKey);
+    if (memoryValue && !isExpired(memoryValue)) {
+      cacheStats.hits++;
+      logger.debug('Cache hit (memory)', { key: cacheKey });
+      return memoryValue.value;
+    }
+
+    // Try Redis if available
+    if (redisClient) {
+      const redisValue = await redisClient.get(cacheKey);
+      if (redisValue) {
+        const parsedValue = JSON.parse(redisValue);
+        if (!isExpired(parsedValue)) {
+          // Update memory cache
+          memoryCache.set(cacheKey, parsedValue);
+          cacheStats.hits++;
+          logger.debug('Cache hit (Redis)', { key: cacheKey });
+          return parsedValue.value;
+        }
+      }
+    }
+
+    cacheStats.misses++;
+    logger.debug('Cache miss', { key: cacheKey });
+    return null;
+  } catch (error) {
+    logger.error('Cache get error:', error);
+    cacheStats.misses++;
+    return null;
+  }
+};
+
+/**
+ * Delete cache value
+ * @param {string} prefix - Cache key prefix
+ * @param {string} key - Cache key
+ */
+const del = async (prefix, key) => {
+  const cacheKey = generateKey(prefix, key);
+
+  try {
+    // Delete from memory cache
+    memoryCache.delete(cacheKey);
+    cacheStats.deletes++;
+    cacheStats.size = memoryCache.size;
+
+    // Delete from Redis if available
+    if (redisClient) {
+      await redisClient.del(cacheKey);
+    }
+
+    logger.debug('Cache deleted', { key: cacheKey });
+  } catch (error) {
+    logger.error('Cache delete error:', error);
+  }
+};
+
+/**
+ * Clear cache by prefix
+ * @param {string} prefix - Cache key prefix
+ */
+const clearPrefix = async (prefix) => {
+  try {
+    // Clear from memory cache
+    const keysToDelete = [];
+    for (const key of memoryCache.keys()) {
+      if (key.startsWith(prefix + ':')) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    keysToDelete.forEach(key => {
+      memoryCache.delete(key);
+      cacheStats.deletes++;
+    });
+    
+    cacheStats.size = memoryCache.size;
+
+    // Clear from Redis if available
+    if (redisClient) {
+      const pattern = `${prefix}:*`;
+      const keys = await redisClient.keys(pattern);
+      if (keys.length > 0) {
+        await redisClient.del(keys);
+      }
+    }
+
+    logger.info('Cache prefix cleared', { prefix, deletedCount: keysToDelete.length });
+  } catch (error) {
+    logger.error('Cache clear prefix error:', error);
+  }
+};
+
+/**
+ * Check if cache value is expired
+ * @param {Object} cacheValue - Cache value object
+ * @returns {boolean} True if expired
+ */
+const isExpired = (cacheValue) => {
+  return Date.now() - cacheValue.timestamp > cacheValue.ttl;
+};
+
+/**
+ * Cleanup expired items from memory cache
+ */
+const cleanupMemoryCache = () => {
+  const now = Date.now();
+  const keysToDelete = [];
+
+  for (const [key, value] of memoryCache.entries()) {
+    if (isExpired(value)) {
+      keysToDelete.push(key);
+    }
+  }
+
+  keysToDelete.forEach(key => {
+    memoryCache.delete(key);
+    cacheStats.deletes++;
+  });
+
+  cacheStats.size = memoryCache.size;
+  
+  if (keysToDelete.length > 0) {
+    logger.debug('Memory cache cleanup', { deletedCount: keysToDelete.length });
+  }
+};
+
+/**
+ * Get cache statistics
+ * @returns {Object} Cache statistics
+ */
+const getStats = () => {
+  const hitRate = cacheStats.hits + cacheStats.misses > 0 
+    ? (cacheStats.hits / (cacheStats.hits + cacheStats.misses) * 100).toFixed(2)
+    : 0;
+
+  return {
+    ...cacheStats,
+    hitRate: `${hitRate}%`,
+    redisEnabled: !!redisClient,
+    memorySize: memoryCache.size,
+    maxSize: CACHE_CONFIG.MAX_SIZE
+  };
+};
 
 /**
  * Cache middleware for Express routes
- * @param {number} ttl - Time to live in milliseconds
- * @param {Function} keyGenerator - Function to generate cache key
+ * @param {string} prefix - Cache key prefix
+ * @param {number} ttl - Time to live in seconds
  * @returns {Function} Express middleware
  */
-const cacheMiddleware = (ttl = 300000, keyGenerator = null) => {
-  return (req, res, next) => {
-    // Generate cache key
-    const key = keyGenerator ? keyGenerator(req) : `api:${req.originalUrl}`;
-    
-    // Try to get from cache
-    const cachedResponse = cache.get(key);
-    
+const cacheMiddleware = (prefix, ttl = CACHE_CONFIG.DEFAULT_TTL) => {
+  return async (req, res, next) => {
+    // Skip caching for non-GET requests
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    const cacheKey = `${req.originalUrl}`;
+    const cachedResponse = await get(prefix, cacheKey);
+
     if (cachedResponse) {
       return res.json(cachedResponse);
     }
@@ -148,7 +278,7 @@ const cacheMiddleware = (ttl = 300000, keyGenerator = null) => {
 
     // Override send method to cache response
     res.json = function(data) {
-      cache.set(key, data, ttl);
+      set(prefix, cacheKey, data, ttl);
       return originalSend.call(this, data);
     };
 
@@ -157,106 +287,51 @@ const cacheMiddleware = (ttl = 300000, keyGenerator = null) => {
 };
 
 /**
- * Generate cache key from request
- * @param {Object} req - Express request object
- * @returns {string} Cache key
- */
-const generateCacheKey = (req) => {
-  const { url, method, query, params, user } = req;
-  
-  // Include user ID in cache key if authenticated
-  const userKey = user ? `:user:${user._id}` : ':anonymous';
-  
-  // Include query parameters in cache key
-  const queryKey = Object.keys(query).length > 0 
-    ? `:query:${JSON.stringify(query)}` 
-    : '';
-  
-  // Include route parameters in cache key
-  const paramsKey = Object.keys(params).length > 0 
-    ? `:params:${JSON.stringify(params)}` 
-    : '';
-
-  return `${method}:${url}${userKey}${queryKey}${paramsKey}`;
-};
-
-/**
  * Cache decorator for functions
- * @param {Function} fn - Function to cache
- * @param {number} ttl - Time to live in milliseconds
+ * @param {string} prefix - Cache key prefix
+ * @param {number} ttl - Time to live in seconds
  * @param {Function} keyGenerator - Function to generate cache key
- * @returns {Function} Cached function
+ * @returns {Function} Decorated function
  */
-const cacheFunction = (fn, ttl = 300000, keyGenerator = null) => {
-  return async (...args) => {
-    const key = keyGenerator ? keyGenerator(...args) : `fn:${fn.name}:${JSON.stringify(args)}`;
-    
-    // Try to get from cache
-    const cachedResult = cache.get(key);
-    if (cachedResult !== undefined) {
-      return cachedResult;
-    }
+const cacheDecorator = (prefix, ttl = CACHE_CONFIG.DEFAULT_TTL, keyGenerator = null) => {
+  return (target, propertyKey, descriptor) => {
+    const originalMethod = descriptor.value;
 
-    // Execute function and cache result
-    const result = await fn(...args);
-    cache.set(key, result, ttl);
-    
-    return result;
+    descriptor.value = async function(...args) {
+      const cacheKey = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
+      const cachedResult = await get(prefix, cacheKey);
+
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      const result = await originalMethod.apply(this, args);
+      await set(prefix, cacheKey, result, ttl);
+      return result;
+    };
+
+    return descriptor;
   };
 };
 
-/**
- * Invalidate cache by pattern
- * @param {string} pattern - Pattern to match keys (supports wildcards)
- */
-const invalidatePattern = (pattern) => {
-  const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-  
-  cache.store.forEach((value, key) => {
-    if (regex.test(key)) {
-      cache.delete(key);
-    }
-  });
-};
+// Start cleanup interval
+setInterval(cleanupMemoryCache, CACHE_CONFIG.CLEANUP_INTERVAL);
 
-/**
- * Predefined cache keys for common operations
- */
-const CACHE_KEYS = {
-  PRODUCTS: 'products',
-  PRODUCT_DETAIL: 'product:detail',
-  CATEGORIES: 'categories',
-  USERS: 'users',
-  ORDERS: 'orders',
-  DASHBOARD_METRICS: 'dashboard:metrics',
-  DASHBOARD_SALES: 'dashboard:sales',
-  DASHBOARD_ORDERS: 'dashboard:orders'
-};
-
-/**
- * Invalidate related cache entries
- * @param {string} entity - Entity type
- * @param {string} id - Entity ID (optional)
- */
-const invalidateEntityCache = (entity, id = null) => {
-  const patterns = [
-    `${entity}*`,
-    `*${entity}*`
-  ];
-
-  if (id) {
-    patterns.push(`*${id}*`);
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  if (redisClient) {
+    await redisClient.quit();
   }
-
-  patterns.forEach(pattern => invalidatePattern(pattern));
-};
+  logger.info('Cache system shutdown');
+});
 
 module.exports = {
-  cache,
+  set,
+  get,
+  del,
+  clearPrefix,
+  getStats,
   cacheMiddleware,
-  generateCacheKey,
-  cacheFunction,
-  invalidatePattern,
-  invalidateEntityCache,
-  CACHE_KEYS
+  cacheDecorator,
+  CACHE_CONFIG
 }; 

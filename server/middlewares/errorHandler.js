@@ -42,12 +42,8 @@ class ForbiddenError extends AppError {
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const formattedErrors = errors.array().map(error => ({
-      field: error.path || error.param,
-      message: error.msg,
-      value: error.value
-    }));
-    return next(new ValidationError(formattedErrors));
+    const { sendValidationError } = require('../utils/responseHandler');
+    return sendValidationError(res, errors.array());
   }
   next();
 };
@@ -73,62 +69,41 @@ const errorHandler = (err, req, res, next) => {
     userAgent: req.get('User-Agent')
   });
 
+  const { sendError, sendNotFound, sendUnauthorized, sendConflict } = require('../utils/responseHandler');
+
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = new NotFoundError(message);
+    return sendNotFound(res, 'Resource');
   }
 
   // Mongoose duplicate key
   if (err.code === 11000) {
     const field = Object.keys(err.keyValue)[0];
     const message = `${field} already exists`;
-    error = new AppError(message, 400);
+    return sendConflict(res, field);
   }
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
     const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = new AppError(message, 400);
+    return sendError(res, 400, message, null, 'VALIDATION_ERROR');
   }
 
   // JWT errors
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = new UnauthorizedError(message);
+    return sendUnauthorized(res, 'Invalid token');
   }
 
   if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = new UnauthorizedError(message);
+    return sendUnauthorized(res, 'Token expired');
   }
 
   // Default error response
   const statusCode = error.statusCode || 500;
   const message = error.message || 'Internal Server Error';
+  const code = error.code || 'INTERNAL_ERROR';
 
-  // Development error response (with stack trace)
-  if (process.env.NODE_ENV === 'development') {
-    res.status(statusCode).json({
-      success: false,
-      error: {
-        message,
-        statusCode,
-        stack: err.stack,
-        ...(error.errors && { validationErrors: error.errors })
-      }
-    });
-  } else {
-    // Production error response (no stack trace)
-    res.status(statusCode).json({
-      success: false,
-      error: {
-        message,
-        statusCode,
-        ...(error.errors && { validationErrors: error.errors })
-      }
-    });
-  }
+  return sendError(res, statusCode, message, err, code);
 };
 
 // 404 handler for undefined routes

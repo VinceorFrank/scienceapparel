@@ -4,6 +4,8 @@ const { logger, businessLogger } = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { monitoringSystem } = require('../utils/monitoring');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // Middleware to ensure admin access
 const requireAdmin = (req, res, next) => {
@@ -19,39 +21,13 @@ const requireAdmin = (req, res, next) => {
 // Get system health and statistics
 router.get('/health', requireAdmin, async (req, res) => {
   try {
-    const healthData = {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      memory: {
-        used: process.memoryUsage().heapUsed,
-        total: process.memoryUsage().heapTotal,
-        external: process.memoryUsage().external,
-        rss: process.memoryUsage().rss
-      },
-      system: {
-        platform: os.platform(),
-        arch: os.arch(),
-        cpus: os.cpus().length,
-        totalMemory: os.totalmem(),
-        freeMemory: os.freemem(),
-        loadAverage: os.loadavg()
-      },
-      environment: process.env.NODE_ENV || 'development'
-    };
-
-    businessLogger('health_check', { status: 'success' }, req);
+    const healthData = monitoringSystem.getHealthStatus();
+    businessLogger('health_check', { status: healthData.status }, req);
     
-    res.json({
-      success: true,
-      data: healthData
-    });
+    sendSuccess(res, 200, 'Health data retrieved successfully', healthData);
   } catch (error) {
     logger.error('Error getting health data', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get health data' }
-    });
+    sendError(res, 500, 'Failed to get health data', error);
   }
 });
 

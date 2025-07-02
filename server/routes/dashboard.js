@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth: protect, admin } = require('../middlewares/auth');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 const ActivityLog = require('../models/ActivityLog');
 

@@ -11,7 +11,7 @@ const {
   bulkUpdateTickets
 } = require('../controllers/supportController');
 
-const { protect, admin } = require('../middlewares/auth');
+const { requireAuth: protect, admin } = require('../middlewares/auth');
 
 // Public routes (customer facing)
 router.post('/', createTicket); // Create new support ticket

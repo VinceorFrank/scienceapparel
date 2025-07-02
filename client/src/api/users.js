@@ -68,4 +68,58 @@ export const registerUser = async (userData) => {
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Registration failed');
   }
+};
+
+// Get current user's profile
+export const getMyProfile = async () => {
+  const res = await api.get('/users/me');
+  return res.data;
+};
+
+// Update current user's profile
+export const updateMyProfile = async (userData) => {
+  const res = await api.put('/users/me', userData);
+  return res.data;
+};
+
+// Change password
+export const changeMyPassword = async (currentPassword, newPassword) => {
+  const res = await api.put('/users/me/password', { currentPassword, newPassword });
+  return res.data;
+};
+
+// Get addresses
+export const getMyAddresses = async () => {
+  const res = await api.get('/users/me/addresses');
+  return res.data;
+};
+
+// Add address
+export const addMyAddress = async (addressData) => {
+  const res = await api.post('/users/me/addresses', addressData);
+  return res.data;
+};
+
+// Update address
+export const updateMyAddress = async (addressId, addressData) => {
+  const res = await api.put(`/users/me/addresses/${addressId}`, addressData);
+  return res.data;
+};
+
+// Delete address
+export const deleteMyAddress = async (addressId) => {
+  const res = await api.delete(`/users/me/addresses/${addressId}`);
+  return res.data;
+};
+
+// Get preferences
+export const getMyPreferences = async () => {
+  const res = await api.get('/users/me/preferences');
+  return res.data;
+};
+
+// Update preferences
+export const updateMyPreferences = async (prefs) => {
+  const res = await api.put('/users/me/preferences', prefs);
+  return res.data;
 }; 

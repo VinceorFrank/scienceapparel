@@ -1,16 +1,21 @@
 import { api } from './config';
 
 // Create payment intent
-export const createPaymentIntent = async (orderId, paymentMethod = 'stripe') => {
-  try {
-    const response = await api.post('/payment/create-intent', {
-      orderId,
-      paymentMethod
-    });
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to create payment intent');
-  }
+export const createPaymentIntent = async (amount, currency = 'cad') => {
+  const res = await api.post('/payment/intent', { amount, currency });
+  return res.data;
+};
+
+// Create order (after payment)
+export const createOrder = async (orderData) => {
+  const res = await api.post('/orders', orderData);
+  return res.data;
+};
+
+// Get payment methods (if supported)
+export const getPaymentMethods = async () => {
+  const res = await api.get('/payment/methods');
+  return res.data;
 };
 
 // Confirm payment

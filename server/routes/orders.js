@@ -351,6 +351,305 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
   }
 });
 
+// ========================================
+// 🛒 CUSTOMER-SPECIFIC ORDER ROUTES
+// ========================================
+
+// GET /api/orders/me - Get current user's orders with pagination
+router.get('/me', protect, async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, status, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const paginationParams = parsePaginationParams({ page, limit });
+
+    const filters = { user: req.user._id };
+    
+    // Status filtering
+    if (status && status !== 'all') {
+      if (status === 'paid') filters.isPaid = true;
+      else if (status === 'unpaid') filters.isPaid = false;
+      else if (status === 'shipped') filters['shipping.status'] = { $in: ['shipped', 'in_transit'] };
+      else if (status === 'delivered') filters['shipping.status'] = 'delivered';
+      else if (status === 'cancelled') filters.orderStatus = 'cancelled';
+      else if (status === 'pending') filters.orderStatus = 'pending';
+    }
+
+    // Date range filtering
+    if (dateFrom || dateTo) {
+      filters.createdAt = {};
+      if (dateFrom) filters.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filters.createdAt.$lte = new Date(dateTo);
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const result = await executePaginatedQuery(Order, filters, paginationParams, {
+      populate: { path: 'orderItems.product', select: 'name price image category' },
+      sort: sort
+    });
+
+    // Update user stats when they view their orders
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user._id, {
+      $set: { 'stats.lastOrderDate': new Date() }
+    });
+
+    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/orders/me/:id - Get specific order for current user
+router.get('/me/:id', protect, async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      user: req.user._id 
+    })
+    .populate({ 
+      path: 'orderItems.product', 
+      select: 'name price image category description', 
+      populate: { path: 'category', select: 'name' } 
+    })
+    .populate('user', 'name email phone');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json({
+      success: true,
+      order
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/orders/me/:id/tracking - Get order tracking information
+router.get('/me/:id/tracking', protect, async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      user: req.user._id 
+    }).select('shipping orderStatus createdAt');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    const trackingInfo = {
+      orderId: order._id,
+      orderStatus: order.orderStatus,
+      shippingStatus: order.shipping?.status || 'pending',
+      trackingNumber: order.shipping?.trackingNumber,
+      trackingUrl: order.shipping?.trackingUrl,
+      estimatedDelivery: order.shipping?.estimatedDeliveryDate,
+      shippedAt: order.shipping?.shippedAt,
+      carrier: order.shipping?.selectedCarrier,
+      service: order.shipping?.selectedService,
+      orderDate: order.createdAt
+    };
+
+    res.json({
+      success: true,
+      tracking: trackingInfo
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/orders/me/:id/cancel - Cancel order (customer only, with restrictions)
+router.post('/me/:id/cancel', protect, async (req, res, next) => {
+  try {
+    const { reason } = req.body;
+    
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      user: req.user._id 
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check if order can be cancelled
+    if (order.orderStatus === 'cancelled') {
+      return res.status(400).json({ message: 'Order is already cancelled' });
+    }
+
+    if (order.orderStatus === 'delivered') {
+      return res.status(400).json({ message: 'Cannot cancel delivered order' });
+    }
+
+    if (order.shipping?.status === 'shipped' || order.shipping?.status === 'in_transit') {
+      return res.status(400).json({ message: 'Cannot cancel order that has been shipped' });
+    }
+
+    if (order.isPaid) {
+      return res.status(400).json({ 
+        message: 'Cannot cancel paid order. Please contact support for refund.' 
+      });
+    }
+
+    // Cancel the order
+    order.orderStatus = 'cancelled';
+    order.cancellationReason = reason || 'Cancelled by customer';
+    order.cancelledAt = new Date();
+    await order.save();
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'cancel_order',
+      description: `Customer cancelled order ${order._id}${reason ? ` - Reason: ${reason}` : ''}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Order cancelled successfully',
+      order: {
+        id: order._id,
+        orderStatus: order.orderStatus,
+        cancellationReason: order.cancellationReason,
+        cancelledAt: order.cancelledAt
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/orders/me/:id/review - Submit order review
+router.post('/me/:id/review', protect, async (req, res, next) => {
+  try {
+    const { productId, rating, comment, reviewToken } = req.body;
+    
+    if (!productId || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ 
+        message: 'Product ID and rating (1-5) are required' 
+      });
+    }
+
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      user: req.user._id 
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Verify review token
+    if (order.reviewToken !== reviewToken) {
+      return res.status(403).json({ message: 'Invalid review token' });
+    }
+
+    // Check if order is delivered
+    if (order.orderStatus !== 'delivered') {
+      return res.status(400).json({ 
+        message: 'Can only review delivered orders' 
+      });
+    }
+
+    // Check if product is in this order
+    const orderItem = order.orderItems.find(item => 
+      item.product.toString() === productId
+    );
+
+    if (!orderItem) {
+      return res.status(400).json({ 
+        message: 'Product not found in this order' 
+      });
+    }
+
+    // TODO: Create review in Product model or separate Review model
+    // For now, just log the review submission
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'submit_review',
+      description: `Submitted review for product ${productId} in order ${order._id} - Rating: ${rating}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Review submitted successfully',
+      review: {
+        productId,
+        rating,
+        comment,
+        submittedAt: new Date()
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/orders/me/stats - Get customer order statistics
+router.get('/me/stats', protect, async (req, res, next) => {
+  try {
+    const stats = await Order.aggregate([
+      { $match: { user: req.user._id } },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: '$totalPrice' },
+          averageOrderValue: { $avg: '$totalPrice' },
+          paidOrders: { $sum: { $cond: ['$isPaid', 1, 0] } },
+          pendingOrders: { $sum: { $cond: [{ $eq: ['$orderStatus', 'pending'] }, 1, 0] } },
+          shippedOrders: { $sum: { $cond: [{ $in: ['$shipping.status', ['shipped', 'in_transit']] }, 1, 0] } },
+          deliveredOrders: { $sum: { $cond: [{ $eq: ['$orderStatus', 'delivered'] }, 1, 0] } },
+          cancelledOrders: { $sum: { $cond: [{ $eq: ['$orderStatus', 'cancelled'] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const result = stats[0] || {
+      totalOrders: 0,
+      totalSpent: 0,
+      averageOrderValue: 0,
+      paidOrders: 0,
+      pendingOrders: 0,
+      shippedOrders: 0,
+      deliveredOrders: 0,
+      cancelledOrders: 0
+    };
+
+    res.json({
+      success: true,
+      stats: result
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/orders/me/recent - Get recent orders (last 5)
+router.get('/me/recent', protect, async (req, res, next) => {
+  try {
+    const recentOrders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate({ 
+        path: 'orderItems.product', 
+        select: 'name price image' 
+      })
+      .select('orderStatus totalPrice createdAt orderItems');
+
+    res.json({
+      success: true,
+      orders: recentOrders
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
 
 //You can copy-paste these later into the browser when the frontend exists.

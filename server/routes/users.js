@@ -74,10 +74,8 @@ router.post(
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
-      // Update last login
-      user.lastLogin = new Date();
-      user.loginCount = (user.loginCount || 0) + 1;
-      await user.save();
+      // Update login stats using the new method
+      await user.updateLoginStats();
 
       // Generate token
       const tokenPayload = {
@@ -471,6 +469,337 @@ router.delete('/:id', protect, admin, async (req, res, next) => {
 
 // GET /api/users (with advanced filters)
 router.get('/', require('../controllers/usersController').getUsersWithFilters);
+
+// ========================================
+// 🏠 CUSTOMER-SPECIFIC ROUTES
+// ========================================
+
+// GET /api/users/me - Get current user's full profile
+router.get('/me', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user: user.getPublicProfile()
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/me - Update current user's profile
+router.put('/me', protect, async (req, res, next) => {
+  try {
+    const { name, phone, preferences } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update basic info
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    
+    // Update preferences
+    if (preferences) {
+      user.preferences = { ...user.preferences, ...preferences };
+    }
+
+    await user.save();
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_profile',
+      description: 'User updated their profile information'
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: user.getPublicProfile()
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/me/password - Change password
+router.put('/me/password', protect, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'change_password',
+      description: 'User changed their password'
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ========================================
+// 🏠 ADDRESS MANAGEMENT ROUTES
+// ========================================
+
+// GET /api/users/me/addresses - Get user's addresses
+router.get('/me/addresses', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('addresses');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      addresses: user.addresses
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/users/me/addresses - Add new address
+router.post('/me/addresses', protect, async (req, res, next) => {
+  try {
+    const { 
+      type, firstName, lastName, address, city, state, postalCode, country, phone, company, isDefault 
+    } = req.body;
+
+    // Validate required fields
+    if (!type || !firstName || !lastName || !address || !city || !state || !postalCode || !country) {
+      return res.status(400).json({ 
+        message: 'Type, firstName, lastName, address, city, state, postalCode, and country are required' 
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const addressData = {
+      type,
+      firstName,
+      lastName,
+      address,
+      city,
+      state,
+      postalCode,
+      country,
+      phone,
+      company,
+      isDefault: isDefault || false
+    };
+
+    await user.addAddress(addressData);
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'add_address',
+      description: `Added new ${type} address`
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Address added successfully',
+      addresses: user.addresses
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/me/addresses/:id - Update address
+router.put('/me/addresses/:id', protect, async (req, res, next) => {
+  try {
+    const { 
+      firstName, lastName, address, city, state, postalCode, country, phone, company, isDefault 
+    } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const updateData = {};
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (address) updateData.address = address;
+    if (city) updateData.city = city;
+    if (state) updateData.state = state;
+    if (postalCode) updateData.postalCode = postalCode;
+    if (country) updateData.country = country;
+    if (phone !== undefined) updateData.phone = phone;
+    if (company !== undefined) updateData.company = company;
+    if (isDefault !== undefined) updateData.isDefault = isDefault;
+
+    await user.updateAddress(req.params.id, updateData);
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_address',
+      description: 'Updated address information'
+    });
+
+    res.json({
+      success: true,
+      message: 'Address updated successfully',
+      addresses: user.addresses
+    });
+  } catch (err) {
+    if (err.message === 'Address not found') {
+      return res.status(404).json({ message: 'Address not found' });
+    }
+    next(err);
+  }
+});
+
+// DELETE /api/users/me/addresses/:id - Delete address
+router.delete('/me/addresses/:id', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await user.deleteAddress(req.params.id);
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'delete_address',
+      description: 'Deleted address'
+    });
+
+    res.json({
+      success: true,
+      message: 'Address deleted successfully',
+      addresses: user.addresses
+    });
+  } catch (err) {
+    if (err.message === 'Address not found') {
+      return res.status(404).json({ message: 'Address not found' });
+    }
+    next(err);
+  }
+});
+
+// GET /api/users/me/addresses/default/:type - Get default address by type
+router.get('/me/addresses/default/:type', protect, async (req, res, next) => {
+  try {
+    const { type } = req.params;
+    
+    if (!['shipping', 'billing'].includes(type)) {
+      return res.status(400).json({ message: 'Type must be either shipping or billing' });
+    }
+
+    const user = await User.findById(req.user._id).select('addresses');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const defaultAddress = user.getDefaultAddress(type);
+
+    res.json({
+      success: true,
+      address: defaultAddress
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ========================================
+// ⚙️ PREFERENCES MANAGEMENT ROUTES
+// ========================================
+
+// GET /api/users/me/preferences - Get user preferences
+router.get('/me/preferences', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('preferences');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      preferences: user.preferences
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/users/me/preferences - Update user preferences
+router.put('/me/preferences', protect, async (req, res, next) => {
+  try {
+    const { newsletter, marketing, language, currency, timezone } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const updateData = {};
+    if (newsletter !== undefined) updateData.newsletter = newsletter;
+    if (marketing !== undefined) updateData.marketing = marketing;
+    if (language) updateData.language = language;
+    if (currency) updateData.currency = currency;
+    if (timezone) updateData.timezone = timezone;
+
+    user.preferences = { ...user.preferences, ...updateData };
+    await user.save();
+
+    // Log activity
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'update_preferences',
+      description: 'Updated user preferences'
+    });
+
+    res.json({
+      success: true,
+      message: 'Preferences updated successfully',
+      preferences: user.preferences
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
 

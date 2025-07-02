@@ -11,13 +11,9 @@ export const getAdminOrders = async (params = {}) => {
 };
 
 // Get customer's own orders
-export const getMyOrders = async () => {
-  try {
-    const res = await api.get('/orders/myorders');
-    return res.data;
-  } catch (err) {
-    throw new Error(err.response?.data?.message || 'Failed to fetch orders');
-  }
+export const getMyOrders = async (params = {}) => {
+  const res = await api.get('/orders/me', { params });
+  return res.data;
 };
 
 // Get single order by ID
@@ -48,4 +44,40 @@ export const createOrder = async (orderData) => {
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Failed to create order');
   }
+};
+
+// Get specific order for current user
+export const getMyOrderById = async (orderId) => {
+  const res = await api.get(`/orders/me/${orderId}`);
+  return res.data;
+};
+
+// Get tracking info for an order
+export const getMyOrderTracking = async (orderId) => {
+  const res = await api.get(`/orders/me/${orderId}/tracking`);
+  return res.data;
+};
+
+// Cancel an order
+export const cancelMyOrder = async (orderId, reason) => {
+  const res = await api.post(`/orders/me/${orderId}/cancel`, { reason });
+  return res.data;
+};
+
+// Submit a review for an order
+export const reviewMyOrder = async (orderId, reviewData) => {
+  const res = await api.post(`/orders/me/${orderId}/review`, reviewData);
+  return res.data;
+};
+
+// Get order stats
+export const getMyOrderStats = async () => {
+  const res = await api.get('/orders/me/stats');
+  return res.data;
+};
+
+// Get recent orders
+export const getMyRecentOrders = async () => {
+  const res = await api.get('/orders/me/recent');
+  return res.data;
 }; 

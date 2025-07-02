@@ -123,6 +123,16 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
       default: 'pending'
+    },
+
+    // Cancellation fields
+    cancellationReason: {
+      type: String,
+      default: null
+    },
+    cancelledAt: {
+      type: Date,
+      default: null
     }
   },
   {

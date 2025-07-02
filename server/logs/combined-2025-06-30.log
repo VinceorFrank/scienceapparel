@@ -90,3 +90,137 @@
 {"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Getting live rate from UPS","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
 {"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
 {"timestamp":"2025-06-30 14:58:44","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:06:33","level":"INFO","message":"Getting live rate from Canada Post","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:06:33","level":"INFO","message":"Getting live rate from UPS","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:06:34","level":"INFO","message":"Getting live rate from Purolator","origin":"M5V 3A8","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:06:34","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:07:36","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:36","level":"INFO","message":"Getting live rate from UPS","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:36","level":"INFO","message":"Getting live rate from Purolator","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:36","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:07:41","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:41","level":"INFO","message":"Getting live rate from UPS","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:41","level":"INFO","message":"Getting live rate from Purolator","origin":"J4K 2R3","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:07:41","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:34:29","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:34:29","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:34:30","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:34:30","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:44:35","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:44:35","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:44:36","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:44:36","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:47:06","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T19:47:06.107Z"}
+{"timestamp":"2025-06-30 15:47:06","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 15:47:18","level":"INFO","message":"SIGINT received, shutting down gracefully"}
+{"timestamp":"2025-06-30 15:47:48","level":"INFO","message":"Scheduled log cleanup","intervalHours":24,"nextRun":"2025-07-01T19:47:48.689Z"}
+{"timestamp":"2025-06-30 15:47:48","level":"INFO","message":"Server started successfully","port":"5000","environment":"development","corsOrigin":"http://localhost:5173"}
+{"timestamp":"2025-06-30 15:47:51","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:51","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:52","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:52","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:47:54","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:54","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:55","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:47:55","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:10","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:10","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:11","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:11","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:13","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:13","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:14","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:15","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:16","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:18","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:19","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2j","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2j","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2j ","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2j","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:21","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2j ","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2j ","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2j 3","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2j 3","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2j 3m","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2j 3","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2j 3m","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2j 3m","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:22","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:23","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"h2j 3m7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:23","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"h2j 3m7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:23","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"h2j 3m7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:23","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:28","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:28","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:28","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:28","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 15:48:32","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:32","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:32","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"H2J 3M7","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 15:48:32","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 20:06:00","level":"INFO","message":"Getting live rate from Canada Post","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 20:06:00","level":"INFO","message":"Getting live rate from UPS","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 20:06:00","level":"INFO","message":"Getting live rate from Purolator","origin":"J4J1C2","destination":"M5V 3A8","weight":0.6000000000000001}
+{"timestamp":"2025-06-30 20:06:01","level":"INFO","message":"Shipping rates calculated successfully","totalItems":3,"totalWeight":0.6,"optionsCount":3}
+{"timestamp":"2025-06-30 20:06:28","level":"INFO","message":"SIGINT received, shutting down gracefully"}

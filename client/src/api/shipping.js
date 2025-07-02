@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-// Configure axios with credentials
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-});
+import api from './config';
 
 /**
  * Shipping API service functions
@@ -142,9 +134,9 @@ export const testCarrierAPI = async (params) => {
  */
 export const getDefaultOrigin = () => {
   return {
-    address: '123 Commerce Street',
-    city: 'Toronto',
-    postalCode: 'M5V 3A8',
+    address: '911 Roland Therrien',
+    city: 'Longueuil',
+    postalCode: 'J4J1C2',
     country: 'Canada'
   };
 };
@@ -204,6 +196,24 @@ export const formatDeliveryDate = (estimatedDays) => {
   });
 };
 
+// Get shipping rates
+export const getShippingRates = async (orderItems, origin, destination) => {
+  const res = await api.post('/shipping/rates', { orderItems, origin, destination });
+  return res.data;
+};
+
+// Get available box tiers
+export const getShippingTiers = async () => {
+  const res = await api.get('/shipping/tiers');
+  return res.data;
+};
+
+// Get available carriers
+export const getShippingCarriers = async () => {
+  const res = await api.get('/shipping/carriers');
+  return res.data;
+};
+
 export default {
   calculateShippingRates,
   getBoxTiers,
@@ -217,5 +227,8 @@ export default {
   formatAddress,
   formatCurrency,
   calculateDeliveryDate,
-  formatDeliveryDate
+  formatDeliveryDate,
+  getShippingRates,
+  getShippingTiers,
+  getShippingCarriers
 }; 

@@ -23,6 +23,10 @@ connectDB();
 // Schedule log cleanup (run every 24 hours)
 logCleanup.scheduleCleanup(24);
 
+// Schedule cart cleanup (run every 24 hours)
+const { scheduleCartCleanup } = require('./utils/cartCleanup');
+scheduleCartCleanup(24);
+
 // Scheduled Newsletter Sender
 const NewsletterCampaign = require('./models/NewsletterCampaign');
 const NewsletterSubscriber = require('./models/NewsletterSubscriber');
@@ -161,6 +165,7 @@ app.use('/api/customers', require('./routes/customers'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/monitoring', require('./routes/monitoring'));
 app.use('/api/shipping', require('./routes/shipping'));
+app.use('/api/cart', require('./routes/cart'));
 
 // Error Handling Middleware (must be last)
 app.use(notFound);

@@ -56,6 +56,10 @@ const LoginCustomer = () => {
           Se connecter
         </button>
       </form>
+      <div className="mt-4 text-center text-sm text-gray-600">
+        Pas encore de compte ?{' '}
+        <a href="/signup" className="text-blue-600 hover:underline">Créer un compte</a>
+      </div>
     </div>
   );
 };

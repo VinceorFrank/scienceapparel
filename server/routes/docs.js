@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../utils/swagger');
+const { sendSuccess } = require('../utils/responseHandler');
 
 // Serve Swagger UI
 router.use('/', swaggerUi.serve);
@@ -51,7 +52,7 @@ router.get('/swagger.json', (req, res) => {
 
 // API documentation info
 router.get('/info', (req, res) => {
-  res.json({
+  const apiInfo = {
     title: 'Ecommerce API Documentation',
     version: '1.0.0',
     description: 'Comprehensive API documentation for the ecommerce backend',
@@ -72,7 +73,9 @@ router.get('/info', (req, res) => {
         'X-RateLimit-Reset': 'Reset time'
       }
     }
-  });
+  };
+
+  return sendSuccess(res, 200, 'API documentation info retrieved successfully', apiInfo);
 });
 
 module.exports = router; 

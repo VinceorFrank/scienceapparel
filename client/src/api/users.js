@@ -11,22 +11,22 @@ export const getAdminUsers = async (params = {}) => {
 };
 
 // Get user profile
-export const getUserProfile = async () => {
+export const getProfile = async () => {
   try {
-    const res = await api.get('/users/profile');
+    const res = await api.get('/users/auth/profile');
     return res.data;
   } catch (err) {
-    throw new Error(err.response?.data?.message || 'Failed to fetch user profile');
+    throw new Error(err.response?.data?.message || 'Failed to fetch profile');
   }
 };
 
 // Update user profile
-export const updateUserProfile = async (userData) => {
+export const updateProfile = async (profileData) => {
   try {
-    const res = await api.put('/users/profile', userData);
+    const res = await api.put('/users/profile', profileData);
     return res.data;
   } catch (err) {
-    throw new Error(err.response?.data?.message || 'Failed to update user profile');
+    throw new Error(err.response?.data?.message || 'Failed to update profile');
   }
 };
 
@@ -70,56 +70,111 @@ export const registerUser = async (userData) => {
   }
 };
 
-// Get current user's profile
-export const getMyProfile = async () => {
-  const res = await api.get('/users/me');
-  return res.data;
-};
-
-// Update current user's profile
-export const updateMyProfile = async (userData) => {
-  const res = await api.put('/users/me', userData);
-  return res.data;
-};
-
 // Change password
-export const changeMyPassword = async (currentPassword, newPassword) => {
-  const res = await api.put('/users/me/password', { currentPassword, newPassword });
-  return res.data;
+export const changePassword = async (passwordData) => {
+  try {
+    const res = await api.put('/users/password', passwordData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to change password');
+  }
 };
 
 // Get addresses
-export const getMyAddresses = async () => {
-  const res = await api.get('/users/me/addresses');
-  return res.data;
+export const getAddresses = async () => {
+  try {
+    const res = await api.get('/users/addresses');
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch addresses');
+  }
 };
 
 // Add address
-export const addMyAddress = async (addressData) => {
-  const res = await api.post('/users/me/addresses', addressData);
-  return res.data;
+export const addAddress = async (addressData) => {
+  try {
+    const res = await api.post('/users/addresses', addressData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to add address');
+  }
 };
 
 // Update address
-export const updateMyAddress = async (addressId, addressData) => {
-  const res = await api.put(`/users/me/addresses/${addressId}`, addressData);
-  return res.data;
+export const updateAddress = async (addressId, addressData) => {
+  try {
+    const res = await api.put(`/users/addresses/${addressId}`, addressData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to update address');
+  }
 };
 
 // Delete address
-export const deleteMyAddress = async (addressId) => {
-  const res = await api.delete(`/users/me/addresses/${addressId}`);
-  return res.data;
+export const deleteAddress = async (addressId) => {
+  try {
+    const res = await api.delete(`/users/addresses/${addressId}`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to delete address');
+  }
+};
+
+// Set default address
+export const setDefaultAddress = async (addressId) => {
+  try {
+    const res = await api.put(`/users/addresses/${addressId}/default`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to set default address');
+  }
 };
 
 // Get preferences
-export const getMyPreferences = async () => {
-  const res = await api.get('/users/me/preferences');
-  return res.data;
+export const getPreferences = async () => {
+  try {
+    const res = await api.get('/users/preferences');
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch preferences');
+  }
 };
 
 // Update preferences
-export const updateMyPreferences = async (prefs) => {
-  const res = await api.put('/users/me/preferences', prefs);
-  return res.data;
+export const updatePreferences = async (preferences) => {
+  try {
+    const res = await api.put('/users/preferences', { preferences });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to update preferences');
+  }
+};
+
+// Get user activity log
+export const getActivityLog = async (params = {}) => {
+  try {
+    const res = await api.get('/users/activity', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch activity log');
+  }
+};
+
+// Admin functions
+export const getUsersWithFilters = async (params = {}) => {
+  try {
+    const res = await api.get('/users/admin', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch users');
+  }
+};
+
+export const updateUser = async (userId, userData) => {
+  try {
+    const res = await api.put(`/users/admin/${userId}`, userData);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to update user');
+  }
 }; 

@@ -11,14 +11,16 @@ const {
   bulkUpdateTickets
 } = require('../controllers/supportController');
 
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
+
+// Apply authentication middleware to all support routes
+router.use(requireAuth);
 
 // Public routes (customer facing)
 router.post('/', createTicket); // Create new support ticket
 
 // Admin-only routes (require authentication and admin role)
-router.use(protect);
-router.use(admin);
+router.use(requireAdmin);
 
 // Get all tickets with filtering and pagination
 router.get('/', getAllTickets);

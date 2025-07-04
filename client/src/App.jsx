@@ -41,6 +41,7 @@ import DataManagement from "./pages/Admin/DataManagement";
 import CustomerInsights from "./pages/Admin/CustomerInsights";
 import MarkdownPage from "./pages/Admin/MarkdownPage";
 import ShippingAdmin from "./pages/Admin/ShippingAdmin";
+import SignupCustomer from "./pages/Customer/SignupCustomer";
 
 
 
@@ -85,6 +86,7 @@ const App = () => {
           <Route path="/complaint" element={<Complaint />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/signup" element={<SignupCustomer />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
-const { requireAuth, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const { body, validationResult } = require('express-validator');
 const ActivityLog = require('../models/ActivityLog');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendCreated, 
+  sendUpdated, 
+  sendDeleted, 
+  sendNotFound, 
+  sendConflict, 
+  sendValidationError,
+  sendPaginated
+} = require('../utils/responseHandler');
 
 // Get all categories with pagination and search
 router.get('/', async (req, res, next) => {
@@ -31,7 +42,8 @@ router.get('/', async (req, res, next) => {
       sort: sort
     });
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    // Return just the array for frontend compatibility
+    return sendSuccess(res, 200, 'Categories retrieved successfully', result.data);
   } catch (err) {
     next(err);
   }
@@ -44,23 +56,20 @@ router.get('/featured', async (req, res, next) => {
       .sort({ sortOrder: 1, name: 1 })
       .limit(10);
 
-    res.json({
-      success: true,
-      data: categories
-    });
+    return sendSuccess(res, 200, 'Featured categories retrieved successfully', categories);
   } catch (err) {
     next(err);
   }
 });
 
 // Create a new category (admin only)
-router.post('/', requireAuth, admin, [
+router.post('/', requireAuth, requireAdmin, [
   body('name').notEmpty().withMessage('Name is required'),
   body('description').optional().isLength({ max: 500 }).withMessage('Description must be less than 500 characters')
-], async (req, res) => {
+], async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return sendValidationError(res, errors.array());
   }
   try {
     const { name, description, featured, active, sortOrder, image } = req.body;
@@ -71,9 +80,7 @@ router.post('/', requireAuth, admin, [
     });
     
     if (existingCategory) {
-      return res.status(400).json({ 
-        message: 'Category with this name already exists' 
-      });
+      return sendConflict(res, 'Category');
     }
 
     const category = new Category({ 
@@ -92,24 +99,20 @@ router.post('/', requireAuth, admin, [
       description: `Created category '${category.name}'` 
     });
     
-    res.status(201).json({
-      success: true,
-      message: 'Category created successfully',
-      data: category
-    });
+    return sendCreated(res, 'Category created successfully', category);
   } catch (err) {
-    res.status(400).json({ message: 'Error creating category', error: err.message });
+    next(err);
   }
 });
 
 // Update a category (admin only)
-router.put('/:id', requireAuth, admin, [
+router.put('/:id', requireAuth, requireAdmin, [
   body('name').notEmpty().withMessage('Name is required'),
   body('description').optional().isLength({ max: 500 }).withMessage('Description must be less than 500 characters')
-], async (req, res) => {
+], async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return sendValidationError(res, errors.array());
   }
   try {
     const { name, description, featured, active, sortOrder, image } = req.body;
@@ -122,9 +125,7 @@ router.put('/:id', requireAuth, admin, [
       });
       
       if (existingCategory) {
-        return res.status(400).json({ 
-          message: 'Category with this name already exists' 
-        });
+        return sendConflict(res, 'Category');
       }
     }
 
@@ -134,7 +135,9 @@ router.put('/:id', requireAuth, admin, [
       { new: true, runValidators: true }
     );
     
-    if (!category) return res.status(404).json({ message: 'Category not found' });
+    if (!category) {
+      return sendNotFound(res, 'Category');
+    }
     
     await ActivityLog.create({ 
       user: req.user._id, 
@@ -142,30 +145,26 @@ router.put('/:id', requireAuth, admin, [
       description: `Updated category '${category.name}'` 
     });
     
-    res.json({
-      success: true,
-      message: 'Category updated successfully',
-      data: category
-    });
+    return sendUpdated(res, 'Category updated successfully', category);
   } catch (err) {
-    res.status(400).json({ message: 'Error updating category', error: err.message });
+    next(err);
   }
 });
 
 // Delete a category (admin only)
-router.delete('/:id', requireAuth, admin, async (req, res) => {
+router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const category = await Category.findById(req.params.id);
-    if (!category) return res.status(404).json({ message: 'Category not found' });
+    if (!category) {
+      return sendNotFound(res, 'Category');
+    }
 
     // Check if category has products
     const Product = require('../models/Product');
     const productCount = await Product.countDocuments({ category: category._id });
     
     if (productCount > 0) {
-      return res.status(400).json({ 
-        message: `Cannot delete category. It has ${productCount} associated products.` 
-      });
+      return sendError(res, 400, `Cannot delete category. It has ${productCount} associated products.`, null, 'CATEGORY_HAS_PRODUCTS');
     }
 
     await Category.findByIdAndDelete(req.params.id);
@@ -176,23 +175,19 @@ router.delete('/:id', requireAuth, admin, async (req, res) => {
       description: `Deleted category '${category.name}'` 
     });
     
-    res.json({ 
-      success: true,
-      message: 'Category deleted successfully',
-      data: category
-    });
+    return sendDeleted(res, 'Category deleted successfully');
   } catch (err) {
-    res.status(500).json({ message: 'Error deleting category', error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/categories/bulk/status - Bulk update category statuses (admin only)
-router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
+router.put('/bulk/status', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { categoryIds, active, featured } = req.body;
 
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
-      return res.status(400).json({ message: 'Category IDs array is required' });
+      return sendError(res, 400, 'Category IDs array is required', null, 'INVALID_CATEGORY_IDS');
     }
 
     const updateData = {};
@@ -211,9 +206,7 @@ router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
       description: `Bulk updated ${result.modifiedCount} categories`
     });
 
-    res.json({
-      success: true,
-      message: `Successfully updated ${result.modifiedCount} categories`,
+    return sendSuccess(res, 200, `Successfully updated ${result.modifiedCount} categories`, {
       modifiedCount: result.modifiedCount
     });
   } catch (err) {
@@ -221,12 +214,16 @@ router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
   }
 });
 
-// GET /api/categories/analytics/summary - Get category analytics (admin only)
-router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
+// GET /api/categories/stats - Get category statistics (admin only)
+router.get('/stats', requireAuth, requireAdmin, async (req, res, next) => {
   try {
+    const totalCategories = await Category.countDocuments();
+    const activeCategories = await Category.countDocuments({ active: true });
+    const featuredCategories = await Category.countDocuments({ featured: true });
+
+    // Get categories with product counts
     const Product = require('../models/Product');
-    
-    const analytics = await Category.aggregate([
+    const categoriesWithProductCounts = await Category.aggregate([
       {
         $lookup: {
           from: 'products',
@@ -239,42 +236,21 @@ router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
         $project: {
           name: 1,
           productCount: { $size: '$products' },
-          activeProducts: {
-            $size: {
-              $filter: {
-                input: '$products',
-                cond: { $eq: ['$$this.archived', false] }
-              }
-            }
-          },
-          featured: 1,
-          active: 1
+          active: 1,
+          featured: 1
         }
       },
-      {
-        $group: {
-          _id: null,
-          totalCategories: { $sum: 1 },
-          activeCategories: { $sum: { $cond: ['$active', 1, 0] } },
-          featuredCategories: { $sum: { $cond: ['$featured', 1, 0] } },
-          totalProducts: { $sum: '$productCount' },
-          avgProductsPerCategory: { $avg: '$productCount' }
-        }
-      }
+      { $sort: { productCount: -1 } }
     ]);
 
-    const result = analytics[0] || {
-      totalCategories: 0,
-      activeCategories: 0,
-      featuredCategories: 0,
-      totalProducts: 0,
-      avgProductsPerCategory: 0
+    const stats = {
+      totalCategories,
+      activeCategories,
+      featuredCategories,
+      categoriesWithProductCounts
     };
 
-    res.json({
-      success: true,
-      analytics: result
-    });
+    return sendSuccess(res, 200, 'Category statistics retrieved successfully', stats);
   } catch (err) {
     next(err);
   }
@@ -288,7 +264,7 @@ router.get('/:id/products', async (req, res, next) => {
 
     const category = await Category.findById(req.params.id);
     if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+      return sendNotFound(res, 'Category');
     }
 
     const filters = { category: req.params.id, archived: false };
@@ -303,7 +279,14 @@ router.get('/:id/products', async (req, res, next) => {
       populate: 'category'
     });
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    return sendPaginated(
+      res,
+      result.data,
+      paginationParams.page,
+      paginationParams.limit,
+      result.total,
+      'Products in category retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }

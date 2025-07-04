@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 exports.getCustomerInsights = async (req, res) => {
   try {
@@ -68,8 +69,7 @@ exports.getCustomerInsights = async (req, res) => {
       };
     });
 
-    res.json({
-      success: true,
+    sendSuccess(res, {
       totalCustomers,
       newCustomers,
       returningCustomers,
@@ -80,7 +80,7 @@ exports.getCustomerInsights = async (req, res) => {
       topCustomers,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    sendError(res, 500, 'Error retrieving customer insights', err);
   }
 };
 
@@ -90,9 +90,9 @@ exports.getCLVDistribution = async (req, res) => {
       { $group: { _id: '$user', totalSpend: { $sum: '$totalPrice' } } }
     ]);
     const clvs = ordersByUser.map(u => u.totalSpend);
-    res.json({ clvs });
+    sendSuccess(res, { clvs });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    sendError(res, 500, 'Error retrieving CLV distribution', err);
   }
 };
 
@@ -102,8 +102,8 @@ exports.getGeoDistribution = async (req, res) => {
       { $match: { role: 'customer', 'address.country': { $exists: true, $ne: '' } } },
       { $group: { _id: '$address.country', count: { $sum: 1 } } }
     ]);
-    res.json({ geo });
+    sendSuccess(res, { geo });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    sendError(res, 500, 'Error retrieving geo distribution', err);
   }
 }; 

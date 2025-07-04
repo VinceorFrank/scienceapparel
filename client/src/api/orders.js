@@ -80,4 +80,56 @@ export const getMyOrderStats = async () => {
 export const getMyRecentOrders = async () => {
   const res = await api.get('/orders/me/recent');
   return res.data;
+};
+
+// ===== NEW ORDER TRACKING FUNCTIONS =====
+
+// Get detailed tracking information for a specific order
+export const getOrderTracking = async (orderId) => {
+  try {
+    const res = await api.get(`/users/orders/tracking/${orderId}`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch order tracking');
+  }
+};
+
+// Get user's complete order history with filtering and pagination
+export const getOrderHistory = async (params = {}) => {
+  try {
+    const res = await api.get('/users/orders/history', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch order history');
+  }
+};
+
+// Get user's active orders (pending, processing, shipped)
+export const getActiveOrders = async (params = {}) => {
+  try {
+    const res = await api.get('/users/orders/active', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch active orders');
+  }
+};
+
+// Get user dashboard data (comprehensive overview)
+export const getUserDashboard = async (params = {}) => {
+  try {
+    const res = await api.get('/users/dashboard', { params });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch user dashboard');
+  }
+};
+
+// Reorder items from a previous order
+export const reorderFromOrder = async (orderId) => {
+  try {
+    const res = await api.post('/users/dashboard/reorder', { orderId });
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to process reorder');
+  }
 }; 

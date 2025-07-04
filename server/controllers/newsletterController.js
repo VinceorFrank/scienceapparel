@@ -1,6 +1,7 @@
 const NewsletterSubscriber = require('../models/NewsletterSubscriber');
 const NewsletterCampaign = require('../models/NewsletterCampaign');
 const transporter = require('../utils/mailer');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // Subscribe a new email
 const subscribe = async (req, res) => {

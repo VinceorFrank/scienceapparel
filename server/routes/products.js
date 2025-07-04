@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { requireAuth, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const { buildFilters, buildSortObject } = require('../utils/buildFilters');
 const { validateRequest } = require('../middlewares/errorHandler');
 const { 
@@ -24,6 +24,16 @@ const fs = require('fs');
 const path = require('path');
 const ActivityLog = require('../models/ActivityLog');
 const mongoose = require('mongoose');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendPaginated, 
+  sendCreated, 
+  sendUpdated, 
+  sendDeleted, 
+  sendNotFound, 
+  sendConflict 
+} = require('../utils/responseHandler');
 
 // @desc    Get all products with advanced pagination and filtering
 // @route   GET /api/products
@@ -79,12 +89,14 @@ router.get('/', validateProductQuery, validateRequest, async (req, res, next) =>
     const cacheKey = `products:${JSON.stringify(req.query)}`;
     cache.set(cacheKey, result, 300000);
 
-    res.json(createPaginatedResponse(
+    return sendPaginated(
+      res,
       result.data,
       paginationParams.page,
       paginationParams.limit,
-      result.total
-    ));
+      result.total,
+      'Products retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }
@@ -93,7 +105,7 @@ router.get('/', validateProductQuery, validateRequest, async (req, res, next) =>
 // @desc    Get all products for the admin panel
 // @route   GET /api/products/admin
 // @access  Private/Admin
-router.get('/admin', requireAuth, admin, async (req, res, next) => {
+router.get('/admin', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { page, limit, search, category } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -116,7 +128,14 @@ router.get('/admin', requireAuth, admin, async (req, res, next) => {
       }
     );
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    return sendPaginated(
+      res,
+      result.data,
+      paginationParams.page,
+      paginationParams.limit,
+      result.total,
+      'Admin products retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }
@@ -132,10 +151,7 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
     const cachedProduct = cache.get(cacheKey);
     
     if (cachedProduct) {
-      return res.json({
-        success: true,
-        data: cachedProduct
-      });
+      return sendSuccess(res, 200, 'Product retrieved successfully', cachedProduct);
     }
 
     const product = await Product.findById(req.params.id)
@@ -143,16 +159,13 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
       .populate('reviews.user', 'name');
 
     if (!product) {
-      throw new NotFoundError('Product not found');
+      return sendNotFound(res, 'Product');
     }
 
     // Cache the product for 10 minutes
     cache.set(cacheKey, product, 600000);
 
-    res.json({
-      success: true,
-      data: product
-    });
+    return sendSuccess(res, 200, 'Product retrieved successfully', product);
   } catch (err) {
     next(err);
   }
@@ -161,7 +174,7 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
 // @desc    Create a new product
 // @route   POST /api/products
 // @access  Private/Admin
-router.post('/', requireAuth, admin, (req, res, next) => {
+router.post('/', requireAuth, requireAdmin, (req, res, next) => {
   // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
@@ -177,13 +190,7 @@ router.post('/', requireAuth, admin, (req, res, next) => {
     });
     
     if (existingProduct) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Product with this name already exists',
-          statusCode: 400
-        }
-      });
+      return sendConflict(res, 'Product');
     }
 
     const newProduct = new Product({
@@ -211,11 +218,7 @@ router.post('/', requireAuth, admin, (req, res, next) => {
     // Invalidate related cache
     invalidateEntityCache('products');
 
-    res.status(201).json({
-      success: true,
-      message: 'Product created successfully',
-      data: newProduct
-    });
+    return sendCreated(res, 'Product created successfully', newProduct);
   } catch (err) {
     next(err);
   }
@@ -224,7 +227,7 @@ router.post('/', requireAuth, admin, (req, res, next) => {
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
-router.put('/:id', requireAuth, admin, (req, res, next) => {
+router.put('/:id', requireAuth, requireAdmin, (req, res, next) => {
   // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
@@ -232,33 +235,20 @@ router.put('/:id', requireAuth, admin, (req, res, next) => {
   next();
 }, validateProductUpdate, validateRequest, async (req, res, next) => {
   try {
-    console.log(`[products] PUT /api/products/${req.params.id} called`);
-    console.log('[products] Request body:', req.body);
-    console.log('[products] Request user:', req.user._id);
-    
     const { name } = req.body;
 
     // If name is being updated, check for duplicates
     if (name) {
-      console.log('[products] Checking for duplicate product name:', name);
       const existingProduct = await Product.findOne({ 
         name: { $regex: new RegExp(`^${name}$`, 'i') },
         _id: { $ne: req.params.id }
       });
       
       if (existingProduct) {
-        console.log('[products] Duplicate product found:', existingProduct._id);
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'Product with this name already exists',
-            statusCode: 400
-          }
-        });
+        return sendConflict(res, 'Product');
       }
     }
 
-    console.log('[products] Updating product with data:', req.body);
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -266,16 +256,8 @@ router.put('/:id', requireAuth, admin, (req, res, next) => {
     ).populate('category', 'name');
 
     if (!updatedProduct) {
-      console.error('[products] Product not found for update:', req.params.id);
-      throw new NotFoundError('Product not found');
+      return sendNotFound(res, 'Product');
     }
-
-    console.log('[products] Product updated successfully:', {
-      id: updatedProduct._id,
-      name: updatedProduct.name,
-      image: updatedProduct.image,
-      category: updatedProduct.category?.name
-    });
 
     // Log the activity
     await ActivityLog.create({ 
@@ -288,18 +270,9 @@ router.put('/:id', requireAuth, admin, (req, res, next) => {
     invalidateEntityCache('products');
     invalidateEntityCache(`product:${req.params.id}`);
 
-    const response = {
-      success: true,
-      message: 'Product updated successfully',
-      data: updatedProduct
-    };
-    
-    console.log('[products] Sending response:', response);
-    res.json(response);
+    return sendUpdated(res, 'Product updated successfully', updatedProduct);
     
   } catch (err) {
-    console.error('[products] PUT /api/products/:id ERROR:', err);
-    console.error('[products] Error message:', err.message);
     next(err);
   }
 });
@@ -307,81 +280,54 @@ router.put('/:id', requireAuth, admin, (req, res, next) => {
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
 // @access  Private/Admin
-router.delete('/:id', requireAuth, admin, validateProductId, validateRequest, async (req, res, next) => {
+router.delete('/:id', requireAuth, requireAdmin, validateProductId, validateRequest, async (req, res, next) => {
   try {
-    console.log('[products] DELETE /api/products/:id called');
-    console.log('[products] Request params:', req.params);
-    console.log('[products] Request user:', req.user._id);
-    
     const productId = req.params.id;
-    console.log('[products] Product ID to delete:', productId);
     
     const product = await Product.findById(productId);
-    console.log('[products] Found product:', product ? {
-      id: product._id,
-      name: product.name,
-      image: product.image
-    } : 'NOT FOUND');
 
     if (!product) {
-      console.log('[products] Product not found, throwing NotFoundError');
-      throw new NotFoundError('Product not found');
+      return sendNotFound(res, 'Product');
     }
 
     // Check if the product is in any existing orders
-    console.log('[products] Checking if product is in any orders...');
     const orderCount = await Order.countDocuments({ 'orderItems.product': productId });
-    console.log('[products] Product is in', orderCount, 'order(s)');
 
     if (orderCount > 0) {
       // If the product is in an order, archive it instead of deleting
-      console.log('[products] Product is in orders, archiving instead of deleting');
       product.archived = true;
       await product.save();
-      console.log('[products] Product archived successfully');
       
       await ActivityLog.create({ 
         user: req.user._id, 
         action: 'archive_product', 
         description: `Archived product '${product.name}' due to being part of ${orderCount} order(s)` 
       });
-      console.log('[products] Activity log created for archive');
 
-      const response = { 
-        success: true,
-        message: `Product is part of ${orderCount} order(s) and has been archived instead of deleted.` 
-      };
-      console.log('[products] Sending archive response:', response);
-      res.json(response);
+      return sendSuccess(res, 200, `Product is part of ${orderCount} order(s) and has been archived instead of deleted.`);
     } else {
       // If not in any orders, delete it permanently
-      console.log('[products] Product not in any orders, deleting permanently');
       const imagePath = product.image;
-      console.log('[products] Product image path:', imagePath);
       
       await Product.findByIdAndDelete(productId);
-      console.log('[products] Product deleted from database');
 
       // And delete its image from the server
       if (imagePath && imagePath.startsWith('/uploads/images/')) {
         const serverImagePath = path.join(__dirname, '..', imagePath);
-        console.log('[products] Server image path for deletion:', serverImagePath);
         
         // Check if file exists before attempting deletion
         if (fs.existsSync(serverImagePath)) {
-          console.log('[products] Image file exists, attempting deletion');
           fs.unlink(serverImagePath, (err) => {
             if (err) {
-              console.error(`[products] Failed to delete image file: ${serverImagePath}`, err);
-            } else {
-              console.log(`[products] Successfully deleted image file: ${serverImagePath}`);
+              // Log error but don't fail the request
+              const { logger } = require('../utils/logger');
+              logger.error('Failed to delete image file', {
+                path: serverImagePath,
+                error: err.message
+              });
             }
           });
-        } else {
-          console.warn(`[products] Image file not found for deletion: ${serverImagePath}`);
         }
-      } else {
-        console.log('[products] No image path or invalid path, skipping file deletion');
       }
       
       await ActivityLog.create({ 
@@ -389,26 +335,15 @@ router.delete('/:id', requireAuth, admin, validateProductId, validateRequest, as
         action: 'delete_product', 
         description: `Permanently deleted product '${product.name}'` 
       });
-      console.log('[products] Activity log created for delete');
 
-      const response = { 
-        success: true,
-        message: 'Product permanently deleted successfully' 
-      };
-      console.log('[products] Sending delete response:', response);
-      res.json(response);
+      return sendDeleted(res, 'Product permanently deleted successfully');
     }
 
     // Invalidate cache after delete/archive
-    console.log('[products] Invalidating cache...');
     invalidateEntityCache('products');
     invalidateEntityCache(`product:${productId}`);
-    console.log('[products] Cache invalidated');
 
   } catch (err) {
-    console.error('[products] DELETE /api/products/:id ERROR:', err);
-    console.error('[products] Error message:', err.message);
-    console.error('[products] Error stack:', err.stack);
     next(err);
   }
 });
@@ -424,7 +359,7 @@ router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, 
 
     const product = await Product.findById(req.params.id);
     if (!product) {
-      throw new NotFoundError('Product not found');
+      return sendNotFound(res, 'Product');
     }
 
     // Check if user already reviewed this product
@@ -433,13 +368,7 @@ router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, 
     );
     
     if (alreadyReviewed) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Product already reviewed by this user',
-          statusCode: 400
-        }
-      });
+      return sendConflict(res, 'Review');
     }
 
     const review = {
@@ -462,11 +391,7 @@ router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, 
     // Invalidate product cache
     invalidateEntityCache('products', req.params.id);
 
-    res.status(201).json({
-      success: true,
-      message: 'Review added successfully',
-      data: review
-    });
+    return sendCreated(res, 'Review added successfully', review);
   } catch (err) {
     next(err);
   }
@@ -474,34 +399,36 @@ router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, 
 
 // @desc    Add a review via secure token (no login required)
 // @route   POST /api/products/:id/review-token
-router.post('/:id/review-token', async (req, res) => {
+router.post('/:id/review-token', async (req, res, next) => {
   const { token, name, rating, comment } = req.body;
 
   try {
     const order = await Order.findOne({ reviewToken: token });
 
     if (!order) {
-      return res.status(400).json({ message: 'Invalid or expired review token' });
+      return sendError(res, 400, 'Invalid or expired review token', null, 'INVALID_TOKEN');
     }
 
     const productId = req.params.id;
     const orderedProductIds = order.orderItems.map(item => item.product.toString());
 
     if (!orderedProductIds.includes(productId)) {
-      return res.status(403).json({ message: 'This token does not grant review rights to this product' });
+      return sendError(res, 403, 'This token does not grant review rights to this product', null, 'INSUFFICIENT_PERMISSIONS');
     }
 
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!product) {
+      return sendNotFound(res, 'Product');
+    }
 
     // Optional: check for duplicate name-based review
     const alreadyReviewed = product.reviews.find(r => r.name === name);
     if (alreadyReviewed) {
-      return res.status(400).json({ message: 'This person already reviewed the product' });
+      return sendConflict(res, 'Review');
     }
 
     if (!rating || !comment || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: 'Please provide a valid rating (1–5) and comment' });
+      return sendError(res, 400, 'Please provide a valid rating (1–5) and comment', null, 'INVALID_RATING');
     }
 
     const review = {
@@ -523,16 +450,16 @@ router.post('/:id/review-token', async (req, res) => {
     order.reviewToken = null;
     await order.save();
 
-    res.status(201).json({ message: 'Review submitted via token', review });
+    return sendCreated(res, 'Review submitted via token', review);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 });
 
 // @desc    Get product review statistics (admin only)
 // @route   GET /api/products/stats/reviews
 // @access  Private/Admin
-router.get('/stats/reviews', requireAuth, admin, async (req, res, next) => {
+router.get('/stats/reviews', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const totalProducts = await Product.countDocuments();
 
@@ -593,41 +520,40 @@ router.get('/stats/reviews', requireAuth, admin, async (req, res, next) => {
       { $sort: { count: -1 } }
     ]);
 
-    res.json({
-      success: true,
-      data: {
-        totals: {
-          totalProducts,
-          totalReviews: avgRating[0]?.totalReviews || 0,
-          averageRating: avgRating[0]?.avgRating.toFixed(1) || 0,
-          averagePrice: avgPrice[0]?.avgPrice.toFixed(2) || 0,
-          outOfStockCount,
-          fiveStarOnlyCount,
-          lowStockCount: lowStockProducts.length
-        },
-        topRated,
-        mostReviewed,
-        highestPriceProduct,
-        lowStockProducts,
-        productsPerCategory: productsPerCategory.reduce((acc, cat) => {
-          acc[cat._id] = cat.count;
+    const data = {
+      totals: {
+        totalProducts,
+        totalReviews: avgRating[0]?.totalReviews || 0,
+        averageRating: avgRating[0]?.avgRating.toFixed(1) || 0,
+        averagePrice: avgPrice[0]?.avgPrice.toFixed(2) || 0,
+        outOfStockCount,
+        fiveStarOnlyCount,
+        lowStockCount: lowStockProducts.length
+      },
+      topRated,
+      mostReviewed,
+      highestPriceProduct,
+      lowStockProducts,
+      productsPerCategory: productsPerCategory.reduce((acc, cat) => {
+        acc[cat._id] = cat.count;
+        return acc;
+      }, {}),
+      reviewsPerCategory: reviewsPerCategory.reduce((acc, cat) => {
+        acc[cat._id] = cat.totalReviews;
+        return acc;
+      }, {}),
+      customStats: {
+        featuredCount,
+        archivedCount,
+        onSaleCount,
+        tags: tagStats.reduce((acc, tag) => {
+          acc[tag._id] = tag.count;
           return acc;
-        }, {}),
-        reviewsPerCategory: reviewsPerCategory.reduce((acc, cat) => {
-          acc[cat._id] = cat.totalReviews;
-          return acc;
-        }, {}),
-        customStats: {
-          featuredCount,
-          archivedCount,
-          onSaleCount,
-          tags: tagStats.reduce((acc, tag) => {
-            acc[tag._id] = tag.count;
-            return acc;
-          }, {})
-        }
+        }, {})
       }
-    });
+    };
+
+    return sendSuccess(res, 200, 'Product statistics retrieved successfully', data);
   } catch (err) {
     next(err);
   }
@@ -636,7 +562,7 @@ router.get('/stats/reviews', requireAuth, admin, async (req, res, next) => {
 // @desc    Export products to CSV
 // @route   GET /api/products/export
 // @access  Private/Admin
-router.get('/export', requireAuth, admin, async (req, res, next) => {
+router.get('/export', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const products = await Product.find().select('-reviews');
     
@@ -677,16 +603,10 @@ router.get('/export', requireAuth, admin, async (req, res, next) => {
 // @desc    Import products from CSV
 // @route   POST /api/products/import
 // @access  Private/Admin
-router.post('/import', requireAuth, admin, async (req, res, next) => {
+router.post('/import', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     if (!req.files || !req.files.file) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'No file uploaded',
-          statusCode: 400
-        }
-      });
+      return sendError(res, 400, 'No file uploaded', null, 'NO_FILE');
     }
 
     const file = req.files.file;
@@ -741,17 +661,13 @@ router.post('/import', requireAuth, admin, async (req, res, next) => {
       }
     }
 
-    res.json({
-      success: true,
-      message: 'Import completed',
-      data: results
-    });
-
     await ActivityLog.create({ 
       user: req.user._id, 
       action: 'import_products', 
       description: `Imported products from CSV (${results.success} success, ${results.failed} failed)` 
     });
+
+    return sendSuccess(res, 200, 'Import completed', results);
   } catch (err) {
     next(err);
   }

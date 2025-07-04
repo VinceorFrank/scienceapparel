@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const statsController = require('../controllers/statsController');
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 
 // Apply admin middleware to all routes
-router.use(protect, admin);
+router.use(requireAuth, requireAdmin);
 
 router.get('/clv', statsController.getCLV);
 router.get('/users-by-country', statsController.getUsersByCountry);

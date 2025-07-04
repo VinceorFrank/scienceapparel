@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // Address schema for shipping and billing addresses
 const addressSchema = new mongoose.Schema({
@@ -45,6 +46,27 @@ const addressSchema = new mongoose.Schema({
   },
   company: { 
     type: String 
+  }
+}, { timestamps: true });
+
+// Password history schema for enhanced security
+const passwordHistorySchema = new mongoose.Schema({
+  password: {
+    type: String,
+    required: true
+  },
+  changedAt: {
+    type: Date,
+    default: Date.now
+  },
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  reason: {
+    type: String,
+    enum: ['user_change', 'admin_reset', 'forced_reset', 'breach_detection'],
+    default: 'user_change'
   }
 }, { timestamps: true });
 
@@ -127,7 +149,7 @@ const userSchema = new mongoose.Schema({
     }
   },
   
-  // 🔒 Account Status
+  // 🔒 Account Status & Security
   status: { 
     type: String, 
     enum: ['active', 'suspended', 'pending_verification'], 
@@ -147,13 +169,45 @@ const userSchema = new mongoose.Schema({
     type: Date 
   },
   
-  // 🔄 Password Reset
+  // 🔄 Password Management
   passwordResetToken: { 
     type: String 
   },
   passwordResetExpires: { 
     type: Date 
-  }
+  },
+  passwordChangedAt: {
+    type: Date,
+    default: Date.now
+  },
+  passwordHistory: [passwordHistorySchema],
+  forcePasswordChange: {
+    type: Boolean,
+    default: false
+  },
+  lastPasswordChange: {
+    type: Date,
+    default: Date.now
+  },
+  
+  // 🔐 Security Features
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  accountLockedUntil: {
+    type: Date
+  },
+  lastFailedLogin: {
+    type: Date
+  },
+  securityQuestions: [{
+    question: String,
+    answer: {
+      type: String,
+      select: false // Don't include in queries by default
+    }
+  }]
   
 }, { timestamps: true });
 
@@ -165,18 +219,97 @@ userSchema.index({ email: 1 }); // Email queries
 userSchema.index({ status: 1 }); // Status queries
 userSchema.index({ 'stats.totalOrders': -1 }); // Top customers
 userSchema.index({ 'stats.totalSpent': -1 }); // High value customers
+userSchema.index({ accountLockedUntil: 1 }); // Account lockout queries
 
-// Encrypt password before saving
+// Enhanced password hashing with history tracking
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  
+  try {
+    // Hash the new password
+    const saltRounds = 12; // Increased from 10 for better security
+    this.password = await bcrypt.hash(this.password, saltRounds);
+    
+    // Update password change timestamp
+    this.passwordChangedAt = new Date();
+    this.lastPasswordChange = new Date();
+    
+    // Add to password history (keep last 5)
+    if (this.passwordHistory.length >= 5) {
+      this.passwordHistory.shift(); // Remove oldest
+    }
+    
+    this.passwordHistory.push({
+      password: this.password,
+      changedAt: new Date(),
+      reason: 'user_change'
+    });
+    
+    // Reset failed login attempts on password change
+    this.failedLoginAttempts = 0;
+    this.accountLockedUntil = null;
+    
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Method to compare password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Method to check if password was changed after token was issued
+userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
+};
+
+// Method to handle failed login attempts
+userSchema.methods.handleFailedLogin = async function() {
+  this.failedLoginAttempts += 1;
+  this.lastFailedLogin = new Date();
+  
+  // Lock account after 5 failed attempts for 30 minutes
+  if (this.failedLoginAttempts >= 5) {
+    this.accountLockedUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+  }
+  
+  return await this.save();
+};
+
+// Method to reset failed login attempts
+userSchema.methods.resetFailedLoginAttempts = async function() {
+  this.failedLoginAttempts = 0;
+  this.accountLockedUntil = null;
+  this.lastLogin = new Date();
+  this.stats.loginCount += 1;
+  
+  return await this.save();
+};
+
+// Method to check if account is locked
+userSchema.methods.isAccountLocked = function() {
+  if (this.accountLockedUntil && this.accountLockedUntil > new Date()) {
+    return true;
+  }
+  return false;
+};
+
+// Method to force password change
+userSchema.methods.setForcePasswordChange = async function(reason = 'forced_reset') {
+  this.forcePasswordChange = true;
+  this.passwordResetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  
+  return await this.save();
 };
 
 // Method to get default address by type
@@ -287,6 +420,22 @@ userSchema.methods.getPublicProfile = function() {
     addresses: this.addresses,
     createdAt: this.createdAt,
     lastLogin: this.stats.lastLogin
+  };
+};
+
+// Method to get security profile (for admin use)
+userSchema.methods.getSecurityProfile = function() {
+  return {
+    id: this._id,
+    email: this.email,
+    status: this.status,
+    failedLoginAttempts: this.failedLoginAttempts,
+    accountLockedUntil: this.accountLockedUntil,
+    lastFailedLogin: this.lastFailedLogin,
+    passwordChangedAt: this.passwordChangedAt,
+    forcePasswordChange: this.forcePasswordChange,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt
   };
 };
 

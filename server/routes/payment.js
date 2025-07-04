@@ -8,14 +8,14 @@ const {
   getPaymentStats,
   processRefund
 } = require('../controllers/paymentController');
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
+
+// Apply authentication middleware to all payment routes
+router.use(requireAuth);
 
 // Public webhook endpoint (no authentication required)
 router.post('/webhook', express.raw({ type: 'application/json' }), processWebhook);
-
-// Protected routes (require authentication)
-router.use(protect);
 
 // Create payment intent
 router.post('/create-intent', createPaymentIntent);
@@ -27,7 +27,7 @@ router.post('/confirm', confirmPayment);
 router.get('/history', getPaymentHistory);
 
 // Admin routes (require admin privileges)
-router.use(admin);
+router.use(requireAdmin);
 
 // Get payment statistics
 router.get('/stats', getPaymentStats);

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const Order = require('../models/Order');
-const { requireAuth, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 const mongoose = require('mongoose');
@@ -12,9 +12,20 @@ const {
   validateOrderQueries, 
   validateOrderId 
 } = require('../middlewares/validators/orderValidators');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendPaginated, 
+  sendCreated, 
+  sendUpdated, 
+  sendDeleted, 
+  sendNotFound, 
+  sendConflict,
+  sendForbidden 
+} = require('../utils/responseHandler');
 
 // ✅ POST /api/orders - Create new order (requires token)
-router.post('/', requireAuth, validateCreateOrder, async (req, res) => {
+router.post('/', requireAuth, validateCreateOrder, async (req, res, next) => {
   const {
     orderItems,
     shippingAddress,
@@ -27,7 +38,7 @@ router.post('/', requireAuth, validateCreateOrder, async (req, res) => {
 
   try {
     if (!orderItems || orderItems.length === 0) {
-      return res.status(400).json({ message: 'No order items' });
+      return sendError(res, 400, 'No order items', null, 'NO_ORDER_ITEMS');
     }
 
     const order = new Order({
@@ -50,23 +61,25 @@ router.post('/', requireAuth, validateCreateOrder, async (req, res) => {
       return `http://localhost:5173/review?product=${item.product}&token=${order.reviewToken}`;
     });
 
-    console.log('🧾 Review Links:');
-    reviewLinks.forEach(link => console.log('👉', link));
+    const { logger } = require('../utils/logger');
+    logger.info('Review Links Generated', {
+      orderId: order._id,
+      reviewLinks: reviewLinks
+    });
 
     await ActivityLog.create({ user: req.user._id, action: 'create_order', description: `Created new order ${order._id}` });
 
-    res.status(201).json({
-      message: 'Order created',
+    return sendCreated(res, 'Order created successfully', {
       order,
       reviewLinks
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 });
 
 // ✅ GET /api/orders - Get orders (admin gets all, customer gets their own)
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, async (req, res, next) => {
   try {
     let orders;
     
@@ -83,27 +96,27 @@ router.get('/', requireAuth, async (req, res) => {
         .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } });
     }
 
-    res.json(orders);
+    return sendSuccess(res, 200, 'Orders retrieved successfully', orders);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 });
 
 // ✅ GET /api/orders/myorders - All orders of current user
-router.get('/myorders', requireAuth, async (req, res) => {
+router.get('/myorders', requireAuth, async (req, res, next) => {
   try {
     const orders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
       .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } });
 
-    res.json(orders);
+    return sendSuccess(res, 200, 'User orders retrieved successfully', orders);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    next(err);
   }
 });
 
 // ✅ GET /api/orders/admin - Get all orders (admin only)
-router.get('/admin', requireAuth, admin, validateOrderQueries, async (req, res, next) => {
+router.get('/admin', requireAuth, requireAdmin, validateOrderQueries, async (req, res, next) => {
   try {
     const { page, limit, search, status, dateFrom, dateTo, minAmount, maxAmount } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -164,43 +177,50 @@ router.get('/admin', requireAuth, admin, validateOrderQueries, async (req, res, 
       sort: { createdAt: -1 }
     });
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    return sendPaginated(
+      res,
+      result.data,
+      result.page,
+      result.limit,
+      result.total,
+      'Admin orders retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }
 });
 
 // ✅ GET /api/orders/:id - View specific order if owned by customer
-router.get('/:id', requireAuth, validateOrderId, async (req, res) => {
+router.get('/:id', requireAuth, validateOrderId, async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate({ path: 'orderItems.product', select: 'name price image category', populate: { path: 'category', select: 'name' } })
       .populate('user', 'name email');
 
     if (!order) {
-      return res.status(404).json({ message: 'Commande introuvable' });
+      return sendNotFound(res, 'Order');
     }
 
     // Check if user owns this order or is admin
     if (order.user._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-      return res.status(403).json({ message: 'Accès non autorisé à cette commande' });
+      return sendForbidden(res, 'Access denied to this order');
     }
 
-    res.json(order);
+    return sendSuccess(res, 200, 'Order retrieved successfully', order);
   } catch (err) {
-    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+    next(err);
   }
 });
 
 // ✅ PUT /api/orders/:id/status - Update order status (admin only)
-router.put('/:id/status', requireAuth, admin, validateUpdateOrderStatus, async (req, res, next) => {
+router.put('/:id/status', requireAuth, requireAdmin, validateUpdateOrderStatus, async (req, res, next) => {
   try {
     const { isShipped, isPaid, status, trackingNumber, notes } = req.body;
     
     const order = await Order.findById(req.params.id);
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
     // Update order fields
@@ -219,23 +239,19 @@ router.put('/:id/status', requireAuth, admin, validateUpdateOrderStatus, async (
       description: `Updated order ${order._id} status: ${status || 'modified'}`
     });
 
-    res.json({
-      success: true,
-      message: 'Order status updated successfully',
-      order: updatedOrder
-    });
+    return sendUpdated(res, 'Order status updated successfully', updatedOrder);
   } catch (err) {
     next(err);
   }
 });
 
 // ✅ PUT /api/orders/bulk/status - Bulk update order statuses (admin only)
-router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
+router.put('/bulk/status', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { orderIds, status, isShipped, isPaid, notes } = req.body;
 
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.status(400).json({ message: 'Order IDs array is required' });
+      return sendError(res, 400, 'Order IDs array is required', null, 'INVALID_ORDER_IDS');
     }
 
     const updateData = {};
@@ -256,9 +272,7 @@ router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
       description: `Bulk updated ${result.modifiedCount} orders with status: ${status || 'modified'}`
     });
 
-    res.json({
-      success: true,
-      message: `Successfully updated ${result.modifiedCount} orders`,
+    return sendSuccess(res, 200, `Successfully updated ${result.modifiedCount} orders`, {
       modifiedCount: result.modifiedCount
     });
   } catch (err) {
@@ -267,7 +281,7 @@ router.put('/bulk/status', requireAuth, admin, async (req, res, next) => {
 });
 
 // ✅ GET /api/orders/analytics/summary - Get order analytics (admin only)
-router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
+router.get('/analytics/summary', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { period = '30d' } = req.query;
     
@@ -311,8 +325,7 @@ router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
       shippedOrders: 0
     };
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, 'Order analytics retrieved successfully', {
       period,
       analytics: result
     });
@@ -322,19 +335,17 @@ router.get('/analytics/summary', requireAuth, admin, async (req, res, next) => {
 });
 
 // ✅ DELETE /api/orders/:id - Cancel/delete order (admin only)
-router.delete('/:id', requireAuth, admin, async (req, res, next) => {
+router.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
     // Check if order can be cancelled (not shipped or delivered)
     if (order.isShipped) {
-      return res.status(400).json({ 
-        message: 'Cannot cancel order that has already been shipped' 
-      });
+      return sendError(res, 400, 'Cannot cancel order that has already been shipped', null, 'ORDER_ALREADY_SHIPPED');
     }
 
     order.status = 'cancelled';
@@ -347,11 +358,7 @@ router.delete('/:id', requireAuth, admin, async (req, res, next) => {
       description: `Cancelled order ${order._id}`
     });
 
-    res.json({
-      success: true,
-      message: 'Order cancelled successfully',
-      order
-    });
+    return sendUpdated(res, 'Order cancelled successfully', order);
   } catch (err) {
     next(err);
   }
@@ -364,7 +371,7 @@ router.delete('/:id', requireAuth, admin, async (req, res, next) => {
 // GET /api/orders/me - Get current user's orders with pagination
 router.get('/me', requireAuth, async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, status, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const { page = 1, limit = 20, status, dateFrom, dateTo, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
 
     const filters = { user: req.user._id };
@@ -401,7 +408,14 @@ router.get('/me', requireAuth, async (req, res, next) => {
       $set: { 'stats.lastOrderDate': new Date() }
     });
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    return sendPaginated(
+      res,
+      result.data,
+      result.page,
+      result.limit,
+      result.total,
+      'User orders retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }
@@ -422,13 +436,10 @@ router.get('/me/:id', requireAuth, async (req, res, next) => {
     .populate('user', 'name email phone');
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
-    res.json({
-      success: true,
-      order
-    });
+    return sendSuccess(res, 200, 'Order retrieved successfully', order);
   } catch (err) {
     next(err);
   }
@@ -443,7 +454,7 @@ router.get('/me/:id/tracking', requireAuth, async (req, res, next) => {
     }).select('shipping orderStatus createdAt');
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
     const trackingInfo = {
@@ -459,8 +470,7 @@ router.get('/me/:id/tracking', requireAuth, async (req, res, next) => {
       orderDate: order.createdAt
     };
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, 'Tracking information retrieved successfully', {
       tracking: trackingInfo
     });
   } catch (err) {
@@ -479,26 +489,24 @@ router.post('/me/:id/cancel', requireAuth, async (req, res, next) => {
     });
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
     // Check if order can be cancelled
     if (order.orderStatus === 'cancelled') {
-      return res.status(400).json({ message: 'Order is already cancelled' });
+      return sendError(res, 400, 'Order is already cancelled', null, 'ORDER_ALREADY_CANCELLED');
     }
 
     if (order.orderStatus === 'delivered') {
-      return res.status(400).json({ message: 'Cannot cancel delivered order' });
+      return sendError(res, 400, 'Cannot cancel delivered order', null, 'ORDER_ALREADY_DELIVERED');
     }
 
     if (order.shipping?.status === 'shipped' || order.shipping?.status === 'in_transit') {
-      return res.status(400).json({ message: 'Cannot cancel order that has been shipped' });
+      return sendError(res, 400, 'Cannot cancel order that has been shipped', null, 'ORDER_ALREADY_SHIPPED');
     }
 
     if (order.isPaid) {
-      return res.status(400).json({ 
-        message: 'Cannot cancel paid order. Please contact support for refund.' 
-      });
+      return sendError(res, 400, 'Cannot cancel paid order. Please contact support for refund.', null, 'PAID_ORDER_CANNOT_CANCEL');
     }
 
     // Cancel the order
@@ -514,15 +522,11 @@ router.post('/me/:id/cancel', requireAuth, async (req, res, next) => {
       description: `Customer cancelled order ${order._id}${reason ? ` - Reason: ${reason}` : ''}`
     });
 
-    res.json({
-      success: true,
-      message: 'Order cancelled successfully',
-      order: {
-        id: order._id,
-        orderStatus: order.orderStatus,
-        cancellationReason: order.cancellationReason,
-        cancelledAt: order.cancelledAt
-      }
+    return sendUpdated(res, 'Order cancelled successfully', {
+      id: order._id,
+      orderStatus: order.orderStatus,
+      cancellationReason: order.cancellationReason,
+      cancelledAt: order.cancelledAt
     });
   } catch (err) {
     next(err);
@@ -535,9 +539,7 @@ router.post('/me/:id/review', requireAuth, async (req, res, next) => {
     const { productId, rating, comment, reviewToken } = req.body;
     
     if (!productId || !rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ 
-        message: 'Product ID and rating (1-5) are required' 
-      });
+      return sendError(res, 400, 'Product ID and rating (1-5) are required', null, 'INVALID_REVIEW_DATA');
     }
 
     const order = await Order.findOne({ 
@@ -546,19 +548,17 @@ router.post('/me/:id/review', requireAuth, async (req, res, next) => {
     });
 
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return sendNotFound(res, 'Order');
     }
 
     // Verify review token
     if (order.reviewToken !== reviewToken) {
-      return res.status(403).json({ message: 'Invalid review token' });
+      return sendForbidden(res, 'Invalid review token');
     }
 
     // Check if order is delivered
     if (order.orderStatus !== 'delivered') {
-      return res.status(400).json({ 
-        message: 'Can only review delivered orders' 
-      });
+      return sendError(res, 400, 'Can only review delivered orders', null, 'ORDER_NOT_DELIVERED');
     }
 
     // Check if product is in this order
@@ -567,9 +567,7 @@ router.post('/me/:id/review', requireAuth, async (req, res, next) => {
     );
 
     if (!orderItem) {
-      return res.status(400).json({ 
-        message: 'Product not found in this order' 
-      });
+      return sendError(res, 400, 'Product not found in this order', null, 'PRODUCT_NOT_IN_ORDER');
     }
 
     // TODO: Create review in Product model or separate Review model
@@ -580,15 +578,11 @@ router.post('/me/:id/review', requireAuth, async (req, res, next) => {
       description: `Submitted review for product ${productId} in order ${order._id} - Rating: ${rating}`
     });
 
-    res.json({
-      success: true,
-      message: 'Review submitted successfully',
-      review: {
-        productId,
-        rating,
-        comment,
-        submittedAt: new Date()
-      }
+    return sendCreated(res, 'Review submitted successfully', {
+      productId,
+      rating,
+      comment,
+      submittedAt: new Date()
     });
   } catch (err) {
     next(err);
@@ -626,8 +620,7 @@ router.get('/me/stats', requireAuth, async (req, res, next) => {
       cancelledOrders: 0
     };
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, 'Order statistics retrieved successfully', {
       stats: result
     });
   } catch (err) {
@@ -647,8 +640,7 @@ router.get('/me/recent', requireAuth, async (req, res, next) => {
       })
       .select('orderStatus totalPrice createdAt orderItems');
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, 'Recent orders retrieved successfully', {
       orders: recentOrders
     });
   } catch (err) {

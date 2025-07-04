@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
 
-exports.getUsersWithFilters = async (req, res) => {
+exports.getUsersWithFilters = async (req, res, next) => {
   try {
     const {
       search, role, minOrders, maxOrders, minSpend, maxSpend, registeredAfter, registeredBefore, sort, page = 1, limit = 20
@@ -72,6 +72,8 @@ exports.getUsersWithFilters = async (req, res) => {
       limit: parseInt(limit)
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    err.status = 500;
+    err.message = 'Failed to fetch users with filters';
+    next(err);
   }
 }; 

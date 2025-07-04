@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-const { requireAuth } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const ActivityLog = require('../models/ActivityLog');
 const { logger } = require('../utils/logger');
 const { 
@@ -11,7 +11,13 @@ const {
   validateRemoveCartItem, 
   validateCartQueries 
 } = require('../middlewares/validators/cartValidators');
-const { sendSuccess, sendError, sendNotFound } = require('../utils/responseHandler');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendNotFound, 
+  sendUpdated, 
+  sendDeleted 
+} = require('../utils/responseHandler');
 
 // ========================================
 // 🛒 CART MANAGEMENT ROUTES
@@ -26,7 +32,7 @@ router.get('/', requireAuth, validateCartQueries, async (req, res, next) => {
     // Validate cart items
     const validation = await cart.validateCart();
     
-    sendSuccess(res, 200, 'Cart retrieved successfully', {
+    return sendSuccess(res, 200, 'Cart retrieved successfully', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -87,7 +93,7 @@ router.post('/items', requireAuth, validateAddToCart, async (req, res, next) => 
       productName: product.name
     });
 
-    sendSuccess(res, 200, 'Item added to cart successfully', {
+    return sendSuccess(res, 200, 'Item added to cart successfully', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -108,13 +114,13 @@ router.put('/items/:productId', requireAuth, validateUpdateCartItem, async (req,
     const { quantity } = req.body;
 
     if (quantity === undefined || quantity < 0) {
-      return res.status(400).json({ message: 'Valid quantity is required' });
+      return sendError(res, 400, 'Valid quantity is required', null, 'INVALID_QUANTITY');
     }
 
     // Verify product exists
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return sendNotFound(res, 'Product');
     }
 
     // Get cart
@@ -126,14 +132,12 @@ router.put('/items/:productId', requireAuth, validateUpdateCartItem, async (req,
     );
 
     if (!existingItem) {
-      return res.status(404).json({ message: 'Item not found in cart' });
+      return sendNotFound(res, 'Cart item');
     }
 
     // Check stock if increasing quantity
     if (quantity > existingItem.quantity && product.stock < quantity) {
-      return res.status(400).json({ 
-        message: `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}` 
-      });
+      return sendError(res, 400, `Insufficient stock. Available: ${product.stock}, Requested: ${quantity}`, null, 'INSUFFICIENT_STOCK');
     }
 
     // Update quantity
@@ -154,9 +158,7 @@ router.put('/items/:productId', requireAuth, validateUpdateCartItem, async (req,
       description: description
     });
 
-    res.json({
-      success: true,
-      message: quantity === 0 ? 'Item removed from cart' : 'Item quantity updated',
+    return sendUpdated(res, quantity === 0 ? 'Item removed from cart' : 'Item quantity updated', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -167,7 +169,7 @@ router.put('/items/:productId', requireAuth, validateUpdateCartItem, async (req,
     });
   } catch (err) {
     if (err.message === 'Item not found in cart') {
-      return res.status(404).json({ message: 'Item not found in cart' });
+      return sendNotFound(res, 'Cart item');
     }
     next(err);
   }
@@ -198,9 +200,7 @@ router.delete('/items/:productId', requireAuth, validateRemoveCartItem, async (r
       description: `Removed ${productName} from cart`
     });
 
-    res.json({
-      success: true,
-      message: 'Item removed from cart successfully',
+    return sendDeleted(res, 'Item removed from cart', {
       cart: {
         id: populatedCart._id,
         items: populatedCart.items,
@@ -211,7 +211,7 @@ router.delete('/items/:productId', requireAuth, validateRemoveCartItem, async (r
     });
   } catch (err) {
     if (err.message === 'Item not found in cart') {
-      return res.status(404).json({ message: 'Item not found in cart' });
+      return sendNotFound(res, 'Cart item');
     }
     next(err);
   }
@@ -222,61 +222,49 @@ router.delete('/', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     
-    const itemCount = cart.itemCount;
-    await cart.clearCart();
-
-    // Log activity
+    // Log activity before clearing
     await ActivityLog.create({
       user: req.user._id,
       action: 'clear_cart',
-      description: `Cleared cart with ${itemCount} items`
+      description: `Cleared entire cart (${cart.items.length} items)`
     });
-
-    res.json({
-      success: true,
-      message: 'Cart cleared successfully',
-      cart: {
-        id: cart._id,
-        items: [],
-        total: 0,
-        itemCount: 0,
-        uniqueItemCount: 0
-      }
-    });
+    
+    // Clear cart
+    await cart.clearCart();
+    
+    return sendDeleted(res, 'Cart cleared successfully');
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/cart/validate - Validate cart items
-router.get('/validate', requireAuth, async (req, res, next) => {
+// POST /api/cart/validate - Validate cart items
+router.post('/validate', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
     const validation = await cart.validateCart();
     
-    res.json({
-      success: true,
-      validation
-    });
+    return sendSuccess(res, 200, 'Cart validation completed', validation);
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/cart/summary - Get cart summary (for header display)
+// GET /api/cart/summary - Get cart summary
 router.get('/summary', requireAuth, async (req, res, next) => {
   try {
     const cart = await Cart.getOrCreateCart(req.user._id);
+    const populatedCart = await cart.getPopulatedCart();
     
-    res.json({
-      success: true,
-      summary: {
-        itemCount: cart.itemCount,
-        uniqueItemCount: cart.uniqueItemCount,
-        total: cart.total,
-        hasItems: cart.items.length > 0
-      }
-    });
+    const summary = {
+      itemCount: populatedCart.itemCount,
+      uniqueItemCount: populatedCart.uniqueItemCount,
+      total: populatedCart.total,
+      hasItems: populatedCart.items.length > 0,
+      expiresAt: populatedCart.expiresAt
+    };
+    
+    return sendSuccess(res, 200, 'Cart summary retrieved successfully', summary);
   } catch (err) {
     next(err);
   }
@@ -288,7 +276,7 @@ router.post('/merge', requireAuth, async (req, res, next) => {
     const { guestCartItems } = req.body;
 
     if (!guestCartItems || !Array.isArray(guestCartItems)) {
-      return res.status(400).json({ message: 'Guest cart items array is required' });
+      return sendError(res, 400, 'Guest cart items array is required', null, 'INVALID_GUEST_CART_ITEMS');
     }
 
     const cart = await Cart.getOrCreateCart(req.user._id);
@@ -328,9 +316,7 @@ router.post('/merge', requireAuth, async (req, res, next) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: `Merged ${mergedCount} items from guest cart`,
+    return sendSuccess(res, 200, `Merged ${mergedCount} items from guest cart`, {
       mergedCount,
       cart: {
         id: populatedCart._id,
@@ -350,13 +336,8 @@ router.post('/merge', requireAuth, async (req, res, next) => {
 // ========================================
 
 // POST /api/cart/cleanup - Clean up expired carts (admin only)
-router.post('/cleanup', requireAuth, async (req, res, next) => {
+router.post('/cleanup', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    // Check if user is admin
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
-
     const deletedCount = await Cart.cleanupExpiredCarts();
 
     // Log activity
@@ -366,11 +347,7 @@ router.post('/cleanup', requireAuth, async (req, res, next) => {
       description: `Cleaned up ${deletedCount} expired carts`
     });
 
-    res.json({
-      success: true,
-      message: `Cleaned up ${deletedCount} expired carts`,
-      deletedCount
-    });
+    return sendSuccess(res, 200, `Cleaned up ${deletedCount} expired carts`, { deletedCount });
   } catch (err) {
     next(err);
   }

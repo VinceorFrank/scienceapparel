@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
-  getMyAddresses,
-  addMyAddress,
-  updateMyAddress,
-  deleteMyAddress,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
 } from "../api/users";
 import { getShippingRates } from "../api/shipping";
 import AddressForm from "../components/AddressForm";
@@ -33,7 +33,7 @@ const Shipping = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getMyAddresses();
+      const data = await getAddresses();
       setAddresses(data.addresses || []);
       // Auto-select default shipping address if available
       const defaultShipping = (data.addresses || []).find(a => a.type === 'shipping' && a.isDefault);
@@ -88,7 +88,7 @@ const Shipping = () => {
 
   const handleAddAddress = async (addressData) => {
     try {
-      await addMyAddress(addressData);
+      await addAddress(addressData);
       setShowAddressForm(false);
       await fetchAddresses();
     } catch (err) {
@@ -103,7 +103,7 @@ const Shipping = () => {
 
   const handleUpdateAddress = async (addressId, addressData) => {
     try {
-      await updateMyAddress(addressId, addressData);
+      await updateAddress(addressId, addressData);
       setShowAddressForm(false);
       setEditingAddress(null);
       await fetchAddresses();
@@ -115,7 +115,7 @@ const Shipping = () => {
   const handleDeleteAddress = async (addressId) => {
     if (!window.confirm("Supprimer cette adresse ?")) return;
     try {
-      await deleteMyAddress(addressId);
+      await deleteAddress(addressId);
       await fetchAddresses();
     } catch (err) {
       setError(err.message || "Erreur lors de la suppression de l'adresse");

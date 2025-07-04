@@ -1,5 +1,6 @@
 const Support = require('../models/Support');
 const ActivityLog = require('../models/ActivityLog');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // Get all support tickets with filtering and pagination
 const getAllTickets = async (req, res) => {
@@ -60,7 +61,7 @@ const getAllTickets = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json({
+    sendSuccess(res, 200, 'Support tickets fetched successfully', {
       tickets,
       pagination: {
         currentPage: parseInt(page),
@@ -71,7 +72,7 @@ const getAllTickets = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching support tickets:', error);
-    res.status(500).json({ message: 'Error fetching support tickets' });
+    sendError(res, 500, 'Error fetching support tickets', error);
   }
 };
 
@@ -96,10 +97,10 @@ const getTicketById = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json(ticket);
+    sendSuccess(res, 200, 'Support ticket fetched successfully', ticket);
   } catch (error) {
     console.error('Error fetching support ticket:', error);
-    res.status(500).json({ message: 'Error fetching support ticket' });
+    sendError(res, 500, 'Error fetching support ticket', error);
   }
 };
 
@@ -148,13 +149,13 @@ const createTicket = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.status(201).json({
+    sendSuccess(res, 201, 'Support ticket created successfully', {
       message: 'Support ticket created successfully',
       ticketId: ticket._id
     });
   } catch (error) {
     console.error('Error creating support ticket:', error);
-    res.status(500).json({ message: 'Error creating support ticket' });
+    sendError(res, 500, 'Error creating support ticket', error);
   }
 };
 
@@ -195,13 +196,13 @@ const updateTicket = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json({
+    sendSuccess(res, 200, 'Support ticket updated successfully', {
       message: 'Support ticket updated successfully',
       ticket
     });
   } catch (error) {
     console.error('Error updating support ticket:', error);
-    res.status(500).json({ message: 'Error updating support ticket' });
+    sendError(res, 500, 'Error updating support ticket', error);
   }
 };
 
@@ -246,13 +247,13 @@ const addResponse = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json({
+    sendSuccess(res, 200, 'Response added successfully', {
       message: 'Response added successfully',
       response
     });
   } catch (error) {
     console.error('Error adding response:', error);
-    res.status(500).json({ message: 'Error adding response' });
+    sendError(res, 500, 'Error adding response', error);
   }
 };
 
@@ -274,10 +275,10 @@ const deleteTicket = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json({ message: 'Support ticket deleted successfully' });
+    sendSuccess(res, 200, 'Support ticket deleted successfully', { message: 'Support ticket deleted successfully' });
   } catch (error) {
     console.error('Error deleting support ticket:', error);
-    res.status(500).json({ message: 'Error deleting support ticket' });
+    sendError(res, 500, 'Error deleting support ticket', error);
   }
 };
 
@@ -310,7 +311,7 @@ const getSupportStats = async (req, res) => {
 
     const averageResponseTime = responseCount > 0 ? totalResponseTime / responseCount : 0;
 
-    res.json({
+    sendSuccess(res, 200, 'Support statistics fetched successfully', {
       ...stats,
       recentTickets,
       averageResponseTime: Math.round(averageResponseTime / (1000 * 60 * 60)), // in hours
@@ -318,7 +319,7 @@ const getSupportStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching support stats:', error);
-    res.status(500).json({ message: 'Error fetching support statistics' });
+    sendError(res, 500, 'Error fetching support statistics', error);
   }
 };
 
@@ -345,13 +346,12 @@ const bulkUpdateTickets = async (req, res) => {
       ipAddress: req.ip
     });
 
-    res.json({
-      message: `Successfully updated ${result.modifiedCount} tickets`,
+    sendSuccess(res, 200, `Successfully updated ${result.modifiedCount} tickets`, {
       modifiedCount: result.modifiedCount
     });
   } catch (error) {
     console.error('Error bulk updating tickets:', error);
-    res.status(500).json({ message: 'Error bulk updating tickets' });
+    sendError(res, 500, 'Error bulk updating tickets', error);
   }
 };
 

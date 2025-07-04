@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../../models/User');
 const ActivityLog = require('../../models/ActivityLog');
-const { requireAuth, admin } = require('../../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../../middlewares/auth');
 const { 
   validateUserUpdate, 
   validateUserStatusUpdate 
@@ -16,7 +16,7 @@ const { sendSuccess, sendError, sendNotFound } = require('../../utils/responseHa
 const { buildFilters } = require('../../utils/buildFilters');
 
 // GET /api/users/admin - Get all users with advanced filtering (admin only)
-router.get('/', requireAuth, admin, async (req, res) => {
+router.get('/', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 10, sort = '-createdAt', ...filters } = req.query;
     
@@ -65,7 +65,7 @@ router.get('/', requireAuth, admin, async (req, res) => {
 });
 
 // GET /api/users/admin/:id - Get specific user (admin only)
-router.get('/:id', requireAuth, admin, async (req, res) => {
+router.get('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     if (!user) {
@@ -79,7 +79,7 @@ router.get('/:id', requireAuth, admin, async (req, res) => {
 });
 
 // PUT /api/users/admin/:id - Update user (admin only)
-router.put('/:id', requireAuth, admin, validateUserUpdate, async (req, res) => {
+router.put('/:id', requireAuth, requireAdmin, validateUserUpdate, async (req, res) => {
   try {
     const { name, email, phone, address, isAdmin, role, status, statusReason } = req.body;
     
@@ -124,7 +124,7 @@ router.put('/:id', requireAuth, admin, validateUserUpdate, async (req, res) => {
 });
 
 // PATCH /api/users/admin/:id/status - Update user status (admin only)
-router.patch('/:id/status', requireAuth, admin, validateUserStatusUpdate, async (req, res) => {
+router.patch('/:id/status', requireAuth, requireAdmin, validateUserStatusUpdate, async (req, res) => {
   try {
     const { status, statusReason } = req.body;
     
@@ -161,7 +161,7 @@ router.patch('/:id/status', requireAuth, admin, validateUserStatusUpdate, async 
 });
 
 // DELETE /api/users/admin/:id - Delete user (admin only)
-router.delete('/:id', requireAuth, admin, async (req, res) => {
+router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -205,7 +205,7 @@ router.delete('/:id', requireAuth, admin, async (req, res) => {
 });
 
 // GET /api/users/admin/analytics/registration - User registration analytics
-router.get('/analytics/registration', requireAuth, admin, async (req, res) => {
+router.get('/analytics/registration', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { period = '30d' } = req.query;
     

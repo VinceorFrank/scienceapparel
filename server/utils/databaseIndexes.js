@@ -1,8 +1,18 @@
 /**
  * Database indexes setup for optimal performance
+ * Automatically creates all indexes on startup
  */
 
 const mongoose = require('mongoose');
+const { logger } = require('./logger');
+
+// Index creation status tracking
+const indexCreationStatus = {
+  total: 0,
+  created: 0,
+  failed: 0,
+  errors: []
+};
 
 /**
  * Create indexes for Product collection
@@ -67,9 +77,11 @@ const createProductIndexes = async () => {
       }
     );
 
-    console.log('✅ Product indexes created successfully');
+    logger.info('✅ Product indexes created successfully');
+    return { success: true, count: 7 };
   } catch (error) {
-    console.error('❌ Error creating Product indexes:', error.message);
+    logger.error('❌ Error creating Product indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -111,9 +123,23 @@ const createUserIndexes = async () => {
       { name: 'user_created_date' }
     );
 
-    console.log('✅ User indexes created successfully');
+    // Index for account status queries
+    await User.collection.createIndex(
+      { status: 1, createdAt: -1 },
+      { name: 'user_status_date' }
+    );
+
+    // Index for failed login attempts
+    await User.collection.createIndex(
+      { failedLoginAttempts: 1, accountLockedUntil: 1 },
+      { name: 'user_login_security' }
+    );
+
+    logger.info('✅ User indexes created successfully');
+    return { success: true, count: 6 };
   } catch (error) {
-    console.error('❌ Error creating User indexes:', error.message);
+    logger.error('❌ Error creating User indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -156,9 +182,17 @@ const createOrderIndexes = async () => {
       { name: 'order_shipping_country' }
     );
 
-    console.log('✅ Order indexes created successfully');
+    // Index for order status queries
+    await Order.collection.createIndex(
+      { status: 1, createdAt: -1 },
+      { name: 'order_status_date' }
+    );
+
+    logger.info('✅ Order indexes created successfully');
+    return { success: true, count: 7 };
   } catch (error) {
-    console.error('❌ Error creating Order indexes:', error.message);
+    logger.error('❌ Error creating Order indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -196,9 +230,17 @@ const createCategoryIndexes = async () => {
       { name: 'category_created_date' }
     );
 
-    console.log('✅ Category indexes created successfully');
+    // Index for parent category queries
+    await Category.collection.createIndex(
+      { parent: 1, createdAt: -1 },
+      { name: 'category_parent_date' }
+    );
+
+    logger.info('✅ Category indexes created successfully');
+    return { success: true, count: 4 };
   } catch (error) {
-    console.error('❌ Error creating Category indexes:', error.message);
+    logger.error('❌ Error creating Category indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -209,25 +251,40 @@ const createActivityLogIndexes = async () => {
   try {
     const ActivityLog = mongoose.model('ActivityLog');
     
-    // Compound indexes for common queries
+    // Index for user activity queries
     await ActivityLog.collection.createIndex(
       { user: 1, createdAt: -1 },
       { name: 'activity_user_date' }
     );
 
+    // Index for action type queries
     await ActivityLog.collection.createIndex(
       { action: 1, createdAt: -1 },
       { name: 'activity_action_date' }
     );
 
+    // Index for IP address queries
     await ActivityLog.collection.createIndex(
-      { createdAt: -1 },
-      { name: 'activity_created_date' }
+      { ipAddress: 1, createdAt: -1 },
+      { name: 'activity_ip_date' }
     );
 
-    console.log('✅ ActivityLog indexes created successfully');
+    // Text search index for description
+    await ActivityLog.collection.createIndex(
+      { description: 'text' },
+      { 
+        name: 'activity_text_search',
+        weights: {
+          description: 10
+        }
+      }
+    );
+
+    logger.info('✅ ActivityLog indexes created successfully');
+    return { success: true, count: 4 };
   } catch (error) {
-    console.error('❌ Error creating ActivityLog indexes:', error.message);
+    logger.error('❌ Error creating ActivityLog indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -238,40 +295,41 @@ const createPaymentIndexes = async () => {
   try {
     const Payment = mongoose.model('Payment');
     
-    // Compound indexes for common queries
+    // Index for user payment queries
     await Payment.collection.createIndex(
-      { order: 1 },
-      { name: 'payment_order' }
+      { user: 1, createdAt: -1 },
+      { name: 'payment_user_date' }
     );
 
-    await Payment.collection.createIndex(
-      { customer: 1, createdAt: -1 },
-      { name: 'payment_customer_date' }
-    );
-
+    // Index for payment status queries
     await Payment.collection.createIndex(
       { status: 1, createdAt: -1 },
       { name: 'payment_status_date' }
     );
 
+    // Index for payment method queries
     await Payment.collection.createIndex(
-      { stripePaymentIntentId: 1 },
-      { name: 'payment_stripe_intent' }
+      { paymentMethod: 1, createdAt: -1 },
+      { name: 'payment_method_date' }
     );
 
+    // Index for amount range queries
     await Payment.collection.createIndex(
-      { paypalPaymentId: 1 },
-      { name: 'payment_paypal_id' }
+      { amount: 1, createdAt: -1 },
+      { name: 'payment_amount_date' }
     );
 
+    // Index for transaction ID queries
     await Payment.collection.createIndex(
-      { createdAt: -1 },
-      { name: 'payment_created_date' }
+      { transactionId: 1 },
+      { name: 'payment_transaction_id' }
     );
 
-    console.log('✅ Payment indexes created successfully');
+    logger.info('✅ Payment indexes created successfully');
+    return { success: true, count: 5 };
   } catch (error) {
-    console.error('❌ Error creating Payment indexes:', error.message);
+    logger.error('❌ Error creating Payment indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -282,73 +340,59 @@ const createCartIndexes = async () => {
   try {
     const Cart = mongoose.model('Cart');
     
-    // Compound indexes for common queries
+    // Index for user cart queries
     await Cart.collection.createIndex(
-      { user: 1, updatedAt: -1 },
-      { name: 'cart_user_updated' }
+      { user: 1, createdAt: -1 },
+      { name: 'cart_user_date' }
     );
 
+    // Index for cart status queries
     await Cart.collection.createIndex(
-      { expiresAt: 1 },
-      { name: 'cart_expires_at' }
+      { status: 1, createdAt: -1 },
+      { name: 'cart_status_date' }
     );
 
+    // Index for abandoned cart queries
     await Cart.collection.createIndex(
-      { 'items.product': 1 },
-      { name: 'cart_items_product' }
+      { updatedAt: 1, status: 1 },
+      { name: 'cart_abandoned' }
     );
 
-    // TTL index for automatic cleanup
-    await Cart.collection.createIndex(
-      { expiresAt: 1 },
-      { 
-        name: 'cart_ttl',
-        expireAfterSeconds: 0 
-      }
-    );
-
-    console.log('✅ Cart indexes created successfully');
+    logger.info('✅ Cart indexes created successfully');
+    return { success: true, count: 3 };
   } catch (error) {
-    console.error('❌ Error creating Cart indexes:', error.message);
+    logger.error('❌ Error creating Cart indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
 /**
- * Create indexes for Newsletter collections
+ * Create indexes for Newsletter collection
  */
 const createNewsletterIndexes = async () => {
   try {
-    const NewsletterCampaign = mongoose.model('NewsletterCampaign');
     const NewsletterSubscriber = mongoose.model('NewsletterSubscriber');
     
-    // NewsletterCampaign indexes
-    await NewsletterCampaign.collection.createIndex(
-      { status: 1, scheduledAt: 1 },
-      { name: 'newsletter_campaign_status_scheduled' }
-    );
-
-    await NewsletterCampaign.collection.createIndex(
-      { createdAt: -1 },
-      { name: 'newsletter_campaign_created' }
-    );
-
-    // NewsletterSubscriber indexes
+    // Index for email queries
     await NewsletterSubscriber.collection.createIndex(
       { email: 1 },
       { 
-        name: 'newsletter_subscriber_email_unique',
+        name: 'newsletter_email_unique',
         unique: true 
       }
     );
 
+    // Index for subscription status
     await NewsletterSubscriber.collection.createIndex(
-      { status: 1 },
-      { name: 'newsletter_subscriber_status' }
+      { isSubscribed: 1, createdAt: -1 },
+      { name: 'newsletter_subscription_status' }
     );
 
-    console.log('✅ Newsletter indexes created successfully');
+    logger.info('✅ Newsletter indexes created successfully');
+    return { success: true, count: 2 };
   } catch (error) {
-    console.error('❌ Error creating Newsletter indexes:', error.message);
+    logger.error('❌ Error creating Newsletter indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -359,54 +403,114 @@ const createSupportIndexes = async () => {
   try {
     const Support = mongoose.model('Support');
     
+    // Index for user support queries
     await Support.collection.createIndex(
       { user: 1, createdAt: -1 },
       { name: 'support_user_date' }
     );
 
+    // Index for support status queries
     await Support.collection.createIndex(
-      { status: 1, priority: 1 },
-      { name: 'support_status_priority' }
+      { status: 1, createdAt: -1 },
+      { name: 'support_status_date' }
     );
 
+    // Index for priority queries
     await Support.collection.createIndex(
-      { category: 1, status: 1 },
-      { name: 'support_category_status' }
+      { priority: 1, createdAt: -1 },
+      { name: 'support_priority_date' }
     );
 
+    // Text search index for subject and message
     await Support.collection.createIndex(
-      { createdAt: -1 },
-      { name: 'support_created_date' }
+      { subject: 'text', message: 'text' },
+      { 
+        name: 'support_text_search',
+        weights: {
+          subject: 10,
+          message: 5
+        }
+      }
     );
 
-    console.log('✅ Support indexes created successfully');
+    logger.info('✅ Support indexes created successfully');
+    return { success: true, count: 4 };
   } catch (error) {
-    console.error('❌ Error creating Support indexes:', error.message);
+    logger.error('❌ Error creating Support indexes:', error.message);
+    return { success: false, error: error.message };
   }
 };
 
 /**
- * Create all database indexes
+ * Create all indexes automatically on startup
  */
 const createAllIndexes = async () => {
-  console.log('🔄 Creating database indexes...');
+  logger.info('🚀 Starting automatic index creation...');
+  
+  const startTime = Date.now();
+  const results = {};
   
   try {
-    await Promise.all([
-      createProductIndexes(),
-      createUserIndexes(),
-      createOrderIndexes(),
-      createCategoryIndexes(),
-      createActivityLogIndexes(),
-      createPaymentIndexes(),
-      createCartIndexes(),
-      createNewsletterIndexes(),
-      createSupportIndexes()
-    ]);
+    // Create indexes for all collections
+    const indexFunctions = [
+      { name: 'Product', func: createProductIndexes },
+      { name: 'User', func: createUserIndexes },
+      { name: 'Order', func: createOrderIndexes },
+      { name: 'Category', func: createCategoryIndexes },
+      { name: 'ActivityLog', func: createActivityLogIndexes },
+      { name: 'Payment', func: createPaymentIndexes },
+      { name: 'Cart', func: createCartIndexes },
+      { name: 'NewsletterSubscriber', func: createNewsletterIndexes },
+      { name: 'Support', func: createSupportIndexes }
+    ];
+
+    for (const { name, func } of indexFunctions) {
+      try {
+        const result = await func();
+        results[name] = result;
+        
+        if (result.success) {
+          indexCreationStatus.created += result.count;
+          logger.info(`✅ ${name} indexes created: ${result.count} indexes`);
+        } else {
+          indexCreationStatus.failed += 1;
+          indexCreationStatus.errors.push(`${name}: ${result.error}`);
+          logger.error(`❌ ${name} indexes failed: ${result.error}`);
+        }
+      } catch (error) {
+        indexCreationStatus.failed += 1;
+        indexCreationStatus.errors.push(`${name}: ${error.message}`);
+        logger.error(`❌ ${name} indexes error:`, error.message);
+      }
+    }
+
+    const duration = Date.now() - startTime;
     
-    console.log('✅ All database indexes created successfully');
+    logger.info('🎯 Index creation completed', {
+      duration: `${duration}ms`,
+      created: indexCreationStatus.created,
+      failed: indexCreationStatus.failed,
+      errors: indexCreationStatus.errors.length
+    });
+
+    return {
+      success: indexCreationStatus.failed === 0,
+      duration,
+      created: indexCreationStatus.created,
+      failed: indexCreationStatus.failed,
+      errors: indexCreationStatus.errors,
+      results
+    };
+    
   } catch (error) {
-    console.error('❌ Error creating indexes:', error.message);
+    logger.error('❌ Fatal error during index creation:', error);
+    return {
+      success: false,
+      error: error.message,
+      created: indexCreationStatus.created,
+      failed: indexCreationStatus.failed,
+      errors: indexCreationStatus.errors
+    };
   }
 };
 
@@ -415,28 +519,32 @@ const createAllIndexes = async () => {
  */
 const getIndexInfo = async () => {
   try {
-    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs', 'payments'];
+    const collections = await mongoose.connection.db.listCollections().toArray();
     const indexInfo = {};
 
-    for (const collectionName of collections) {
+    for (const collection of collections) {
       try {
-        const collection = mongoose.connection.collection(collectionName);
-        const indexes = await collection.indexes();
-        indexInfo[collectionName] = indexes.map(index => ({
-          name: index.name,
-          key: index.key,
-          unique: index.unique || false,
-          sparse: index.sparse || false
-        }));
+        const indexes = await mongoose.connection.db.collection(collection.name).indexes();
+        indexInfo[collection.name] = {
+          count: indexes.length,
+          indexes: indexes.map(idx => ({
+            name: idx.name,
+            key: idx.key,
+            unique: idx.unique || false,
+            sparse: idx.sparse || false,
+            size: idx.size || 0
+          }))
+        };
       } catch (error) {
-        console.warn(`⚠️ Could not get indexes for ${collectionName}:`, error.message);
+        logger.warn(`Failed to get index info for ${collection.name}:`, error.message);
+        indexInfo[collection.name] = { error: error.message };
       }
     }
 
     return indexInfo;
   } catch (error) {
-    console.error('❌ Error getting index info:', error.message);
-    return {};
+    logger.error('Failed to get index information:', error);
+    return null;
   }
 };
 
@@ -444,29 +552,67 @@ const getIndexInfo = async () => {
  * Drop all indexes (use with caution!)
  */
 const dropAllIndexes = async () => {
-  console.log('⚠️ Dropping all database indexes...');
-  
   try {
-    const collections = ['products', 'users', 'orders', 'categories', 'activitylogs', 'payments'];
-    
-    for (const collectionName of collections) {
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    const results = {};
+
+    for (const collection of collections) {
       try {
-        const collection = mongoose.connection.collection(collectionName);
-        await collection.dropIndexes();
-        console.log(`✅ Dropped indexes for ${collectionName}`);
+        const indexes = await mongoose.connection.db.collection(collection.name).indexes();
+        const droppedIndexes = [];
+
+        for (const index of indexes) {
+          if (index.name !== '_id_') { // Don't drop the _id index
+            await mongoose.connection.db.collection(collection.name).dropIndex(index.name);
+            droppedIndexes.push(index.name);
+          }
+        }
+
+        results[collection.name] = {
+          success: true,
+          dropped: droppedIndexes.length,
+          indexes: droppedIndexes
+        };
       } catch (error) {
-        console.warn(`⚠️ Could not drop indexes for ${collectionName}:`, error.message);
+        results[collection.name] = {
+          success: false,
+          error: error.message
+        };
       }
     }
-    
-    console.log('✅ All indexes dropped successfully');
+
+    logger.warn('⚠️ All indexes dropped (except _id indexes)');
+    return results;
   } catch (error) {
-    console.error('❌ Error dropping indexes:', error.message);
+    logger.error('Failed to drop indexes:', error);
+    return null;
   }
 };
 
+/**
+ * Initialize indexes on startup
+ */
+const initializeIndexes = async () => {
+  // Check if we should create indexes
+  const shouldCreateIndexes = process.env.CREATE_INDEXES !== 'false';
+  
+  if (!shouldCreateIndexes) {
+    logger.info('⏭️ Skipping index creation (CREATE_INDEXES=false)');
+    return { skipped: true };
+  }
+
+  // Wait for database connection
+  if (mongoose.connection.readyState !== 1) {
+    logger.info('⏳ Waiting for database connection before creating indexes...');
+    await new Promise(resolve => {
+      mongoose.connection.once('connected', resolve);
+    });
+  }
+
+  return await createAllIndexes();
+};
+
 module.exports = {
-  createAllIndexes,
   createProductIndexes,
   createUserIndexes,
   createOrderIndexes,
@@ -476,6 +622,8 @@ module.exports = {
   createCartIndexes,
   createNewsletterIndexes,
   createSupportIndexes,
+  createAllIndexes,
   getIndexInfo,
-  dropAllIndexes
+  dropAllIndexes,
+  initializeIndexes
 }; 

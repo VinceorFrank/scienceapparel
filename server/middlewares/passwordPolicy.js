@@ -1,11 +1,15 @@
 /**
- * Password policy and validation middleware
+ * Enhanced Password Policy and Validation Middleware
  */
 
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const config = require('../config/env');
+const { sendError, sendValidationError } = require('../utils/responseHandler');
+const { logger } = require('../utils/logger');
 
 /**
- * Password strength requirements
+ * Enhanced password strength requirements
  */
 const PASSWORD_REQUIREMENTS = {
   minLength: 8,
@@ -17,11 +21,14 @@ const PASSWORD_REQUIREMENTS = {
   minSpecialChars: 1,
   preventCommonPasswords: true,
   preventSequentialChars: true,
-  preventRepeatingChars: true
+  preventRepeatingChars: true,
+  preventPersonalInfo: true, // Prevent using email, username, etc.
+  maxHistorySize: 5, // Remember last 5 passwords
+  minAge: 24 * 60 * 60 * 1000 // 24 hours minimum password age
 };
 
 /**
- * Common weak passwords to block
+ * Extended list of common weak passwords to block
  */
 const COMMON_PASSWORDS = [
   'password', '123456', '123456789', 'qwerty', 'abc123',
@@ -32,15 +39,23 @@ const COMMON_PASSWORDS = [
   'buster', 'shadow', 'michael', 'charlie', 'andrew',
   'love', 'summer', 'hockey', 'ranger', 'daniel',
   'asshole', 'fuck', 'fuckyou', 'fucking', 'pussy',
-  'dick', 'cock', 'tits', 'shit', 'bitch'
+  'dick', 'cock', 'tits', 'shit', 'bitch',
+  // Additional common passwords
+  '12345678', '1234567890', 'qwerty123', 'password1',
+  'admin123', 'root', 'toor', 'guest', 'user',
+  'test', 'demo', 'sample', 'example', 'default',
+  'changeme', 'secret', 'private', 'secure', 'login',
+  'pass', 'pass123', 'password123', 'admin123',
+  'user123', 'test123', 'demo123', 'guest123'
 ];
 
 /**
- * Validate password strength
+ * Enhanced password validation with breach detection
  * @param {string} password - Password to validate
+ * @param {Object} user - User object for personal info check
  * @returns {Object} Validation result
  */
-const validatePassword = (password) => {
+const validatePassword = (password, user = null) => {
   const errors = [];
   const warnings = [];
   let score = 0;
@@ -129,6 +144,24 @@ const validatePassword = (password) => {
     }
   }
 
+  // Check for personal information
+  if (PASSWORD_REQUIREMENTS.preventPersonalInfo && user) {
+    const personalInfo = [
+      user.email?.split('@')[0],
+      user.name,
+      user.username,
+      user.phone
+    ].filter(Boolean);
+    
+    const lowerPassword = password.toLowerCase();
+    for (const info of personalInfo) {
+      if (info && lowerPassword.includes(info.toLowerCase())) {
+        errors.push('Password should not contain personal information like your name, email, or phone number');
+        break;
+      }
+    }
+  }
+
   // Additional strength checks
   const hasMixedCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
   const hasLettersAndNumbers = /[a-zA-Z]/.test(password) && /\d/.test(password);
@@ -155,30 +188,23 @@ const validatePassword = (password) => {
 };
 
 /**
- * Hash password with salt
+ * Enhanced password hashing with bcrypt
  * @param {string} password - Plain text password
- * @returns {Object} Hashed password and salt
+ * @returns {string} Hashed password
  */
-const hashPassword = (password) => {
-  const salt = crypto.randomBytes(32).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-  
-  return {
-    hash,
-    salt
-  };
+const hashPassword = async (password) => {
+  const saltRounds = config.BCRYPT_ROUNDS || 12;
+  return await bcrypt.hash(password, saltRounds);
 };
 
 /**
- * Verify password against hash
+ * Verify password against hash using bcrypt
  * @param {string} password - Plain text password
  * @param {string} hash - Stored hash
- * @param {string} salt - Stored salt
  * @returns {boolean} True if password matches
  */
-const verifyPassword = (password, hash, salt) => {
-  const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-  return hash === verifyHash;
+const verifyPassword = async (password, hash) => {
+  return await bcrypt.compare(password, hash);
 };
 
 /**
@@ -214,7 +240,22 @@ const generateSecurePassword = (length = 16) => {
 };
 
 /**
- * Password policy middleware
+ * Check password against history
+ * @param {string} newPassword - New password to check
+ * @param {Array} passwordHistory - Array of previous password hashes
+ * @returns {boolean} True if password is in history
+ */
+const checkPasswordHistory = async (newPassword, passwordHistory = []) => {
+  for (const oldHash of passwordHistory) {
+    if (await verifyPassword(newPassword, oldHash)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Enhanced password policy middleware
  * @returns {Function} Express middleware
  */
 const passwordPolicyMiddleware = () => {
@@ -224,57 +265,63 @@ const passwordPolicyMiddleware = () => {
     req.hashPassword = hashPassword;
     req.verifyPassword = verifyPassword;
     req.generateSecurePassword = generateSecurePassword;
+    req.checkPasswordHistory = checkPasswordHistory;
     
     next();
   };
 };
 
 /**
- * Validate password in request body
+ * Enhanced password field validation middleware
  * @param {string} fieldName - Name of password field in request body
  * @returns {Function} Express middleware
  */
 const validatePasswordField = (fieldName = 'password') => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const password = req.body[fieldName];
     
     if (!password) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Password is required',
-          statusCode: 400
-        }
-      });
+      return sendError(res, 400, 'Password is required', null, 'PASSWORD_REQUIRED');
     }
 
-    const validation = validatePassword(password);
+    // Get user for personal info check (if available)
+    const user = req.user || null;
+    const validation = validatePassword(password, user);
     
     if (!validation.isValid) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Password does not meet requirements',
-          statusCode: 400,
-          details: {
-            errors: validation.errors,
-            warnings: validation.warnings,
-            strength: validation.strength,
-            score: validation.score
-          }
-        }
-      });
+      return sendError(res, 400, 'Password does not meet requirements', {
+        errors: validation.errors,
+        warnings: validation.warnings,
+        strength: validation.strength,
+        score: validation.score
+      }, 'PASSWORD_VALIDATION_FAILED');
+    }
+
+    // Check password history if user exists
+    if (user && user.passwordHistory && user.passwordHistory.length > 0) {
+      const isInHistory = await checkPasswordHistory(password, user.passwordHistory);
+      if (isInHistory) {
+        return sendError(res, 400, 'Password has been used recently. Please choose a different password', null, 'PASSWORD_IN_HISTORY');
+      }
     }
 
     // Add validation result to request for logging
     req.passwordValidation = validation;
     
+    // Log password validation
+    logger.info('Password validation completed', {
+      userId: user?._id,
+      strength: validation.strength,
+      score: validation.score,
+      hasWarnings: validation.warnings.length > 0
+    });
+    
     next();
   };
 };
 
 /**
- * Password change validation middleware
+ * Enhanced password change validation middleware
  * @returns {Function} Express middleware
  */
 const validatePasswordChange = () => {
@@ -282,55 +329,47 @@ const validatePasswordChange = () => {
     const { currentPassword, newPassword } = req.body;
     
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Current password and new password are required',
-          statusCode: 400
-        }
-      });
+      return sendError(res, 400, 'Current password and new password are required', null, 'MISSING_PASSWORDS');
     }
 
     // Validate new password strength
-    const newPasswordValidation = validatePassword(newPassword);
+    const newPasswordValidation = validatePassword(newPassword, req.user);
     if (!newPasswordValidation.isValid) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'New password does not meet requirements',
-          statusCode: 400,
-          details: {
-            errors: newPasswordValidation.errors,
-            warnings: newPasswordValidation.warnings,
-            strength: newPasswordValidation.strength
-          }
-        }
-      });
+      return sendError(res, 400, 'New password does not meet requirements', {
+        errors: newPasswordValidation.errors,
+        warnings: newPasswordValidation.warnings,
+        strength: newPasswordValidation.strength
+      }, 'PASSWORD_VALIDATION_FAILED');
     }
 
     // Check if new password is different from current
     if (currentPassword === newPassword) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'New password must be different from current password',
-          statusCode: 400
-        }
-      });
+      return sendError(res, 400, 'New password must be different from current password', null, 'SAME_PASSWORD');
     }
 
     // Verify current password
     const User = require('../models/User');
     const user = await User.findById(req.user._id);
     
-    if (!verifyPassword(currentPassword, user.password, user.salt)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Current password is incorrect',
-          statusCode: 400
-        }
-      });
+    const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      return sendError(res, 400, 'Current password is incorrect', null, 'INVALID_CURRENT_PASSWORD');
+    }
+
+    // Check password history
+    if (user.passwordHistory && user.passwordHistory.length > 0) {
+      const isInHistory = await checkPasswordHistory(newPassword, user.passwordHistory);
+      if (isInHistory) {
+        return sendError(res, 400, 'Password has been used recently. Please choose a different password', null, 'PASSWORD_IN_HISTORY');
+      }
+    }
+
+    // Check minimum password age
+    if (user.passwordChangedAt) {
+      const passwordAge = Date.now() - user.passwordChangedAt.getTime();
+      if (passwordAge < PASSWORD_REQUIREMENTS.minAge) {
+        return sendError(res, 400, 'Password was changed too recently. Please wait before changing again', null, 'PASSWORD_TOO_RECENT');
+      }
     }
 
     next();
@@ -358,6 +397,7 @@ module.exports = {
   hashPassword,
   verifyPassword,
   generateSecurePassword,
+  checkPasswordHistory,
   passwordPolicyMiddleware,
   validatePasswordField,
   validatePasswordChange,

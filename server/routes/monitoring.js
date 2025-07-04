@@ -1,296 +1,447 @@
+/**
+ * Admin-only Database Monitoring Routes
+ * Provides real-time database health, stats, and performance monitoring
+ */
+
 const express = require('express');
 const router = express.Router();
-const { logger, businessLogger } = require('../utils/logger');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { monitoringSystem } = require('../utils/monitoring');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
+const { 
+  checkDatabaseHealth, 
+  getDatabaseStats, 
+  getSlowQueryStats, 
+  setQueryProfiling,
+  optimizeDatabase 
+} = require('../config/database');
+const { getRateLimitStats } = require('../middlewares/rateLimiter');
+const { getStats: getCacheStats } = require('../utils/cache');
+const { getIndexInfo } = require('../utils/databaseIndexes');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
+const { logger } = require('../utils/logger');
+const { CodeQualityAnalyzer, RouteDocumentation, EndpointValidator } = require('../utils/codeDocumentation');
+const path = require('path');
+const fs = require('fs');
 
-// Middleware to ensure admin access
-const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ 
-      success: false, 
-      error: { message: 'Admin access required' } 
-    });
-  }
-  next();
-};
+// Apply admin authentication to all monitoring routes
+router.use(requireAuth, requireAdmin);
 
-// Get system health and statistics
-router.get('/health', requireAdmin, async (req, res) => {
+/**
+ * GET /api/monitoring/db/health
+ * Get database health status
+ */
+router.get('/db/health', async (req, res) => {
   try {
-    const healthData = monitoringSystem.getHealthStatus();
-    businessLogger('health_check', { status: healthData.status }, req);
+    const health = await checkDatabaseHealth();
     
-    sendSuccess(res, 200, 'Health data retrieved successfully', healthData);
+    logger.info('Database health check requested', {
+      userId: req.user._id,
+      status: health.status
+    });
+    
+    return sendSuccess(res, 'Database health retrieved successfully', health);
   } catch (error) {
-    logger.error('Error getting health data', { error: error.message });
-    sendError(res, 500, 'Failed to get health data', error);
+    logger.error('Database health check failed:', error);
+    return sendError(res, 500, 'Failed to check database health', error.message);
   }
 });
 
-// Get log statistics
-router.get('/logs/stats', requireAdmin, async (req, res) => {
+/**
+ * GET /api/monitoring/db/stats
+ * Get comprehensive database statistics
+ */
+router.get('/db/stats', async (req, res) => {
   try {
-    const logsDir = path.join(__dirname, '../logs');
-    const stats = {
-      totalFiles: 0,
-      totalSize: 0,
-      fileTypes: {},
-      recentErrors: 0,
-      recentWarnings: 0,
-      recentInfo: 0
-    };
-
-    if (fs.existsSync(logsDir)) {
-      const files = fs.readdirSync(logsDir);
-      stats.totalFiles = files.length;
-
-      files.forEach(file => {
-        const filePath = path.join(logsDir, file);
-        const fileStats = fs.statSync(filePath);
-        stats.totalSize += fileStats.size;
-
-        const fileType = path.extname(file);
-        stats.fileTypes[fileType] = (stats.fileTypes[fileType] || 0) + 1;
-      });
+    const stats = await getDatabaseStats();
+    
+    if (!stats) {
+      return sendError(res, 503, 'Database not available');
     }
-
-    businessLogger('log_stats_retrieved', { fileCount: stats.totalFiles }, req);
-
-    res.json({
-      success: true,
-      data: stats
+    
+    logger.info('Database stats requested', {
+      userId: req.user._id,
+      collections: stats.collections,
+      dataSize: stats.dataSize
     });
+    
+    return sendSuccess(res, 'Database statistics retrieved successfully', stats);
   } catch (error) {
-    logger.error('Error getting log statistics', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get log statistics' }
-    });
+    logger.error('Database stats retrieval failed:', error);
+    return sendError(res, 500, 'Failed to get database statistics', error.message);
   }
 });
 
-// Get recent log entries (last 100 lines)
-router.get('/logs/recent', requireAdmin, async (req, res) => {
+/**
+ * GET /api/monitoring/db/indexes
+ * Get database index information
+ */
+router.get('/db/indexes', async (req, res) => {
   try {
-    const { type = 'combined', lines = 100 } = req.query;
-    const logsDir = path.join(__dirname, '../logs');
+    const indexInfo = await getIndexInfo();
     
-    // Determine which log file to read
-    let logFile;
-    const today = new Date().toISOString().split('T')[0];
-    
-    switch (type) {
-      case 'error':
-        logFile = path.join(logsDir, `error-${today}.log`);
-        break;
-      case 'http':
-        logFile = path.join(logsDir, `http-${today}.log`);
-        break;
-      default:
-        logFile = path.join(logsDir, `combined-${today}.log`);
+    if (!indexInfo) {
+      return sendError(res, 503, 'Database not available');
     }
-
-    let logEntries = [];
     
-    if (fs.existsSync(logFile)) {
-      const content = fs.readFileSync(logFile, 'utf8');
-      const lines = content.trim().split('\n').filter(line => line.trim());
-      
-      // Parse JSON lines and get the last N entries
-      logEntries = lines
-        .slice(-parseInt(lines))
-        .map(line => {
-          try {
-            return JSON.parse(line);
-          } catch (e) {
-            return { raw: line };
-          }
-        })
-        .reverse(); // Most recent first
-    }
-
-    businessLogger('recent_logs_retrieved', { 
-      type, 
-      count: logEntries.length 
-    }, req);
-
-    res.json({
-      success: true,
-      data: {
-        type,
-        count: logEntries.length,
-        entries: logEntries
-      }
+    logger.info('Database index info requested', {
+      userId: req.user._id,
+      collections: Object.keys(indexInfo).length
     });
+    
+    return sendSuccess(res, 'Database index information retrieved successfully', indexInfo);
   } catch (error) {
-    logger.error('Error getting recent logs', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get recent logs' }
-    });
+    logger.error('Database index info retrieval failed:', error);
+    return sendError(res, 500, 'Failed to get database index information', error.message);
   }
 });
 
-// Get performance metrics
-router.get('/performance', requireAdmin, async (req, res) => {
+/**
+ * GET /api/monitoring/db/slow-queries
+ * Get slow query statistics and recent slow queries
+ */
+router.get('/db/slow-queries', async (req, res) => {
   try {
-    const performanceData = {
+    const slowQueryStats = await getSlowQueryStats();
+    
+    if (!slowQueryStats) {
+      return sendError(res, 503, 'Database not available');
+    }
+    
+    logger.info('Slow query stats requested', {
+      userId: req.user._id,
+      slowQueriesCount: slowQueryStats.slowQueries.length
+    });
+    
+    return sendSuccess(res, 'Slow query statistics retrieved successfully', slowQueryStats);
+  } catch (error) {
+    logger.error('Slow query stats retrieval failed:', error);
+    return sendError(res, 500, 'Failed to get slow query statistics', error.message);
+  }
+});
+
+/**
+ * POST /api/monitoring/db/profiling
+ * Enable/disable query profiling
+ */
+router.post('/db/profiling', async (req, res) => {
+  try {
+    const { level = 0 } = req.body;
+    
+    // Validate profiling level
+    if (![0, 1, 2].includes(level)) {
+      return sendError(res, 400, 'Invalid profiling level. Must be 0, 1, or 2');
+    }
+    
+    const result = await setQueryProfiling(level);
+    
+    if (!result.success) {
+      return sendError(res, 500, 'Failed to set query profiling', result.error);
+    }
+    
+    logger.info('Query profiling updated', {
+      userId: req.user._id,
+      level,
+      action: level === 0 ? 'disabled' : 'enabled'
+    });
+    
+    return sendSuccess(res, `Query profiling ${level === 0 ? 'disabled' : 'enabled'} successfully`, result);
+  } catch (error) {
+    logger.error('Query profiling update failed:', error);
+    return sendError(res, 500, 'Failed to update query profiling', error.message);
+  }
+});
+
+/**
+ * POST /api/monitoring/db/optimize
+ * Run database optimization (compact collections, update stats)
+ */
+router.post('/db/optimize', async (req, res) => {
+  try {
+    logger.info('Database optimization requested', {
+      userId: req.user._id
+    });
+    
+    const result = await optimizeDatabase();
+    
+    if (!result.success) {
+      return sendError(res, 500, 'Database optimization failed', result.error);
+    }
+    
+    logger.info('Database optimization completed', {
+      userId: req.user._id
+    });
+    
+    return sendSuccess(res, 'Database optimization completed successfully', result);
+  } catch (error) {
+    logger.error('Database optimization failed:', error);
+    return sendError(res, 500, 'Failed to optimize database', error.message);
+  }
+});
+
+/**
+ * GET /api/monitoring/rate-limits
+ * Get rate limiting statistics
+ */
+router.get('/rate-limits', async (req, res) => {
+  try {
+    const rateLimitStats = getRateLimitStats();
+    
+    logger.info('Rate limit stats requested', {
+      userId: req.user._id
+    });
+    
+    return sendSuccess(res, 'Rate limit statistics retrieved successfully', rateLimitStats);
+  } catch (error) {
+    logger.error('Rate limit stats retrieval failed:', error);
+    return sendError(res, 500, 'Failed to get rate limit statistics', error.message);
+  }
+});
+
+/**
+ * GET /api/monitoring/cache
+ * Get cache statistics
+ */
+router.get('/cache', async (req, res) => {
+  try {
+    const cacheStats = getCacheStats();
+    
+    logger.info('Cache stats requested', {
+      userId: req.user._id
+    });
+    
+    return sendSuccess(res, 'Cache statistics retrieved successfully', cacheStats);
+  } catch (error) {
+    logger.error('Cache stats retrieval failed:', error);
+    return sendError(res, 500, 'Failed to get cache statistics', error.message);
+  }
+});
+
+/**
+ * GET /api/monitoring/system
+ * Get comprehensive system monitoring data
+ */
+router.get('/system', async (req, res) => {
+  try {
+    const [dbHealth, dbStats, rateLimitStats, cacheStats, indexInfo] = await Promise.all([
+      checkDatabaseHealth(),
+      getDatabaseStats(),
+      Promise.resolve(getRateLimitStats()),
+      Promise.resolve(getCacheStats()),
+      getIndexInfo()
+    ]);
+    
+    const systemStats = {
       timestamp: new Date().toISOString(),
-      memory: {
-        heapUsed: process.memoryUsage().heapUsed,
-        heapTotal: process.memoryUsage().heapTotal,
-        external: process.memoryUsage().external,
-        rss: process.memoryUsage().rss
+      database: {
+        health: dbHealth,
+        stats: dbStats,
+        indexes: indexInfo
       },
-      cpu: {
-        loadAverage: os.loadavg(),
-        uptime: os.uptime()
-      },
-      process: {
+      rateLimiting: rateLimitStats,
+      cache: cacheStats,
+      system: {
         uptime: process.uptime(),
-        pid: process.pid,
-        version: process.version,
+        memory: process.memoryUsage(),
+        nodeVersion: process.version,
         platform: process.platform
       }
     };
-
-    businessLogger('performance_metrics_retrieved', { status: 'success' }, req);
-
-    res.json({
-      success: true,
-      data: performanceData
-    });
-  } catch (error) {
-    logger.error('Error getting performance metrics', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get performance metrics' }
-    });
-  }
-});
-
-// Get rate limit status
-router.get('/rate-limits', requireAdmin, async (req, res) => {
-  try {
-    // This would typically come from your rate limiter implementation
-    const rateLimitData = {
-      timestamp: new Date().toISOString(),
-      status: 'active',
-      limits: {
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100 // limit each IP to 100 requests per windowMs
-      },
-      blockedIPs: 0, // This would be tracked by your rate limiter
-      totalRequests: 0 // This would be tracked by your rate limiter
-    };
-
-    businessLogger('rate_limit_status_retrieved', { status: 'success' }, req);
-
-    res.json({
-      success: true,
-      data: rateLimitData
-    });
-  } catch (error) {
-    logger.error('Error getting rate limit status', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get rate limit status' }
-    });
-  }
-});
-
-// Get password policy status
-router.get('/password-requirements', requireAdmin, async (req, res) => {
-  try {
-    const passwordPolicy = {
-      timestamp: new Date().toISOString(),
-      minLength: 8,
-      requireUppercase: true,
-      requireLowercase: true,
-      requireNumbers: true,
-      requireSpecialChars: true,
-      preventCommonPasswords: true,
-      maxAge: 90 // days
-    };
-
-    businessLogger('password_policy_retrieved', { status: 'success' }, req);
-
-    res.json({
-      success: true,
-      data: passwordPolicy
-    });
-  } catch (error) {
-    logger.error('Error getting password policy', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get password policy' }
-    });
-  }
-});
-
-// Get cache status
-router.get('/cache', requireAdmin, async (req, res) => {
-  try {
-    const cacheData = {
-      timestamp: new Date().toISOString(),
-      status: 'active',
-      type: 'memory',
-      hits: 0, // This would be tracked by your cache implementation
-      misses: 0, // This would be tracked by your cache implementation
-      size: 0 // This would be tracked by your cache implementation
-    };
-
-    businessLogger('cache_status_retrieved', { status: 'success' }, req);
-
-    res.json({
-      success: true,
-      data: cacheData
-    });
-  } catch (error) {
-    logger.error('Error getting cache status', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get cache status' }
-    });
-  }
-});
-
-// Get database indexes status
-router.get('/database-indexes', requireAdmin, async (req, res) => {
-  try {
-    const mongoose = require('mongoose');
-    const db = mongoose.connection.db;
     
-    const collections = await db.listCollections().toArray();
-    const indexData = {
-      timestamp: new Date().toISOString(),
-      collections: collections.length,
-      indexes: {}
-    };
+    logger.info('System monitoring data requested', {
+      userId: req.user._id
+    });
+    
+    return sendSuccess(res, 'System monitoring data retrieved successfully', systemStats);
+  } catch (error) {
+    logger.error('System monitoring failed:', error);
+    return sendError(res, 500, 'Failed to get system monitoring data', error.message);
+  }
+});
 
-    for (const collection of collections) {
-      const indexes = await db.collection(collection.name).indexes();
-      indexData.indexes[collection.name] = indexes.length;
-    }
+/**
+ * POST /api/monitoring/rate-limits/reset
+ * Reset rate limiting statistics
+ */
+router.post('/rate-limits/reset', async (req, res) => {
+  try {
+    const { resetRateLimitStats } = require('../middlewares/rateLimiter');
+    resetRateLimitStats();
+    
+    logger.info('Rate limit stats reset', {
+      userId: req.user._id
+    });
+    
+    return sendSuccess(res, 'Rate limit statistics reset successfully');
+  } catch (error) {
+    logger.error('Rate limit stats reset failed:', error);
+    return sendError(res, 500, 'Failed to reset rate limit statistics', error.message);
+  }
+});
 
-    businessLogger('database_indexes_retrieved', { 
-      collectionCount: collections.length 
+// GET /api/monitoring/code-quality - Get code quality analysis (admin only)
+router.get('/code-quality', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const analyzer = new CodeQualityAnalyzer();
+    const routesDir = path.join(__dirname, '../routes');
+    const utilsDir = path.join(__dirname, '../utils');
+    const middlewaresDir = path.join(__dirname, '../middlewares');
+    
+    // Analyze route files
+    const routeFiles = fs.readdirSync(routesDir)
+      .filter(file => file.endsWith('.js'))
+      .map(file => path.join(routesDir, file));
+    
+    // Analyze utility files
+    const utilFiles = fs.readdirSync(utilsDir)
+      .filter(file => file.endsWith('.js'))
+      .map(file => path.join(utilsDir, file));
+    
+    // Analyze middleware files
+    const middlewareFiles = fs.readdirSync(middlewaresDir)
+      .filter(file => file.endsWith('.js'))
+      .map(file => path.join(middlewaresDir, file));
+    
+    const allFiles = [...routeFiles, ...utilFiles, ...middlewareFiles];
+    const analyses = allFiles.map(file => analyzer.analyzeFile(file));
+    
+    const report = analyzer.generateReport();
+    
+    businessLogger('code_quality_analysis', {
+      filesAnalyzed: allFiles.length,
+      totalIssues: report.summary.totalIssues,
+      qualityScore: report.summary.qualityScore
     }, req);
 
-    res.json({
-      success: true,
-      data: indexData
+    return sendSuccess(res, 200, 'Code quality analysis completed', {
+      summary: report.summary,
+      analyses: analyses.filter(analysis => !analysis.error),
+      recommendations: report.recommendations
     });
-  } catch (error) {
-    logger.error('Error getting database indexes', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: { message: 'Failed to get database indexes' }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/monitoring/endpoint-validation - Validate API endpoints (admin only)
+router.get('/endpoint-validation', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const validator = new EndpointValidator();
+    
+    // Add known endpoints for validation
+    const endpoints = [
+      {
+        method: 'GET',
+        path: '/api/products',
+        access: 'Public',
+        hasAuthMiddleware: false,
+        hasValidation: true,
+        hasErrorHandling: true
+      },
+      {
+        method: 'POST',
+        path: '/api/products',
+        access: 'Admin',
+        hasAuthMiddleware: true,
+        hasValidation: true,
+        hasErrorHandling: true
+      },
+      {
+        method: 'GET',
+        path: '/api/orders',
+        access: 'Private',
+        hasAuthMiddleware: true,
+        hasValidation: false,
+        hasErrorHandling: true
+      },
+      {
+        method: 'POST',
+        path: '/api/orders',
+        access: 'Private',
+        hasAuthMiddleware: true,
+        hasValidation: true,
+        hasErrorHandling: true
+      }
+    ];
+    
+    endpoints.forEach(endpoint => validator.addEndpoint(endpoint));
+    const validationResults = validator.validate();
+    
+    businessLogger('endpoint_validation', {
+      totalEndpoints: validationResults.total,
+      validEndpoints: validationResults.valid,
+      invalidEndpoints: validationResults.invalid
+    }, req);
+
+    return sendSuccess(res, 200, 'Endpoint validation completed', validationResults);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/monitoring/generate-docs - Generate API documentation (admin only)
+router.get('/generate-docs', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const docGenerator = new RouteDocumentation();
+    
+    // Add route documentation
+    docGenerator.addRoute(
+      'GET',
+      '/api/products',
+      'Get all products with pagination and filtering',
+      'Public',
+      {
+        page: { description: 'Page number', type: 'number' },
+        limit: { description: 'Items per page', type: 'number' },
+        search: { description: 'Search term', type: 'string' },
+        category: { description: 'Category ID', type: 'string' }
+      },
+      {},
+      {
+        '200': {
+          success: true,
+          message: 'Products retrieved successfully',
+          data: [],
+          pagination: {}
+        }
+      }
+    );
+    
+    docGenerator.addRoute(
+      'POST',
+      '/api/products',
+      'Create a new product',
+      'Admin',
+      {},
+      {
+        name: 'string',
+        description: 'string',
+        price: 'number',
+        stock: 'number',
+        category: 'string'
+      },
+      {
+        '201': {
+          success: true,
+          message: 'Product created successfully',
+          data: {}
+        }
+      }
+    );
+    
+    // Generate and save documentation
+    const docsPath = path.join(__dirname, '../docs/api-documentation.md');
+    docGenerator.saveToFile(docsPath);
+    
+    businessLogger('api_docs_generated', {
+      docsPath: docsPath,
+      routesCount: docGenerator.routes.length
+    }, req);
+
+    return sendSuccess(res, 200, 'API documentation generated successfully', {
+      docsPath: docsPath,
+      routesDocumented: docGenerator.routes.length
     });
+  } catch (err) {
+    next(err);
   }
 });
 

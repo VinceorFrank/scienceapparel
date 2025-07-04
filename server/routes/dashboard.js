@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const { parsePaginationParams, executePaginatedQuery, createPaginatedResponse } = require('../utils/pagination');
 const ActivityLog = require('../models/ActivityLog');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendPaginated 
+} = require('../utils/responseHandler');
+const { businessLogger } = require('../utils/logger');
 
 // GET /api/dashboard/overview - Get comprehensive dashboard overview (admin only)
-router.get('/overview', protect, admin, async (req, res, next) => {
+router.get('/overview', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { period } = req.query;
     
@@ -201,8 +207,7 @@ router.get('/overview', protect, admin, async (req, res, next) => {
     // Add lowStockProducts array to the overview response
     const lowStockProductsArr = await Product.find({ stock: { $lte: 10 } });
 
-    res.json({
-      success: true,
+    const overviewData = {
       period,
       // Flat metrics for frontend compatibility
       totalSales: orderData.totalRevenue || 0,
@@ -211,10 +216,10 @@ router.get('/overview', protect, admin, async (req, res, next) => {
       pendingOrders: orderData.pendingOrders || 0,
       lowStock: productData.lowStockProducts || 0,
       lowStockProducts: lowStockProductsArr,
-      recentRegistrations: userData.totalUsers || 0, // or another field if you track this separately
+      recentRegistrations: userData.totalUsers || 0,
       averageOrderValue: orderData.averageOrderValue || 0,
-      returnRate: 0, // (set to 0 or calculate if you have returns)
-      alerts: 0, // (set to 0 or calculate if you have alerts)
+      returnRate: 0,
+      alerts: 0,
       // Keep the original nested overview for backward compatibility
       overview: {
         users: userData,
@@ -226,14 +231,25 @@ router.get('/overview', protect, admin, async (req, res, next) => {
         lowStockProducts: lowStockProductsArr
       },
       recentActivity
-    });
+    };
+
+    businessLogger('dashboard_overview_retrieved', {
+      period: period,
+      metrics: {
+        totalSales: overviewData.totalSales,
+        totalOrders: overviewData.totalOrders,
+        activeUsers: overviewData.activeUsers
+      }
+    }, req);
+
+    return sendSuccess(res, 200, 'Dashboard overview retrieved successfully', overviewData);
   } catch (err) {
     next(err);
   }
 });
 
 // GET /api/dashboard/sales-chart - Get sales data for charts (admin only)
-router.get('/sales-chart', protect, admin, async (req, res, next) => {
+router.get('/sales-chart', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { period = '30d', groupBy = 'day' } = req.query;
     
@@ -285,8 +301,13 @@ router.get('/sales-chart', protect, admin, async (req, res, next) => {
       { $sort: { _id: 1 } }
     ]);
 
-    res.json({
-      success: true,
+    businessLogger('sales_chart_retrieved', {
+      period: period,
+      groupBy: groupBy,
+      dataPoints: salesData.length
+    }, req);
+
+    return sendSuccess(res, 200, 'Sales chart data retrieved successfully', {
       period,
       groupBy,
       salesData
@@ -297,7 +318,7 @@ router.get('/sales-chart', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/dashboard/top-products - Get top selling products (admin only)
-router.get('/top-products', protect, admin, async (req, res, next) => {
+router.get('/top-products', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { limit = 10, period = '30d' } = req.query;
     
@@ -355,8 +376,13 @@ router.get('/top-products', protect, admin, async (req, res, next) => {
       { $limit: parseInt(limit) }
     ]);
 
-    res.json({
-      success: true,
+    businessLogger('top_products_retrieved', {
+      period: period,
+      limit: limit,
+      productCount: topProducts.length
+    }, req);
+
+    return sendSuccess(res, 200, 'Top products retrieved successfully', {
       period,
       topProducts
     });
@@ -366,7 +392,7 @@ router.get('/top-products', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/dashboard/recent-orders - Get recent orders (admin only)
-router.get('/recent-orders', protect, admin, async (req, res, next) => {
+router.get('/recent-orders', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { limit = 10 } = req.query;
 
@@ -378,8 +404,12 @@ router.get('/recent-orders', protect, admin, async (req, res, next) => {
       .populate('user', 'name email')
       .populate('orderItems.product', 'name price image');
 
-    res.json({
-      success: true,
+    businessLogger('recent_orders_retrieved', {
+      limit: limit,
+      orderCount: recentOrders.length
+    }, req);
+
+    return sendSuccess(res, 200, 'Recent orders retrieved successfully', {
       recentOrders
     });
   } catch (err) {
@@ -388,7 +418,7 @@ router.get('/recent-orders', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/dashboard/activity-log - Get recent activity log (admin only)
-router.get('/activity-log', protect, admin, async (req, res, next) => {
+router.get('/activity-log', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, action, user } = req.query;
     const paginationParams = parsePaginationParams({ page, limit });
@@ -397,12 +427,32 @@ router.get('/activity-log', protect, admin, async (req, res, next) => {
     if (action) filters.action = action;
     if (user) filters.user = user;
 
-    const result = await executePaginatedQuery(ActivityLog, filters, paginationParams, {
-      populate: 'user',
-      sort: { createdAt: -1 }
-    });
+    const result = await executePaginatedQuery(
+      ActivityLog,
+      filters,
+      paginationParams,
+      {
+        populate: 'user',
+        sort: { createdAt: -1 }
+      }
+    );
 
-    res.json(createPaginatedResponse(result.data, result.page, result.limit, result.total));
+    businessLogger('activity_log_retrieved', {
+      page: page,
+      limit: limit,
+      action: action,
+      user: user,
+      logCount: result.data.length
+    }, req);
+
+    return sendPaginated(
+      res,
+      result.data,
+      paginationParams.page,
+      paginationParams.limit,
+      result.total,
+      'Activity log retrieved successfully'
+    );
   } catch (err) {
     next(err);
   }

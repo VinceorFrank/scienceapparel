@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const { 
   getShippingOptions, 
   getShippingSettingsForAdmin, 
@@ -8,7 +8,8 @@ const {
   validateShippingAddress,
   calculateDeliveryDate
 } = require('../utils/shipping');
-const { logger } = require('../utils/logger');
+const { logger, businessLogger } = require('../utils/logger');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // Helper function to convert object with numeric keys to array
 const convertOrderItemsToArray = (orderItems) => {
@@ -25,44 +26,53 @@ const convertOrderItemsToArray = (orderItems) => {
   return null;
 };
 
-// Test endpoint to debug JSON parsing
+// Test endpoint for debugging
 router.post('/test', (req, res) => {
-  console.log('Test endpoint hit');
-  const { orderItems, origin, destination } = req.body;
-  console.log('Request body:', req.body);
-  console.log('orderItems typeof:', typeof orderItems);
-  console.log('orderItems isArray:', Array.isArray(orderItems));
-  console.log('orderItems value:', orderItems);
-  
-  // Convert orderItems to array if needed
-  const convertedOrderItems = convertOrderItemsToArray(orderItems);
-  console.log('Converted orderItems:', convertedOrderItems);
-  
-  if (!convertedOrderItems || !Array.isArray(convertedOrderItems) || convertedOrderItems.length === 0) {
-    console.log('Validation failed - convertedOrderItems:', convertedOrderItems);
-    return res.status(400).json({
-      success: false,
-      error: 'Order items are required and must be an array',
-      debug: {
-        original: {
-          typeof: typeof orderItems,
-          isArray: Array.isArray(orderItems),
-          value: orderItems
-        },
-        converted: {
-          typeof: typeof convertedOrderItems,
-          isArray: Array.isArray(convertedOrderItems),
-          value: convertedOrderItems
-        }
-      }
+  try {
+    businessLogger('shipping_test_endpoint', {
+      body: req.body,
+      method: req.method
+    }, req);
+
+    const { orderItems, shippingAddress } = req.body;
+
+    if (!orderItems || !Array.isArray(orderItems)) {
+      return sendError(res, 400, 'orderItems must be an array', null, 'INVALID_ORDER_ITEMS');
+    }
+
+    const convertedOrderItems = orderItems.map(item => ({
+      product: item.productId,
+      quantity: parseInt(item.quantity),
+      price: parseFloat(item.price)
+    }));
+
+    businessLogger('shipping_test_validation', {
+      originalItems: orderItems,
+      convertedItems: convertedOrderItems,
+      itemCount: convertedOrderItems.length
+    }, req);
+
+    // Validate converted items
+    const validItems = convertedOrderItems.every(item => 
+      item.product && item.quantity > 0 && item.price > 0
+    );
+
+    if (!validItems) {
+      return sendError(res, 400, 'Invalid order items format', null, 'INVALID_ORDER_FORMAT');
+    }
+
+    return sendSuccess(res, 200, 'Test endpoint working', {
+      originalItems: orderItems,
+      convertedItems: convertedOrderItems,
+      itemCount: convertedOrderItems.length
     });
+  } catch (err) {
+    logger.error('Shipping test endpoint error', {
+      error: err.message,
+      body: req.body
+    });
+    next(err);
   }
-  res.json({
-    success: true,
-    orderItems: convertedOrderItems,
-    origin,
-    destination
-  });
 });
 
 /**
@@ -198,7 +208,7 @@ router.get('/carriers', async (req, res) => {
  * GET /api/shipping/settings
  * Get shipping settings (admin only)
  */
-router.get('/settings', requireAuth, admin, async (req, res) => {
+router.get('/settings', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const result = await getShippingSettingsForAdmin();
     
@@ -206,7 +216,11 @@ router.get('/settings', requireAuth, admin, async (req, res) => {
       return res.status(500).json(result);
     }
 
-    res.json(result);
+    businessLogger('shipping_settings_retrieved', {
+      settings: result
+    }, req);
+
+    return sendSuccess(res, 200, 'Shipping settings retrieved successfully', result);
   } catch (error) {
     logger.error('Error getting shipping settings:', error);
     res.status(500).json({
@@ -220,7 +234,7 @@ router.get('/settings', requireAuth, admin, async (req, res) => {
  * PUT /api/shipping/settings
  * Update shipping settings (admin only)
  */
-router.put('/settings', requireAuth, admin, async (req, res) => {
+router.put('/settings', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const updates = req.body;
     
@@ -279,12 +293,11 @@ router.put('/settings', requireAuth, admin, async (req, res) => {
       return res.status(500).json(result);
     }
 
-    logger.info('Shipping settings updated by admin', {
-      adminId: req.user._id,
-      updates: Object.keys(updates)
-    });
+    businessLogger('shipping_settings_updated', {
+      settings: updates
+    }, req);
 
-    res.json(result);
+    return sendSuccess(res, 200, 'Shipping settings updated successfully', result);
   } catch (error) {
     logger.error('Error updating shipping settings:', error);
     res.status(500).json({
@@ -349,7 +362,7 @@ router.post('/estimate', async (req, res) => {
  * GET /api/shipping/analytics
  * Get shipping analytics (admin only)
  */
-router.get('/analytics', requireAuth, admin, async (req, res) => {
+router.get('/analytics', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { period = '30d' } = req.query;
     
@@ -386,7 +399,7 @@ router.get('/analytics', requireAuth, admin, async (req, res) => {
  * POST /api/shipping/test-carrier
  * Test carrier API connection (admin only)
  */
-router.post('/test-carrier', requireAuth, admin, async (req, res) => {
+router.post('/test-carrier', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { carrierName, apiKey, apiSecret } = req.body;
 
@@ -418,6 +431,96 @@ router.post('/test-carrier', requireAuth, admin, async (req, res) => {
       success: false,
       error: 'Failed to test carrier API'
     });
+  }
+});
+
+// @desc    Calculate shipping rates
+// @route   POST /api/shipping/calculate
+// @access  Public
+router.post('/calculate', async (req, res, next) => {
+  try {
+    const { orderItems, shippingAddress } = req.body;
+
+    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      return sendError(res, 400, 'Order items are required and must be an array', null, 'INVALID_ORDER_ITEMS');
+    }
+
+    if (!shippingAddress) {
+      return sendError(res, 400, 'Shipping address is required', null, 'MISSING_SHIPPING_ADDRESS');
+    }
+
+    const convertedOrderItems = convertOrderItemsToArray(orderItems);
+    
+    if (!convertedOrderItems || !Array.isArray(convertedOrderItems) || convertedOrderItems.length === 0) {
+      return sendError(res, 400, 'Invalid order items format', null, 'INVALID_ORDER_FORMAT');
+    }
+
+    const rates = await calculateShippingRates(convertedOrderItems, shippingAddress);
+    
+    businessLogger('shipping_calculation', {
+      itemCount: convertedOrderItems.length,
+      destination: shippingAddress,
+      ratesCount: rates.length
+    }, req);
+
+    return sendSuccess(res, 200, 'Shipping rates calculated successfully', rates);
+  } catch (err) {
+    logger.error('Shipping calculation error', {
+      error: err.message,
+      orderItems: req.body.orderItems,
+      shippingAddress: req.body.shippingAddress
+    });
+    next(err);
+  }
+});
+
+// @desc    Get shipping options
+// @route   GET /api/shipping/options
+// @access  Public
+router.get('/options', async (req, res, next) => {
+  try {
+    const options = await getShippingOptions();
+    
+    businessLogger('shipping_options_retrieved', {
+      optionsCount: options.length
+    }, req);
+
+    return sendSuccess(res, 200, 'Shipping options retrieved successfully', options);
+  } catch (err) {
+    logger.error('Shipping options error', {
+      error: err.message
+    });
+    next(err);
+  }
+});
+
+// @desc    Calculate delivery date
+// @route   POST /api/shipping/delivery-date
+// @access  Public
+router.post('/delivery-date', async (req, res, next) => {
+  try {
+    const { shippingMethod, orderDate } = req.body;
+
+    if (!shippingMethod) {
+      return sendError(res, 400, 'Shipping method is required', null, 'MISSING_SHIPPING_METHOD');
+    }
+
+    const deliveryDate = calculateDeliveryDate(shippingMethod, orderDate);
+    
+    businessLogger('delivery_date_calculated', {
+      shippingMethod: shippingMethod,
+      orderDate: orderDate,
+      deliveryDate: deliveryDate
+    }, req);
+
+    return sendSuccess(res, 200, 'Delivery date calculated successfully', { deliveryDate });
+  } catch (err) {
+    logger.error('Delivery date calculation error', {
+      error: err.message,
+      shippingMethod: req.body.shippingMethod,
+      orderDate: req.body.orderDate
+    });
+    next(err);
   }
 });
 

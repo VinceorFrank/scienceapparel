@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 // 1. Customer Lifetime Value (CLV) - Enhanced with individual customer data
 exports.getCLV = async (req, res) => {
@@ -49,14 +50,14 @@ exports.getCLV = async (req, res) => {
       }
     ]);
 
-    res.json({ 
+    sendSuccess(res, { 
       averageCLV: averageCLV.toFixed(2),
       totalRevenue: totalRevenue.toFixed(2),
       uniqueCustomers: uniqueCustomerCount,
       customerCLV: customerCLV.slice(0, 20) // Top 20 customers
     });
   } catch (err) {
-    res.status(500).json({ message: 'Error calculating CLV', error: err.message });
+    sendError(res, 500, 'Error calculating CLV', err);
   }
 };
 
@@ -106,7 +107,7 @@ exports.getConversionRate = async (req, res) => {
       { $sort: { date: 1 } }
     ]);
 
-    res.json({
+    sendSuccess(res, {
       period: `${period} days`,
       conversionRate: conversionRate.toFixed(2),
       totalOrders,
@@ -117,7 +118,7 @@ exports.getConversionRate = async (req, res) => {
       dailyConversions
     });
   } catch (err) {
-    res.status(500).json({ message: 'Error calculating conversion rate', error: err.message });
+    sendError(res, 500, 'Error calculating conversion rate', err);
   }
 };
 
@@ -199,7 +200,7 @@ exports.getAbandonedCartMetrics = async (req, res) => {
       };
     });
 
-    res.json({
+    sendSuccess(res, {
       period: `${period} days`,
       abandonmentRate: abandonmentRate.toFixed(2),
       abandonedCount,
@@ -209,7 +210,7 @@ exports.getAbandonedCartMetrics = async (req, res) => {
       abandonmentByCategory: abandonmentByCategoryWithNames
     });
   } catch (err) {
-    res.status(500).json({ message: 'Error calculating abandoned cart metrics', error: err.message });
+    sendError(res, 500, 'Error calculating abandoned cart metrics', err);
   }
 };
 
@@ -253,7 +254,7 @@ exports.getNewsletterAnalytics = async (req, res) => {
     const successfulCampaigns = await NewsletterCampaign.countDocuments({ status: 'sent' });
     const successRate = totalCampaigns > 0 ? (successfulCampaigns / totalCampaigns * 100) : 0;
     
-    res.json({
+    sendSuccess(res, {
       subscriberGrowth,
       campaignStats,
       recentCampaigns,
@@ -263,7 +264,7 @@ exports.getNewsletterAnalytics = async (req, res) => {
       successRate: successRate.toFixed(2)
     });
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching newsletter analytics', error: err.message });
+    sendError(res, 500, 'Error fetching newsletter analytics', err);
   }
 };
 
@@ -319,14 +320,14 @@ exports.getAdminActivityAnalytics = async (req, res) => {
       { $sort: { activityCount: -1 } }
     ]);
     
-    res.json({
+    sendSuccess(res, {
       activityByType,
       activityOverTime,
       adminActivity,
       totalActivities: await ActivityLog.countDocuments()
     });
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching admin activity analytics', error: err.message });
+    sendError(res, 500, 'Error fetching admin activity analytics', err);
   }
 };
 
@@ -340,9 +341,9 @@ exports.getUsersByCountry = async (req, res) => {
     ]);
     const result = {};
     countryCounts.forEach(c => { result[c._id] = c.count; });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching user country stats', error: err.message });
+    sendError(res, 500, 'Error fetching user country stats', err);
   }
 };
 
@@ -357,9 +358,9 @@ exports.getRevenueOverTime = async (req, res) => {
       },
       { $sort: { _id: 1 } }
     ]);
-    res.json(revenue.map(r => ({ month: r._id, total: r.total })));
+    sendSuccess(res, revenue.map(r => ({ month: r._id, total: r.total })));
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching revenue', error: err.message });
+    sendError(res, 500, 'Error fetching revenue', err);
   }
 };
 
@@ -382,9 +383,9 @@ exports.getTopProducts = async (req, res) => {
       const prod = products.find(p => p._id.toString() === tp._id.toString());
       return { name: prod ? prod.name : 'Unknown', totalSold: tp.totalSold };
     });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching top products', error: err.message });
+    sendError(res, 500, 'Error fetching top products', err);
   }
 };
 
@@ -397,9 +398,9 @@ exports.getOrdersByStatus = async (req, res) => {
       const status = order.status || (order.isPaid ? (order.isDelivered ? 'Delivered' : 'Paid') : 'Pending');
       statusMap[status] = (statusMap[status] || 0) + 1;
     });
-    res.json(statusMap);
+    sendSuccess(res, statusMap);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching order status stats', error: err.message });
+    sendError(res, 500, 'Error fetching order status stats', err);
   }
 };
 
@@ -415,9 +416,9 @@ exports.getNewCustomersOverTime = async (req, res) => {
       },
       { $sort: { _id: 1 } }
     ]);
-    res.json(customers.map(c => ({ month: c._id, count: c.count })));
+    sendSuccess(res, customers.map(c => ({ month: c._id, count: c.count })));
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching new customers', error: err.message });
+    sendError(res, 500, 'Error fetching new customers', err);
   }
 };
 
@@ -447,9 +448,9 @@ exports.getRevenueByCategory = async (req, res) => {
       const cat = categories.find(c => c._id.toString() === r._id.toString());
       return { category: cat ? cat.name : 'Unknown', total: r.total };
     });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching revenue by category', error: err.message });
+    sendError(res, 500, 'Error fetching revenue by category', err);
   }
 };
 
@@ -460,9 +461,9 @@ exports.getAOV = async (req, res) => {
     const totalRevenue = orders.reduce((sum, order) => sum + order.totalPrice, 0);
     const orderCount = orders.length;
     const aov = orderCount > 0 ? totalRevenue / orderCount : 0;
-    res.json({ aov: aov.toFixed(2) });
+    sendSuccess(res, { aov: aov.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ message: 'Error calculating AOV', error: err.message });
+    sendError(res, 500, 'Error calculating AOV', err);
   }
 };
 
@@ -470,9 +471,9 @@ exports.getAOV = async (req, res) => {
 exports.getLowStockProducts = async (req, res) => {
   try {
     const products = await Product.find({ stock: { $lt: 10 } });
-    res.json(products.map(p => ({ name: p.name, stock: p.stock })));
+    sendSuccess(res, products.map(p => ({ name: p.name, stock: p.stock })));
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching low stock products', error: err.message });
+    sendError(res, 500, 'Error fetching low stock products', err);
   }
 };
 
@@ -490,16 +491,16 @@ exports.getRepeatVsOneTimeCustomers = async (req, res) => {
       if (count > 1) repeat++;
       else oneTime++;
     });
-    res.json({ repeat, oneTime });
+    sendSuccess(res, { repeat, oneTime });
   } catch (err) {
-    res.status(500).json({ message: 'Error calculating repeat customers', error: err.message });
+    sendError(res, 500, 'Error calculating repeat customers', err);
   }
 };
 
 exports.getCustomPieChart = async (req, res) => {
   try {
     const { collection, groupBy, filter = {} } = req.body;
-    if (!collection || !groupBy) return res.status(400).json({ error: 'Missing params' });
+    if (!collection || !groupBy) return sendError(res, 400, 'Missing params');
 
     const modelMap = {
       users: require('../models/User'),
@@ -508,7 +509,7 @@ exports.getCustomPieChart = async (req, res) => {
       categories: require('../models/Category'),
     };
     const Model = modelMap[collection];
-    if (!Model) return res.status(400).json({ error: 'Invalid collection' });
+    if (!Model) return sendError(res, 400, 'Invalid collection');
 
     // Build aggregation
     const pipeline = [];
@@ -536,7 +537,7 @@ exports.getCustomPieChart = async (req, res) => {
       }
       const ids = data.map(d => d._id).filter(id => id);
       const refs = await refModel.find({ _id: { $in: ids } });
-      res.json(data.map(d => ({
+      sendSuccess(res, data.map(d => ({
         label: (() => {
           if (!d._id) return 'Unknown';
           const ref = refs.find(r => r._id.toString() === d._id.toString());
@@ -547,9 +548,9 @@ exports.getCustomPieChart = async (req, res) => {
       return;
     }
 
-    res.json(data.map(d => ({ label: d._id || 'Unknown', value: d.value })));
+    sendSuccess(res, data.map(d => ({ label: d._id || 'Unknown', value: d.value })));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendError(res, 500, 'Error fetching custom pie chart', err);
   }
 };
 
@@ -571,9 +572,9 @@ exports.getSupportTicketStats = async (req, res) => {
       }
     });
     const avgResponseTime = responseCount > 0 ? (totalResponseTime / responseCount) : 0;
-    res.json({ total: tickets.length, resolved, unresolved, avgResponseTime: avgResponseTime.toFixed(2) });
+    sendSuccess(res, { total: tickets.length, resolved, unresolved, avgResponseTime: avgResponseTime.toFixed(2) });
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching support ticket stats', error: err.message });
+    sendError(res, 500, 'Error fetching support ticket stats', err);
   }
 };
 
@@ -597,9 +598,9 @@ exports.getTopCustomers = async (req, res) => {
         totalSpend: u.totalSpend
       };
     });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching top customers', error: err.message });
+    sendError(res, 500, 'Error fetching top customers', err);
   }
 };
 
@@ -619,9 +620,9 @@ exports.getRevenueByProduct = async (req, res) => {
       const prod = products.find(p => p._id.toString() === r._id.toString());
       return { name: prod ? prod.name : 'Unknown', total: r.total, qty: r.qty };
     });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching revenue by product', error: err.message });
+    sendError(res, 500, 'Error fetching revenue by product', err);
   }
 };
 
@@ -648,8 +649,8 @@ exports.getOrderStatusOverTime = async (req, res) => {
       d.statusCounts.forEach(sc => { counts[sc.status] = sc.count; });
       return { month: d._id, ...counts };
     });
-    res.json(result);
+    sendSuccess(res, result);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching order status over time', error: err.message });
+    sendError(res, 500, 'Error fetching order status over time', err);
   }
 }; 

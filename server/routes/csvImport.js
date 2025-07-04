@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 const { Parser } = require('json2csv');
 const ActivityLog = require('../models/ActivityLog');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendCreated 
+} = require('../utils/responseHandler');
+const { businessLogger } = require('../utils/logger');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -38,10 +44,10 @@ const upload = multer({
 });
 
 // POST /api/csv-import/products - Import products from CSV
-router.post('/products', protect, admin, upload.single('file'), async (req, res, next) => {
+router.post('/products', requireAuth, requireAdmin, upload.single('file'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No CSV file uploaded' });
+      return sendError(res, 400, 'No CSV file uploaded', null, 'NO_FILE_UPLOADED');
     }
 
     const Product = require('../models/Product');
@@ -51,7 +57,6 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
     let importedCount = 0;
     let updatedCount = 0;
 
-    // Read and parse CSV file
     fs.createReadStream(req.file.path)
       .pipe(csv())
       .on('data', async (data) => {
@@ -63,16 +68,14 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
           }
 
           // Find or create category
-          let categoryId = null;
+          let category = null;
           if (data.category) {
-            let category = await Category.findOne({ 
+            category = await Category.findOne({ 
               name: { $regex: new RegExp(`^${data.category}$`, 'i') } 
             });
             if (!category) {
-              category = new Category({ name: data.category });
-              await category.save();
+              category = await Category.create({ name: data.category });
             }
-            categoryId = category._id;
           }
 
           // Check if product exists
@@ -85,11 +88,12 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
             description: data.description || '',
             price: parseFloat(data.price),
             stock: parseInt(data.stock) || 0,
-            category: categoryId,
+            category: category ? category._id : null,
             featured: data.featured === 'true',
             archived: data.archived === 'true',
-            discountPrice: data.discountPrice ? parseFloat(data.discountPrice) : undefined,
-            tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : []
+            discountPrice: data.discountPrice ? parseFloat(data.discountPrice) : null,
+            tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+            image: data.image || ''
           };
 
           if (existingProduct) {
@@ -119,9 +123,13 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
           description: `Imported ${importedCount} new products, updated ${updatedCount} products from CSV`
         });
 
-        res.json({
-          success: true,
-          message: `Import completed: ${importedCount} created, ${updatedCount} updated`,
+        businessLogger('csv_import_products_completed', {
+          imported: importedCount,
+          updated: updatedCount,
+          errors: errors.length
+        }, req);
+
+        return sendSuccess(res, 200, `Import completed: ${importedCount} created, ${updatedCount} updated`, {
           summary: {
             imported: importedCount,
             updated: updatedCount,
@@ -136,7 +144,7 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        res.status(500).json({ message: 'Error processing CSV file', error: error.message });
+        return sendError(res, 500, 'Error processing CSV file', error, 'CSV_PROCESSING_ERROR');
       });
   } catch (err) {
     next(err);
@@ -144,10 +152,10 @@ router.post('/products', protect, admin, upload.single('file'), async (req, res,
 });
 
 // POST /api/csv-import/users - Import users from CSV
-router.post('/users', protect, admin, upload.single('file'), async (req, res, next) => {
+router.post('/users', requireAuth, requireAdmin, upload.single('file'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No CSV file uploaded' });
+      return sendError(res, 400, 'No CSV file uploaded', null, 'NO_FILE_UPLOADED');
     }
 
     const User = require('../models/User');
@@ -214,9 +222,13 @@ router.post('/users', protect, admin, upload.single('file'), async (req, res, ne
           description: `Imported ${importedCount} new users, updated ${updatedCount} users from CSV`
         });
 
-        res.json({
-          success: true,
-          message: `Import completed: ${importedCount} created, ${updatedCount} updated`,
+        businessLogger('csv_import_users_completed', {
+          imported: importedCount,
+          updated: updatedCount,
+          errors: errors.length
+        }, req);
+
+        return sendSuccess(res, 200, `Import completed: ${importedCount} created, ${updatedCount} updated`, {
           summary: {
             imported: importedCount,
             updated: updatedCount,
@@ -231,7 +243,7 @@ router.post('/users', protect, admin, upload.single('file'), async (req, res, ne
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        res.status(500).json({ message: 'Error processing CSV file', error: error.message });
+        return sendError(res, 500, 'Error processing CSV file', error, 'CSV_PROCESSING_ERROR');
       });
   } catch (err) {
     next(err);
@@ -239,10 +251,10 @@ router.post('/users', protect, admin, upload.single('file'), async (req, res, ne
 });
 
 // POST /api/csv-import/categories - Import categories from CSV
-router.post('/categories', protect, admin, upload.single('file'), async (req, res, next) => {
+router.post('/categories', requireAuth, requireAdmin, upload.single('file'), async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'No CSV file uploaded' });
+      return sendError(res, 400, 'No CSV file uploaded', null, 'NO_FILE_UPLOADED');
     }
 
     const Category = require('../models/Category');
@@ -302,9 +314,13 @@ router.post('/categories', protect, admin, upload.single('file'), async (req, re
           description: `Imported ${importedCount} new categories, updated ${updatedCount} categories from CSV`
         });
 
-        res.json({
-          success: true,
-          message: `Import completed: ${importedCount} created, ${updatedCount} updated`,
+        businessLogger('csv_import_categories_completed', {
+          imported: importedCount,
+          updated: updatedCount,
+          errors: errors.length
+        }, req);
+
+        return sendSuccess(res, 200, `Import completed: ${importedCount} created, ${updatedCount} updated`, {
           summary: {
             imported: importedCount,
             updated: updatedCount,
@@ -319,7 +335,7 @@ router.post('/categories', protect, admin, upload.single('file'), async (req, re
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        res.status(500).json({ message: 'Error processing CSV file', error: error.message });
+        return sendError(res, 500, 'Error processing CSV file', error, 'CSV_PROCESSING_ERROR');
       });
   } catch (err) {
     next(err);
@@ -327,7 +343,7 @@ router.post('/categories', protect, admin, upload.single('file'), async (req, re
 });
 
 // GET /api/csv-export/products - Export products to CSV
-router.get('/products', protect, admin, async (req, res, next) => {
+router.get('/products', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const Product = require('../models/Product');
     const Category = require('../models/Category');
@@ -371,7 +387,7 @@ router.get('/products', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/csv-export/users - Export users to CSV
-router.get('/users', protect, admin, async (req, res, next) => {
+router.get('/users', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const User = require('../models/User');
 
@@ -413,7 +429,7 @@ router.get('/users', protect, admin, async (req, res, next) => {
 });
 
 // GET /api/csv-export/categories - Export categories to CSV
-router.get('/categories', protect, admin, async (req, res, next) => {
+router.get('/categories', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const Category = require('../models/Category');
 

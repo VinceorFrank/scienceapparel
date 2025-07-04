@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
-const connectDB = require('./config/database');
+const { connectDB } = require('./config/database');
 const config = require('./config/env');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const { dynamicRateLimiter, trackRateLimitStats } = require('./middlewares/rateLimiter');
@@ -33,8 +33,40 @@ const app = express();
 // Parse JSON bodies FIRST, before any other middleware or routes
 app.use(express.json({ limit: '1mb' }));
 
-// Connect to database
-connectDB();
+// Connect to database and initialize indexes
+const initializeDatabase = async () => {
+  try {
+    // Connect to database
+    await connectDB();
+    
+    // Initialize database indexes
+    const { initializeIndexes } = require('./utils/databaseIndexes');
+    const indexResult = await initializeIndexes();
+    
+    if (indexResult.skipped) {
+      logger.info('⏭️ Index creation skipped');
+    } else if (indexResult.success) {
+      logger.info('✅ Database indexes initialized successfully', {
+        created: indexResult.created,
+        duration: indexResult.duration
+      });
+    } else {
+      logger.warn('⚠️ Some database indexes failed to create', {
+        created: indexResult.created,
+        failed: indexResult.failed,
+        errors: indexResult.errors
+      });
+    }
+  } catch (error) {
+    logger.error('❌ Database initialization failed:', error);
+    if (config.NODE_ENV === 'production') {
+      process.exit(1);
+    }
+  }
+};
+
+// Initialize database
+initializeDatabase();
 
 // Schedule log cleanup (run every 24 hours)
 logCleanup.scheduleCleanup(24);

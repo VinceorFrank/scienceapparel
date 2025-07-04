@@ -5,13 +5,13 @@
 
 const express = require('express');
 const router = express.Router();
-const { requireAuth: protect, admin } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const securityAudit = require('../utils/securityAudit');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 const { validatePagination, validateDateRange } = require('../middlewares/security/requestValidation');
 
 // GET /api/security/stats - Get security statistics
-router.get('/stats', protect, admin, async (req, res) => {
+router.get('/stats', requireAuth, requireAdmin, async (req, res) => {
   try {
     const stats = securityAudit.getSecurityStats();
     
@@ -22,7 +22,7 @@ router.get('/stats', protect, admin, async (req, res) => {
 });
 
 // GET /api/security/events - Get security events with filtering
-router.get('/events', protect, admin, validatePagination, validateDateRange, async (req, res) => {
+router.get('/events', requireAuth, requireAdmin, validatePagination, validateDateRange, async (req, res) => {
   try {
     const { page = 1, limit = 20, type, severity, startDate, endDate } = req.query;
     
@@ -70,7 +70,7 @@ router.get('/events', protect, admin, validatePagination, validateDateRange, asy
 });
 
 // GET /api/security/blocked-ips - Get blocked IP addresses
-router.get('/blocked-ips', protect, admin, async (req, res) => {
+router.get('/blocked-ips', requireAuth, requireAdmin, async (req, res) => {
   try {
     const blockedIPs = Array.from(securityAudit.blockedIPs);
     
@@ -84,7 +84,7 @@ router.get('/blocked-ips', protect, admin, async (req, res) => {
 });
 
 // POST /api/security/unblock-ip/:ip - Unblock an IP address
-router.post('/unblock-ip/:ip', protect, admin, async (req, res) => {
+router.post('/unblock-ip/:ip', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { ip } = req.params;
     
@@ -112,7 +112,7 @@ router.post('/unblock-ip/:ip', protect, admin, async (req, res) => {
 });
 
 // GET /api/security/suspicious-ips - Get suspicious IP addresses
-router.get('/suspicious-ips', protect, admin, async (req, res) => {
+router.get('/suspicious-ips', requireAuth, requireAdmin, async (req, res) => {
   try {
     const suspiciousIPs = Array.from(securityAudit.suspiciousActivities.entries())
       .map(([ip, data]) => ({
@@ -134,7 +134,7 @@ router.get('/suspicious-ips', protect, admin, async (req, res) => {
 });
 
 // POST /api/security/block-ip/:ip - Manually block an IP address
-router.post('/block-ip/:ip', protect, admin, async (req, res) => {
+router.post('/block-ip/:ip', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { ip } = req.params;
     const { reason = 'Manually blocked by admin' } = req.body;
@@ -152,7 +152,7 @@ router.post('/block-ip/:ip', protect, admin, async (req, res) => {
 });
 
 // GET /api/security/report - Generate security report
-router.get('/report', protect, admin, async (req, res) => {
+router.get('/report', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { period = '24h' } = req.query;
     
@@ -232,7 +232,7 @@ router.get('/report', protect, admin, async (req, res) => {
 });
 
 // POST /api/security/clear-events - Clear old security events
-router.post('/clear-events', protect, admin, async (req, res) => {
+router.post('/clear-events', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { days = 7 } = req.body;
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);

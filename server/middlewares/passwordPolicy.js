@@ -290,12 +290,12 @@ const validatePasswordField = (fieldName = 'password') => {
     
     if (!validation.isValid) {
       return sendError(res, 400, 'Password does not meet requirements', {
-        errors: validation.errors,
-        warnings: validation.warnings,
-        strength: validation.strength,
-        score: validation.score
+            errors: validation.errors,
+            warnings: validation.warnings,
+            strength: validation.strength,
+            score: validation.score
       }, 'PASSWORD_VALIDATION_FAILED');
-    }
+        }
 
     // Check password history if user exists
     if (user && user.passwordHistory && user.passwordHistory.length > 0) {
@@ -336,9 +336,9 @@ const validatePasswordChange = () => {
     const newPasswordValidation = validatePassword(newPassword, req.user);
     if (!newPasswordValidation.isValid) {
       return sendError(res, 400, 'New password does not meet requirements', {
-        errors: newPasswordValidation.errors,
-        warnings: newPasswordValidation.warnings,
-        strength: newPasswordValidation.strength
+            errors: newPasswordValidation.errors,
+            warnings: newPasswordValidation.warnings,
+            strength: newPasswordValidation.strength
       }, 'PASSWORD_VALIDATION_FAILED');
     }
 

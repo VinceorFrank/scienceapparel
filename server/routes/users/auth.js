@@ -105,6 +105,37 @@ router.post('/signup', validateUserRegistration, async (req, res) => {
   }
 });
 
+// User register (alias for signup)
+router.post('/register', validateUserRegistration, async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return sendConflict(res, 'User');
+    }
+    // Create new user
+    const newUser = new User({ name, email, password, phone });
+    await newUser.save();
+    // Log activity
+    await ActivityLog.create({
+      user: newUser._id,
+      action: 'user_registration',
+      description: `New user registered: ${email}`,
+      ipAddress: req.ip
+    });
+    sendSuccess(res, 201, 'User created successfully', {
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email
+      }
+    });
+  } catch (err) {
+    sendError(res, 500, 'Server error', err);
+  }
+});
+
 /**
  * @swagger
  * /api/users/auth/login:

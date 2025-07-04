@@ -228,7 +228,7 @@ router.delete('/', requireAuth, async (req, res, next) => {
       action: 'clear_cart',
       description: `Cleared entire cart (${cart.items.length} items)`
     });
-    
+
     // Clear cart
     await cart.clearCart();
     

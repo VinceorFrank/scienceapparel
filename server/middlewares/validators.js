@@ -15,8 +15,8 @@ const validateRequest = (req, res, next) => {
   
   if (!errors.isEmpty()) {
     const validationErrors = errors.array().map(error => ({
-      field: error.path,
-      message: error.msg,
+          field: error.path,
+          message: error.msg,
       value: error.value,
       type: error.type
     }));
@@ -557,4 +557,4 @@ module.exports = {
   validateAddress,
   validateCategory,
   validatePagination
-};
+}; 

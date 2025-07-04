@@ -432,8 +432,8 @@ router.get('/activity-log', requireAuth, requireAdmin, async (req, res, next) =>
       filters,
       paginationParams,
       {
-        populate: 'user',
-        sort: { createdAt: -1 }
+      populate: 'user',
+      sort: { createdAt: -1 }
       }
     );
 

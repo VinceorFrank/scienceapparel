@@ -523,10 +523,10 @@ router.post('/me/:id/cancel', requireAuth, async (req, res, next) => {
     });
 
     return sendUpdated(res, 'Order cancelled successfully', {
-      id: order._id,
-      orderStatus: order.orderStatus,
-      cancellationReason: order.cancellationReason,
-      cancelledAt: order.cancelledAt
+        id: order._id,
+        orderStatus: order.orderStatus,
+        cancellationReason: order.cancellationReason,
+        cancelledAt: order.cancelledAt
     });
   } catch (err) {
     next(err);
@@ -579,10 +579,10 @@ router.post('/me/:id/review', requireAuth, async (req, res, next) => {
     });
 
     return sendCreated(res, 'Review submitted successfully', {
-      productId,
-      rating,
-      comment,
-      submittedAt: new Date()
+        productId,
+        rating,
+        comment,
+        submittedAt: new Date()
     });
   } catch (err) {
     next(err);

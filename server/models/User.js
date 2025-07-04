@@ -249,7 +249,7 @@ userSchema.pre('save', async function (next) {
     this.failedLoginAttempts = 0;
     this.accountLockedUntil = null;
     
-    next();
+  next();
   } catch (error) {
     next(error);
   }

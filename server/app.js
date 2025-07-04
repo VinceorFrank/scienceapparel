@@ -36,7 +36,7 @@ app.use(express.json({ limit: '1mb' }));
 // Connect to database and initialize indexes
 const initializeDatabase = async () => {
   try {
-    // Connect to database
+// Connect to database
     await connectDB();
     
     // Initialize database indexes

@@ -76,7 +76,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res, next) => {
     if (req.file.size > maxSize) {
       return sendError(res, 400, 'File too large. Maximum size is 5MB', null, 'FILE_TOO_LARGE');
     }
-
+    
     businessLogger('file_upload_processing', {
       fileName: req.file.originalname,
       fileSize: req.file.size
@@ -103,7 +103,7 @@ router.post('/', requireAuth, upload.single('file'), async (req, res, next) => {
       data: {
         fileName: fileName,
         originalName: req.file.originalname,
-        size: req.file.size,
+      size: req.file.size,
         mimeType: req.file.mimetype,
         url: `/uploads/images/${fileName}`
       }

@@ -555,7 +555,7 @@ const dropAllIndexes = async () => {
   try {
     const collections = await mongoose.connection.db.listCollections().toArray();
     const results = {};
-
+    
     for (const collection of collections) {
       try {
         const indexes = await mongoose.connection.db.collection(collection.name).indexes();
@@ -580,7 +580,7 @@ const dropAllIndexes = async () => {
         };
       }
     }
-
+    
     logger.warn('⚠️ All indexes dropped (except _id indexes)');
     return results;
   } catch (error) {

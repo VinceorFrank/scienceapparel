@@ -53,7 +53,9 @@ export const deleteUser = async (userId) => {
 // Login user
 export const loginUser = async (credentials) => {
   try {
-    const res = await api.post('/auth/login', credentials);
+    const payload = { ...credentials, email: credentials.email.toLowerCase() };
+    console.log('LOGIN API CALL:', '/users/auth/login', payload);
+    const res = await api.post('/users/auth/login', payload);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Login failed');
@@ -63,7 +65,7 @@ export const loginUser = async (credentials) => {
 // Register user
 export const registerUser = async (userData) => {
   try {
-    const res = await api.post('/auth/register', userData);
+    const res = await api.post('/users/auth/register', userData);
     return res.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || 'Registration failed');

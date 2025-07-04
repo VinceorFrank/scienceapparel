@@ -11,14 +11,14 @@ const LoginCustomer = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("/users/login", {
+      const res = await api.post("/users/auth/login", {
         email,
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userName", res.data.user.name);
-      localStorage.setItem("userEmail", res.data.user.email);
+      localStorage.setItem("token", res.data.data.token);
+      localStorage.setItem("userName", res.data.data.user.name);
+      localStorage.setItem("userEmail", res.data.data.user.email);
       localStorage.setItem("userRole", "customer");
 
       navigate("/account");

@@ -147,7 +147,7 @@ router.post('/db/profiling', async (req, res) => {
   } catch (error) {
     logger.error('Query profiling update failed:', error);
     return sendError(res, 500, 'Failed to update query profiling', error.message);
-  }
+    }
 });
 
 /**
@@ -245,11 +245,11 @@ router.get('/system', async (req, res) => {
         platform: process.platform
       }
     };
-    
+
     logger.info('System monitoring data requested', {
       userId: req.user._id
     });
-    
+
     return sendSuccess(res, 'System monitoring data retrieved successfully', systemStats);
   } catch (error) {
     logger.error('System monitoring failed:', error);

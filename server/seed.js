@@ -2,12 +2,17 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const faker = require('faker');
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
 const Category = require('./models/Category');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/scienceapparel';
+const NUM_USERS = parseInt(process.env.SEED_USERS || process.argv[2] || 10, 10);
+const NUM_PRODUCTS = parseInt(process.env.SEED_PRODUCTS || process.argv[3] || 20, 10);
+const NUM_CATEGORIES = parseInt(process.env.SEED_CATEGORIES || process.argv[4] || 4, 10);
 
 // Function to ensure product images exist
 const ensureProductImages = () => {
@@ -41,6 +46,10 @@ const ensureProductImages = () => {
   });
 };
 
+const hashPassword = async (plain) => await bcrypt.hash(plain, 10);
+
+const randomCategory = (categories) => categories[Math.floor(Math.random() * categories.length)]._id;
+
 const seedDatabase = async () => {
   try {
     await mongoose.connect(MONGO_URI);
@@ -65,16 +74,31 @@ const seedDatabase = async () => {
       { name: 'Books', description: 'Science and educational books.' },
       { name: 'Posters & Art', description: 'Scientific posters and art prints.' },
     ];
+    // Add more random categories if needed
+    for (let i = 4; i < NUM_CATEGORIES; i++) {
+      categoriesToSeed.push({
+        name: faker.commerce.department() + ' ' + faker.random.word(),
+        description: faker.lorem.sentence(),
+      });
+    }
     const createdCategories = await Category.insertMany(categoriesToSeed);
     console.log('✅ Categories seeded.');
 
     // --- Create Users ---
     console.log('--- Seeding Users ---');
     const usersToSeed = [
-      { name: 'Admin User', email: 'admin@example.com', password: 'password123', isAdmin: true, role: 'admin' },
-      { name: 'John Doe', email: 'john@example.com', password: 'password123', role: 'customer' },
-      { name: 'Jane Smith', email: 'jane@example.com', password: 'password123', role: 'customer' },
+      { name: 'Admin User', email: 'admin@example.com', password: await hashPassword('password123'), isAdmin: true, role: 'admin' },
+      { name: 'John Doe', email: 'john@example.com', password: await hashPassword('password123'), role: 'customer' },
+      { name: 'Jane Smith', email: 'jane@example.com', password: await hashPassword('password123'), role: 'customer' },
     ];
+    for (let i = 3; i < NUM_USERS; i++) {
+      usersToSeed.push({
+        name: faker.name.findName(),
+        email: faker.internet.email(),
+        password: await hashPassword('password123'),
+        role: 'customer',
+      });
+    }
     const createdUsers = await User.create(usersToSeed);
     const adminUser = createdUsers[0];
     const customerUser1 = createdUsers[1];
@@ -83,6 +107,14 @@ const seedDatabase = async () => {
 
     // --- Create Products ---
     console.log('--- Seeding Products ---');
+    const productImages = [
+      'beaker-mug.jpg',
+      'serotonin-necklace.jpg',
+      'cosmos-book.jpg',
+      'periodic-shirt.jpg',
+      'galaxy-poster.jpg',
+      'microscope.jpg',
+    ];
     const productsToSeed = [
       { name: 'Beaker Mug', description: 'A mug shaped like a laboratory beaker.', price: 15.99, stock: 100, category: createdCategories[1]._id, image: 'beaker-mug.jpg' },
       { name: 'Serotonin Molecule Necklace', description: 'A stylish necklace featuring the serotonin molecule.', price: 25.50, stock: 50, category: createdCategories[0]._id, image: 'serotonin-necklace.jpg' },
@@ -91,6 +123,16 @@ const seedDatabase = async () => {
       { name: 'Galaxy Wall Poster', description: 'A high-quality print of a stunning galaxy.', price: 12.00, stock: 200, category: createdCategories[3]._id, image: 'galaxy-poster.jpg' },
       { name: 'Microscope Set', description: 'A beginner microscope set for all ages.', price: 75.00, stock: 30, category: createdCategories[1]._id, image: 'microscope.jpg' },
     ];
+    for (let i = 6; i < NUM_PRODUCTS; i++) {
+      productsToSeed.push({
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        price: parseFloat(faker.commerce.price()),
+        stock: faker.datatype.number({ min: 10, max: 200 }),
+        category: randomCategory(createdCategories),
+        image: faker.random.arrayElement(productImages),
+      });
+    }
     const createdProducts = await Product.insertMany(productsToSeed);
     console.log('✅ Products seeded.');
 
@@ -146,7 +188,9 @@ const seedDatabase = async () => {
     await Order.insertMany(ordersToSeed);
     console.log('✅ Orders seeded.');
 
-    console.log('\nDatabase seeding completed successfully!');
+    // --- Summary Output ---
+    console.log(`\nDatabase seeding completed successfully!`);
+    console.log(`Seeded: ${createdUsers.length} users, ${createdProducts.length} products, ${createdCategories.length} categories.`);
   } catch (error) {
     console.error('Error seeding database:', error);
     process.exit(1);

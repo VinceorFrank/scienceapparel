@@ -58,7 +58,9 @@ router.delete('/addresses/:addressId', requireAuth, deleteAddress);
 router.put('/addresses/:addressId/default', requireAuth, setDefaultAddress);
 
 // Legacy route for backward compatibility (login)
-router.post('/login', loginHandler);
+router.post('/login', (req, res) => {
+  res.redirect(307, '/api/users/auth/login');
+});
 
 // Legacy route redirects for backward compatibility
 router.get('/me', (req, res) => {

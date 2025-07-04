@@ -407,8 +407,8 @@ const getRateLimitStats = () => {
     summary: {
       totalRequests: rateLimitStats.totalRequests,
       blockedRequests: rateLimitStats.blockedRequests,
-      blockedRate: `${totalBlockedRate}%`,
-      timestamp: new Date().toISOString()
+    blockedRate: `${totalBlockedRate}%`,
+    timestamp: new Date().toISOString()
     },
     topEndpoints,
     topUsers,

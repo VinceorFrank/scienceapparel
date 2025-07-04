@@ -325,7 +325,7 @@ router.delete('/:id', requireAuth, requireAdmin, validateProductId, validateRequ
                 path: serverImagePath,
                 error: err.message
               });
-            }
+        }
           });
         }
       }
@@ -521,36 +521,36 @@ router.get('/stats/reviews', requireAuth, requireAdmin, async (req, res, next) =
     ]);
 
     const data = {
-      totals: {
-        totalProducts,
-        totalReviews: avgRating[0]?.totalReviews || 0,
-        averageRating: avgRating[0]?.avgRating.toFixed(1) || 0,
-        averagePrice: avgPrice[0]?.avgPrice.toFixed(2) || 0,
-        outOfStockCount,
-        fiveStarOnlyCount,
-        lowStockCount: lowStockProducts.length
-      },
-      topRated,
-      mostReviewed,
-      highestPriceProduct,
-      lowStockProducts,
-      productsPerCategory: productsPerCategory.reduce((acc, cat) => {
-        acc[cat._id] = cat.count;
-        return acc;
-      }, {}),
-      reviewsPerCategory: reviewsPerCategory.reduce((acc, cat) => {
-        acc[cat._id] = cat.totalReviews;
-        return acc;
-      }, {}),
-      customStats: {
-        featuredCount,
-        archivedCount,
-        onSaleCount,
-        tags: tagStats.reduce((acc, tag) => {
-          acc[tag._id] = tag.count;
+        totals: {
+          totalProducts,
+          totalReviews: avgRating[0]?.totalReviews || 0,
+          averageRating: avgRating[0]?.avgRating.toFixed(1) || 0,
+          averagePrice: avgPrice[0]?.avgPrice.toFixed(2) || 0,
+          outOfStockCount,
+          fiveStarOnlyCount,
+          lowStockCount: lowStockProducts.length
+        },
+        topRated,
+        mostReviewed,
+        highestPriceProduct,
+        lowStockProducts,
+        productsPerCategory: productsPerCategory.reduce((acc, cat) => {
+          acc[cat._id] = cat.count;
           return acc;
-        }, {})
-      }
+        }, {}),
+        reviewsPerCategory: reviewsPerCategory.reduce((acc, cat) => {
+          acc[cat._id] = cat.totalReviews;
+          return acc;
+        }, {}),
+        customStats: {
+          featuredCount,
+          archivedCount,
+          onSaleCount,
+          tags: tagStats.reduce((acc, tag) => {
+            acc[tag._id] = tag.count;
+            return acc;
+          }, {})
+        }
     };
 
     return sendSuccess(res, 200, 'Product statistics retrieved successfully', data);

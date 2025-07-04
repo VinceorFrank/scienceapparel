@@ -9,6 +9,7 @@ const Support = require('./models/Support');
 const NewsletterSubscriber = require('./models/NewsletterSubscriber');
 const NewsletterCampaign = require('./models/NewsletterCampaign');
 const config = require('./config/env');
+const { faker } = require('@faker-js/faker');
 
 // Helper for random selection
 function getRandom(arr, n) {
@@ -53,21 +54,29 @@ async function seed() {
   const categories = await Category.insertMany(categoryNames.map(name => ({ name })));
 
   // --- USERS ---
+  // Hashing function
+  const hashPassword = async (plain) => await bcrypt.hash(plain, 10);
   // Admin
   const admin = await User.create({
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'password123',
+    password: await hashPassword('password123'),
     isAdmin: true,
     role: 'admin',
     createdAt: daysAgo(Math.floor(Math.random() * 7)),
     updatedAt: daysAgo(Math.floor(Math.random() * 7)),
   });
-  // 10 customers
-  const customerData = Array.from({ length: 10 }).map((_, i) => ({
-    name: `User${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    password: 'password123',
+  // 10 customers (hashed passwords)
+  const NUM_USERS = 10;
+  const customerData = [
+    { name: 'John Doe', email: 'john@example.com', password: await hashPassword('password123'), role: 'customer', createdAt: daysAgo(Math.floor(Math.random() * 7)), updatedAt: daysAgo(Math.floor(Math.random() * 7)), address: { address: '101 Main St', city: 'Anytown', postalCode: '12340', country: 'USA' } },
+    { name: 'Jane Smith', email: 'jane@example.com', password: await hashPassword('password123'), role: 'customer', createdAt: daysAgo(Math.floor(Math.random() * 7)), updatedAt: daysAgo(Math.floor(Math.random() * 7)), address: { address: '102 Main St', city: 'Anytown', postalCode: '12341', country: 'USA' } },
+  ];
+  for (let i = 2; i < NUM_USERS; i++) {
+    customerData.push({
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      password: await hashPassword('password123'),
     role: 'customer',
     createdAt: daysAgo(Math.floor(Math.random() * 7)),
     updatedAt: daysAgo(Math.floor(Math.random() * 7)),
@@ -77,7 +86,8 @@ async function seed() {
       postalCode: `1234${i}`,
       country: 'USA',
     },
-  }));
+    });
+  }
   const customers = await User.insertMany(customerData);
 
   // --- PRODUCTS ---

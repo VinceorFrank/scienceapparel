@@ -14,13 +14,24 @@ const {
   optimizeDatabase 
 } = require('../config/database');
 const { getRateLimitStats } = require('../middlewares/rateLimiter');
-const { getStats: getCacheStats } = require('../utils/cache');
+// Cache stats will be retrieved from the advanced cache manager
 const { getIndexInfo } = require('../utils/databaseIndexes');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 const { logger } = require('../utils/logger');
 const { CodeQualityAnalyzer, RouteDocumentation, EndpointValidator } = require('../utils/codeDocumentation');
 const path = require('path');
 const fs = require('fs');
+const { auditLog, AUDIT_EVENTS } = require('../utils/auditLogger');
+const { requirePermission } = require('../middlewares/rbac');
+const { PERMISSIONS } = require('../middlewares/rbac');
+const { comprehensiveSanitizer } = require('../middlewares/security/enhancedSanitizer');
+const { validateHeaders } = require('../middlewares/security/requestValidation');
+const { asyncHandler } = require('../middlewares/errorHandler/standardizedErrorHandler');
+const { trackRequest } = require('../utils/monitoring');
+const { dbOptimizer } = require('../utils/databaseOptimizer');
+const { cacheManager } = require('../utils/advancedCache');
+const { messageQueue } = require('../utils/messageQueue');
+const { prometheusMetrics } = require('../monitoring/prometheusMetrics');
 
 // Apply admin authentication to all monitoring routes
 router.use(requireAuth, requireAdmin);
@@ -202,7 +213,7 @@ router.get('/rate-limits', async (req, res) => {
  */
 router.get('/cache', async (req, res) => {
   try {
-    const cacheStats = getCacheStats();
+    const cacheStats = cacheManager.getStats();
     
     logger.info('Cache stats requested', {
       userId: req.user._id
@@ -225,7 +236,7 @@ router.get('/system', async (req, res) => {
       checkDatabaseHealth(),
       getDatabaseStats(),
       Promise.resolve(getRateLimitStats()),
-      Promise.resolve(getCacheStats()),
+      Promise.resolve(cacheManager.getStats()),
       getIndexInfo()
     ]);
     

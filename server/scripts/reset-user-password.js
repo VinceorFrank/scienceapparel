@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce';
@@ -12,8 +11,7 @@ async function resetPassword(email, newPassword) {
       console.log('❌ No user found with email:', email);
       return;
     }
-    const hashed = await bcrypt.hash(newPassword, 10);
-    user.password = hashed;
+    user.password = newPassword; // Set plain password, let pre-save hook hash it
     await user.save();
     console.log(`✅ Password for ${email} has been reset to: ${newPassword}`);
   } catch (err) {

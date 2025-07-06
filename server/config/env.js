@@ -1,6 +1,8 @@
 // Environment configuration with enhanced security validation
 require('dotenv').config();
 
+const PORT = process.env.PORT || 5050;
+
 const config = {
   // Database
   MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce',
@@ -20,7 +22,6 @@ const config = {
   JWT_AUDIENCE: process.env.JWT_AUDIENCE || 'ecommerce-users',
   
   // Server
-  PORT: process.env.PORT || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Security
@@ -163,7 +164,8 @@ const validateConfig = () => {
   }
   
   // Port validation
-  const port = parseInt(config.PORT);
+  console.log('DEBUG: PORT =', PORT);
+  const port = parseInt(PORT);
   if (isNaN(port) || port < 1 || port > 65535) {
     errors.push('PORT must be a valid port number between 1 and 65535');
   }
@@ -276,10 +278,12 @@ const getJWTConfig = () => {
   };
 };
 
+// Export config with validation already run above. PORT is always set from process.env.PORT or 5050.
 module.exports = {
   ...validateConfig(),
   validateConfig,
   getDatabaseOptions,
   getSecurityConfig,
-  getJWTConfig
+  getJWTConfig,
+  PORT
 }; 

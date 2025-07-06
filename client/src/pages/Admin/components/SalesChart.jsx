@@ -13,6 +13,8 @@ import {
 import api from '../../../api/config';
 import { useLang } from '../../../utils/lang';
 
+console.log("SalesChart component loaded");
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -37,9 +39,14 @@ const SalesChart = () => {
       try {
         setLoading(true);
         const response = await api.get('/dashboard/sales-chart');
-        if (response.data && response.data.salesData) {
-          const labels = response.data.salesData.map(d => d._id);
-          const data = response.data.salesData.map(d => d.totalRevenue);
+        const salesData = response.data?.data?.salesData || [];
+        if (salesData.length) {
+          const labels = salesData.map(d => d._id);
+          const data = salesData.map(d => d.totalRevenue);
+
+          // Debug: Log chart labels and data
+          console.log('SalesChart labels:', labels);
+          console.log('SalesChart data:', data);
 
           setChartData({
             labels,
@@ -89,6 +96,11 @@ const SalesChart = () => {
 
   if (error) {
     return <div className="p-4 text-center text-red-500">{error}</div>;
+  }
+
+  if (!chartData.labels.length) {
+    console.log("No chart data to display");
+    return <div>No sales data available for the last 7 days.</div>;
   }
 
   return (

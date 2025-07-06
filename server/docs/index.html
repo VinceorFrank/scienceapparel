@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce API Documentation</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
+    <style>
+        body { margin: 0; padding: 0; }
+        .swagger-ui .topbar { display: none; }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                spec: {"openapi":"3.0.0","info":{"title":"E-commerce API","description":"Comprehensive API for e-commerce platform management","version":"1.0.0","contact":{"name":"API Support","email":"support@ecommerce.com"}},"servers":[{"url":"http://localhost:5000","description":"Development server"}],"paths":{},"components":{"schemas":{"User":{"type":"object","properties":{"_id":{"type":"string","example":"507f1f77bcf86cd799439011"},"name":{"type":"string","example":"John Doe"},"email":{"type":"string","format":"email","example":"john@example.com"},"role":{"type":"string","enum":["customer","admin"],"example":"customer"},"status":{"type":"string","enum":["active","inactive"],"example":"active"},"createdAt":{"type":"string","format":"date-time"},"updatedAt":{"type":"string","format":"date-time"}}},"Product":{"type":"object","properties":{"_id":{"type":"string","example":"507f1f77bcf86cd799439012"},"name":{"type":"string","example":"Scientific Calculator"},"description":{"type":"string","example":"Advanced scientific calculator"},"price":{"type":"number","example":29.99},"category":{"type":"string","example":"507f1f77bcf86cd799439013"},"image":{"type":"string","example":"calculator.jpg"},"featured":{"type":"boolean","example":false},"archived":{"type":"boolean","example":false},"rating":{"type":"number","example":4.5},"numReviews":{"type":"number","example":10}}},"Order":{"type":"object","properties":{"_id":{"type":"string","example":"507f1f77bcf86cd799439014"},"user":{"type":"string","example":"507f1f77bcf86cd799439011"},"orderItems":{"type":"array","items":{"type":"object","properties":{"product":{"type":"string","example":"507f1f77bcf86cd799439012"},"quantity":{"type":"number","example":2},"price":{"type":"number","example":29.99}}}},"shippingAddress":{"type":"object","properties":{"address":{"type":"string","example":"123 Main St"},"city":{"type":"string","example":"New York"},"postalCode":{"type":"string","example":"10001"},"country":{"type":"string","example":"USA"}}},"paymentMethod":{"type":"string","example":"PayPal"},"totalPrice":{"type":"number","example":59.98},"isPaid":{"type":"boolean","example":false},"isShipped":{"type":"boolean","example":false},"status":{"type":"string","enum":["pending","processing","shipped","delivered","cancelled"],"example":"pending"}}},"Error":{"type":"object","properties":{"success":{"type":"boolean","example":false},"message":{"type":"string","example":"Error message"},"code":{"type":"string","example":"ERROR_CODE"},"timestamp":{"type":"string","format":"date-time"}}}},"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","bearerFormat":"JWT"}}},"security":[{"bearerAuth":[]}],"tags":[{"name":"Authentication","description":"User authentication and authorization endpoints"},{"name":"Users","description":"User management operations"},{"name":"Products","description":"Product catalog management"},{"name":"Orders","description":"Order management and processing"},{"name":"Cart","description":"Shopping cart operations"},{"name":"Categories","description":"Product category management"},{"name":"Admin","description":"Administrative operations"},{"name":"Analytics","description":"Data analytics and reporting"}]},
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout"
+            });
+        };
+    </script>
+</body>
+</html>

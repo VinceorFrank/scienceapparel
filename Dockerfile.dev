@@ -1,0 +1,30 @@
+# Development Dockerfile with hot reloading
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies for development
+RUN apk add --no-cache python3 make g++ git
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/docs
+
+# Expose ports
+EXPOSE 5000 9229
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start development server with nodemon
+CMD ["npm", "run", "dev"] 

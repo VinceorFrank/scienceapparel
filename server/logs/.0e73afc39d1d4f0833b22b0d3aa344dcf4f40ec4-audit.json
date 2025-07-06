@@ -6,16 +6,6 @@
     "auditLog": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\.0e73afc39d1d4f0833b22b0d3aa344dcf4f40ec4-audit.json",
     "files": [
         {
-            "date": 1751060482062,
-            "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-06-27.log",
-            "hash": "7bfeb00d80da9026e0682a992d4c2c27d26b1722b3995a691fdbe8baded164e9"
-        },
-        {
-            "date": 1751202070575,
-            "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-06-29.log",
-            "hash": "079ebd8612960225d9cd1786d3adc9e93043a07241e657f959c424eb34f8492a"
-        },
-        {
             "date": 1751297768229,
             "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-06-30.log",
             "hash": "1151ff284c54ecf746b057edc4c1e6450972306031f955beae31d93553e856cb"
@@ -39,6 +29,11 @@
             "date": 1751639466094,
             "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-07-04.log",
             "hash": "ba349181c21bd807ae04c83cd9b5380d53725948b5d2df2ea5c6b7146d6cf750"
+        },
+        {
+            "date": 1751811055881,
+            "name": "C:\\Users\\Vince\\Desktop\\PROF DINO\\ecommerce-site\\server\\logs\\http-2025-07-06.log",
+            "hash": "02aac0dfb89aeaf7e739f05e436d4e20749785738ce1bb9bb8d6d2854ed19335"
         }
     ],
     "hashType": "sha256"

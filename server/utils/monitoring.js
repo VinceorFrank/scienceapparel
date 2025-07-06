@@ -5,7 +5,7 @@
 
 const os = require('os');
 const { logger } = require('./logger');
-const { getStats: getCacheStats } = require('./cache');
+const { cacheManager } = require('./advancedCache');
 const { getRateLimitStats } = require('../middlewares/rateLimiter');
 
 class MonitoringSystem {
@@ -157,7 +157,7 @@ class MonitoringSystem {
    * @returns {Object} Cache metrics
    */
   getCacheMetrics() {
-    return getCacheStats();
+    return cacheManager.getStats();
   }
 
   /**

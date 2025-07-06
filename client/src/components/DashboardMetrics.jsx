@@ -44,10 +44,12 @@ const DashboardMetrics = () => {
     );
   }
 
+  const overview = data?.data || data || {};
+
   const metrics = [
     {
       title: t("totalSales"),
-      value: `$${data?.totalSales?.toFixed(2) || '0.00'}`,
+      value: `$${overview.totalSales?.toFixed(2) || '0.00'}`,
       icon: <GiMoneyStack style={{ color: '#2ecc40', fontSize: '2.5rem' }} />,
       color: "text-green-600",
       bgColor: "bg-green-50",
@@ -56,7 +58,7 @@ const DashboardMetrics = () => {
     },
     {
       title: t("totalOrders"),
-      value: data?.totalOrders || 0,
+      value: overview.totalOrders || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>📦</span>,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -65,7 +67,7 @@ const DashboardMetrics = () => {
     },
     {
       title: t("activeUsers"),
-      value: data?.activeUsers || 0,
+      value: overview.activeUsers || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>👽</span>,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
@@ -74,7 +76,7 @@ const DashboardMetrics = () => {
     },
     {
       title: t("pendingOrders"),
-      value: data?.pendingOrders || 0,
+      value: overview.pendingOrders || 0,
       icon: <span style={{ fontSize: '2.5rem' }}>⏳</span>,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
@@ -83,23 +85,23 @@ const DashboardMetrics = () => {
     },
     {
       title: t("lowStockMetric"),
-      value: data?.lowStock || 0,
+      value: overview.lowStock || 0,
       icon: (
         <GiHandTruck
           style={{
-            color: (data?.lowStock > 0) ? '#FF2400' : '#2ecc40',
+            color: (overview.lowStock > 0) ? '#FF2400' : '#2ecc40',
             fontSize: '2.5rem',
           }}
         />
       ),
-      color: (data?.lowStock > 0) ? "text-red-600" : "text-green-600",
-      bgColor: (data?.lowStock > 0) ? "bg-red-50" : "bg-green-50",
-      trend: data?.lowStockItems > 0 ? t("actionNeeded") : t("allGood"),
-      trendColor: data?.lowStockItems > 0 ? "text-red-600" : "text-green-600"
+      color: (overview.lowStock > 0) ? "text-red-600" : "text-green-600",
+      bgColor: (overview.lowStock > 0) ? "bg-red-50" : "bg-green-50",
+      trend: overview.lowStockItems > 0 ? t("actionNeeded") : t("allGood"),
+      trendColor: overview.lowStockItems > 0 ? "text-red-600" : "text-green-600"
     },
     {
       title: t("recentRegistrations"),
-      value: data?.recentRegistrations || 0,
+      value: overview.recentRegistrations || 0,
       icon: <GiAnatomy className="pulse" style={{ color: '#FF69B4', fontSize: '2.5rem' }} />,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
@@ -108,7 +110,7 @@ const DashboardMetrics = () => {
     },
     {
       title: t("averageOrderValue"),
-      value: `$${data?.averageOrderValue?.toFixed(2) || '0.00'}`,
+      value: `$${overview.averageOrderValue?.toFixed(2) || '0.00'}`,
       icon: <PiChartLineUpBold style={{ color: 'black', fontSize: '2.5rem' }} />,
       color: "text-teal-600",
       bgColor: "bg-teal-50",
@@ -117,16 +119,16 @@ const DashboardMetrics = () => {
     },
     {
       title: t("returnRate"),
-      value: `${data?.returnRate?.toFixed(1) || '0'}%`,
+      value: `${overview.returnRate?.toFixed(1) || '0'}%`,
       icon: <GiReturnArrow style={{ color: '#FF2400', fontSize: '2.5rem' }} />,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      trend: data?.returnRate > 5 ? "High" : t("low"),
-      trendColor: data?.returnRate > 5 ? "text-red-600" : "text-green-600"
+      trend: overview.returnRate > 5 ? "High" : t("low"),
+      trendColor: overview.returnRate > 5 ? "text-red-600" : "text-green-600"
     },
     {
       title: t("alerts"),
-      value: data?.alerts || 0,
+      value: overview.alerts || 0,
       icon: (
         <span
           style={{
@@ -143,8 +145,8 @@ const DashboardMetrics = () => {
       ),
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
-      trend: data?.alerts > 0 ? t("actionNeeded") : t("allGood"),
-      trendColor: data?.alerts > 0 ? "text-red-600" : "text-green-600"
+      trend: overview.alerts > 0 ? t("actionNeeded") : t("allGood"),
+      trendColor: overview.alerts > 0 ? "text-red-600" : "text-green-600"
     }
   ];
 

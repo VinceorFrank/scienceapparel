@@ -240,6 +240,7 @@ async function loginHandler(req, res) {
     // Log activity
     await ActivityLog.create({
       user: user._id,
+      event: 'login_success',
       action: 'user_login',
       description: `User logged in from ${req.ip}`,
       ipAddress: req.ip
@@ -335,4 +336,4 @@ router.put('/profile', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, loginHandler }; 
+module.exports = { router, loginHandler, validateUserLogin }; 

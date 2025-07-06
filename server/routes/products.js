@@ -17,7 +17,7 @@ const {
   executePaginatedQuery, 
   createPaginatedResponse 
 } = require('../utils/pagination');
-const { cache, invalidateEntityCache } = require('../utils/cache');
+const { cacheManager } = require('../utils/advancedCache');
 const { performanceMonitor } = require('../utils/performance');
 const Order = require('../models/Order');
 const fs = require('fs');
@@ -87,7 +87,7 @@ router.get('/', validateProductQuery, validateRequest, async (req, res, next) =>
 
     // Cache the result for 5 minutes
     const cacheKey = `products:${JSON.stringify(req.query)}`;
-    cache.set(cacheKey, result, 300000);
+    await cacheManager.set(cacheKey, result, { ttl: 300 });
 
     return sendPaginated(
       res,
@@ -148,7 +148,7 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
   try {
     // Try to get from cache first
     const cacheKey = `product:${req.params.id}`;
-    const cachedProduct = cache.get(cacheKey);
+    const cachedProduct = await cacheManager.get(cacheKey);
     
     if (cachedProduct) {
       return sendSuccess(res, 200, 'Product retrieved successfully', cachedProduct);
@@ -163,7 +163,7 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
     }
 
     // Cache the product for 10 minutes
-    cache.set(cacheKey, product, 600000);
+    await cacheManager.set(cacheKey, product, { ttl: 600 });
 
     return sendSuccess(res, 200, 'Product retrieved successfully', product);
   } catch (err) {
@@ -216,7 +216,7 @@ router.post('/', requireAuth, requireAdmin, (req, res, next) => {
     });
 
     // Invalidate related cache
-    invalidateEntityCache('products');
+    await cacheManager.invalidateByTags(['products']);
 
     return sendCreated(res, 'Product created successfully', newProduct);
   } catch (err) {
@@ -267,8 +267,8 @@ router.put('/:id', requireAuth, requireAdmin, (req, res, next) => {
     });
 
     // Invalidate caches
-    invalidateEntityCache('products');
-    invalidateEntityCache(`product:${req.params.id}`);
+    await cacheManager.invalidateByTags(['products']);
+    await cacheManager.delete(`product:${req.params.id}`);
 
     return sendUpdated(res, 'Product updated successfully', updatedProduct);
     
@@ -340,8 +340,8 @@ router.delete('/:id', requireAuth, requireAdmin, validateProductId, validateRequ
     }
 
     // Invalidate cache after delete/archive
-    invalidateEntityCache('products');
-    invalidateEntityCache(`product:${productId}`);
+    await cacheManager.invalidateByTags(['products']);
+    await cacheManager.delete(`product:${productId}`);
 
   } catch (err) {
     next(err);
@@ -389,7 +389,8 @@ router.post('/:id/reviews', requireAuth, validateReviewCreate, validateRequest, 
     await product.save();
 
     // Invalidate product cache
-    invalidateEntityCache('products', req.params.id);
+    await cacheManager.invalidateByTags(['products']);
+    await cacheManager.delete(`product:${req.params.id}`);
 
     return sendCreated(res, 'Review added successfully', review);
   } catch (err) {

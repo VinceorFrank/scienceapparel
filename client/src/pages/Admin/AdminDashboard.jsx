@@ -235,47 +235,63 @@ const AdminDashboard = () => {
           <div className="space-y-6">
             {/* Analytics Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-100">Conversion Rate</p>
-                    <p className="text-3xl font-bold">2.4%</p>
-                    <p className="text-blue-200 text-sm">+0.3% from last month</p>
+              <div className="group bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <ArrowTrendingUpIcon className="h-8 w-8 text-white" />
                   </div>
-                  <ArrowTrendingUpIcon className="h-12 w-12 text-blue-200" />
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                      Conversion Rate
+                    </h3>
+                    <p className="text-3xl font-bold text-blue-600 mb-2">2.4%</p>
+                    <p className="text-sm text-slate-600">+0.3% from last month</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-100">Customer CLV</p>
-                    <p className="text-3xl font-bold">$127</p>
-                    <p className="text-green-200 text-sm">+$12 from last month</p>
+              <div className="group bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <CurrencyDollarIcon className="h-8 w-8 text-white" />
                   </div>
-                  <CurrencyDollarIcon className="h-12 w-12 text-green-200" />
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                      Customer CLV
+                    </h3>
+                    <p className="text-3xl font-bold text-green-600 mb-2">$127</p>
+                    <p className="text-sm text-slate-600">+$12 from last month</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-purple-100">Abandonment Rate</p>
-                    <p className="text-3xl font-bold">18.2%</p>
-                    <p className="text-purple-200 text-sm">-2.1% from last month</p>
+              <div className="group bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <ExclamationTriangleIcon className="h-8 w-8 text-white" />
                   </div>
-                  <ExclamationTriangleIcon className="h-12 w-12 text-purple-200" />
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                      Abandonment Rate
+                    </h3>
+                    <p className="text-3xl font-bold text-purple-600 mb-2">18.2%</p>
+                    <p className="text-sm text-slate-600">-2.1% from last month</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-100">Newsletter Engagement</p>
-                    <p className="text-3xl font-bold">24.7%</p>
-                    <p className="text-orange-200 text-sm">+3.2% from last month</p>
+              <div className="group bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <EnvelopeIcon className="h-8 w-8 text-white" />
                   </div>
-                  <EnvelopeIcon className="h-12 w-12 text-orange-200" />
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                      Newsletter Engagement
+                    </h3>
+                    <p className="text-3xl font-bold text-orange-600 mb-2">24.7%</p>
+                    <p className="text-sm text-slate-600">+3.2% from last month</p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -18,7 +18,7 @@ import Reviews from "./pages/Reviews";
 import Newsletter from "./pages/Newsletter";
 import Responsibility from "./pages/Responsibility";
 import Calendly from "./pages/Calendly";
-import Complaint from "./pages/Complaint";
+import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
@@ -83,7 +83,7 @@ const App = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/responsibility" element={<Responsibility />} />
           <Route path="/calendly" element={<Calendly />} />
-          <Route path="/complaint" element={<Complaint />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/signup" element={<SignupCustomer />} />

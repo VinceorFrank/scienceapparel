@@ -21,7 +21,7 @@ const Header = () => {
     { path: '/products?category=clothing', label: t('clothingAndAccessories') },
     { path: '/products?category=accessories', label: t('accessories') },
     { path: '/faq', label: t('faq') },
-    { path: '/complaint', label: t('contactUs') },
+    { path: '/contact', label: t('contactUs') },
   ];
 
   // Mock user state - replace with actual auth state later

@@ -1,6 +1,5 @@
 import React from 'react';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { useLang } from '../utils/lang';
 
 const About = () => {
@@ -176,8 +175,6 @@ const About = () => {
           </div>
         </section>
       </main>
-      
-      <Footer />
     </div>
   );
 };

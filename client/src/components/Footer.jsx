@@ -12,7 +12,7 @@ const Footer = () => {
     { path: '/products?category=clothing', label: t('clothingAndAccessories') },
     { path: '/products?category=accessories', label: t('accessories') },
     { path: '/faq', label: t('faq') },
-    { path: '/complaint', label: t('contactUs') },
+    { path: '/contact', label: t('contactUs') },
   ];
 
   // Split links into 3 rows of 4 (last row may have fewer)

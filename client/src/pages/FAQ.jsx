@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { useLang } from '../utils/lang';
 
 const FAQ = () => {
@@ -218,8 +217,6 @@ const FAQ = () => {
           </div>
         </section>
       </main>
-      
-      <Footer />
     </div>
   );
 };

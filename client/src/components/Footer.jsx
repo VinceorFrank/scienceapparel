@@ -7,18 +7,12 @@ const Footer = () => {
   const { t } = useLang();
   const links = [
     { path: '/', label: t('home') },
-    { path: '/products', label: t('products') },
-    { path: '/cart', label: t('cart') },
-    { path: '/order-tracking', label: t('orderTracking') },
-    { path: '/account', label: t('account') },
     { path: '/about', label: t('about') },
+    { path: '/products', label: t('products') },
+    { path: '/products?category=clothing', label: t('clothingAndAccessories') },
+    { path: '/products?category=accessories', label: t('accessories') },
     { path: '/faq', label: t('faq') },
-    { path: '/shipping', label: t('shipping') },
-    { path: '/reviews', label: t('reviews') },
-    { path: '/newsletter', label: t('newsletter') },
-    { path: '/responsibility', label: t('responsibility') },
-    { path: '/calendly', label: t('calendly') },
-    { path: '/complaint', label: t('complaint') },
+    { path: '/complaint', label: t('contactUs') },
   ];
 
   // Split links into 3 rows of 4 (last row may have fewer)
@@ -81,7 +75,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="w-full text-center text-xs pt-4 text-blue-400 font-semibold">
-        © {new Date().getFullYear()} E-commerce T-shirt. Tous droits réservés.
+        © {new Date().getFullYear()} E-commerce T-shirt. {t('allRightsReserved')}
       </div>
     </footer>
   );

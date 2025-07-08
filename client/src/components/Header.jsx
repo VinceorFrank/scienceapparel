@@ -8,18 +8,12 @@ const Header = () => {
 
   const links = [
     { path: '/', label: t('home') },
-    { path: '/products', label: t('products') },
-    { path: '/cart', label: t('cart') },
-    { path: '/order-tracking', label: t('orderTracking') },
-    { path: '/account', label: t('account') },
     { path: '/about', label: t('about') },
+    { path: '/products', label: t('products') },
+    { path: '/products?category=clothing', label: t('clothingAndAccessories') },
+    { path: '/products?category=accessories', label: t('accessories') },
     { path: '/faq', label: t('faq') },
-    { path: '/shipping', label: t('shipping') },
-    { path: '/reviews', label: t('reviews') },
-    { path: '/newsletter', label: t('newsletter') },
-    { path: '/responsibility', label: t('responsibility') },
-    { path: '/calendly', label: t('calendly') },
-    { path: '/complaint', label: t('complaint') },
+    { path: '/complaint', label: t('contactUs') },
   ];
 
   return (

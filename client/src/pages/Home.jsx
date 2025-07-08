@@ -7,7 +7,7 @@ const Home = () => {
   const { t } = useLang();
 
   return (
-    <div className="flex flex-col min-h-screen w-full overflow-hidden bg-gradient-to-br from-pink-50 via-blue-50 to-white">
+    <div className="flex flex-col min-h-screen w-full overflow-hidden">
       <Header />
       
       {/* Hero Section */}

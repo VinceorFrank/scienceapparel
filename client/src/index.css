@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Beige Background Gradient */
+body {
+  background: linear-gradient(135deg, #fefefe 0%, #fafaf0 25%, #fdfcf7 50%, #fefdfa 75%, #fffef8 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Fredoka One', cursive, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
 /*
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

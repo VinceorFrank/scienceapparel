@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import PastelCard from '../components/PastelCard';
 import { useLang } from '../utils/lang';
 
 const Account = () => {
@@ -73,102 +72,113 @@ const Account = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col min-h-screen w-full overflow-hidden bg-[#FCFAF6]">
-        <main className="flex-1 px-2 sm:px-4 md:px-8 py-12">
+      <div className="flex flex-col min-h-screen w-full overflow-hidden bg-gradient-to-br from-green-50 via-yellow-50 to-white">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
           <section className="text-center max-w-4xl mx-auto mb-10">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight" 
+                 style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
               My Account
             </h1>
-            <div className="w-24 h-1 mx-auto mb-6 rounded-full" style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
-            <p className="text-lg text-slate-700">
+            <div className="w-24 h-1 mx-auto mb-6 rounded-full" 
+                 style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+            <p className="text-lg sm:text-xl text-slate-700 max-w-2xl mx-auto leading-relaxed">
               Manage your profile, preferences, and account settings
             </p>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 max-w-6xl mx-auto">
             {/* Profile Section */}
             <div className="lg:col-span-2 space-y-8">
               {/* Profile Information */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-blue-100 via-pink-100 to-white shadow-md border border-blue-100 p-8">
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-blue-400" style={{ fontFamily: 'Fredoka One, cursive' }}>Profile Information</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-blue-400" 
+                      style={{ fontFamily: 'Fredoka One, cursive' }}>
+                    Profile Information
+                  </h2>
                   <button
                     onClick={() => setEditMode(!editMode)}
-                    className="px-4 py-2 bg-pink-300 text-white font-bold rounded-full shadow hover:bg-pink-400 transition"
+                    className="px-6 py-3 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-2xl shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
                   >
                     {editMode ? 'Cancel' : 'Edit Profile'}
                   </button>
                 </div>
 
                 {editMode ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                       <input
                         type="email"
                         value={editEmail}
                         onChange={(e) => setEditEmail(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                       />
                     </div>
-                    <div className="flex space-x-3">
+                    <div className="flex space-x-4">
                       <button
                         onClick={handleProfileSave}
-                        className="px-4 py-2 bg-green-400 text-white font-bold rounded-full shadow hover:bg-green-500 transition"
+                        className="px-6 py-3 bg-gradient-to-r from-green-400 to-green-500 text-white font-bold rounded-2xl shadow-lg hover:from-green-500 hover:to-green-600 transition-all duration-300 transform hover:scale-105"
                       >
                         Save Changes
                       </button>
                       <button
                         onClick={() => setEditMode(false)}
-                        className="px-4 py-2 bg-gray-400 text-white font-bold rounded-full shadow hover:bg-gray-500 transition"
+                        className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white font-bold rounded-2xl shadow-lg hover:from-gray-500 hover:to-gray-600 transition-all duration-300 transform hover:scale-105"
                       >
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-4 border-blue-100 shadow">
-                        <span className="text-3xl text-blue-300">👤</span>
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-6">
+                      <div className="w-20 h-20 bg-gradient-to-r from-pink-400 to-pink-500 rounded-3xl flex items-center justify-center shadow-lg">
+                        <span className="text-4xl">👤</span>
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-blue-400" style={{ fontFamily: 'Fredoka One, cursive' }}>{user.name}</h3>
-                        <p className="text-gray-600">{user.email}</p>
+                        <h3 className="text-2xl font-bold text-blue-400 mb-2" 
+                            style={{ fontFamily: 'Fredoka One, cursive' }}>
+                          {user.name}
+                        </h3>
+                        <p className="text-lg text-slate-600">{user.email}</p>
                       </div>
                     </div>
                   </div>
                 )}
-              </PastelCard>
+              </div>
 
               {/* Newsletter Preferences */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-green-100 via-pink-100 to-white shadow-md border border-green-100 p-8">
-                <h2 className="text-2xl font-bold text-green-400 mb-6" style={{ fontFamily: 'Fredoka One, cursive' }}>Newsletter Preferences</h2>
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-green-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  Newsletter Preferences
+                </h2>
                 <div className="space-y-6">
                   {/* Subscription Toggle */}
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-green-400">Email Newsletter</h3>
-                      <p className="text-sm text-gray-600">Receive updates about new products and promotions</p>
+                      <p className="text-sm text-slate-600">Receive updates about new products and promotions</p>
                     </div>
                     <button
                       onClick={handleNewsletterToggle}
-                      className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors shadow ${
-                        user.newsletterSubscribed ? 'bg-blue-400' : 'bg-gray-200'
+                      className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
+                        user.newsletterSubscribed ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
-                          user.newsletterSubscribed ? 'translate-x-7' : 'translate-x-1'
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
+                          user.newsletterSubscribed ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
@@ -178,11 +188,11 @@ const Account = () => {
                     <>
                       {/* Frequency */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Frequency</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Email Frequency</label>
                         <select
                           value={user.emailFrequency}
                           onChange={handleFrequencyChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                         >
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
@@ -192,17 +202,20 @@ const Account = () => {
 
                       {/* Topics */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Topics of Interest</label>
-                        <div className="flex flex-wrap gap-4">
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Topics of Interest</label>
+                        <div className="flex flex-wrap gap-3">
                           {['News', 'Promotions', 'Product Updates', 'Tips & Tricks'].map((topic) => (
-                            <label key={topic} className="flex items-center bg-white rounded-full px-4 py-1 shadow border border-blue-100 cursor-pointer">
+                            <label key={topic} className="flex items-center bg-white rounded-2xl px-4 py-2 shadow-md border border-blue-100 cursor-pointer hover:shadow-lg transition-all duration-300">
                               <input
                                 type="checkbox"
                                 checked={user.topics.includes(topic)}
                                 onChange={() => handleTopicToggle(topic)}
-                                className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 rounded mr-2"
+                                className="h-4 w-4 text-pink-400 focus:ring-pink-300 border-gray-300 rounded mr-2"
                               />
-                              <span className="text-sm text-blue-400 font-semibold" style={{ fontFamily: 'Fredoka One, cursive' }}>{topic}</span>
+                              <span className="text-sm text-blue-400 font-semibold" 
+                                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                                {topic}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -210,26 +223,29 @@ const Account = () => {
                     </>
                   )}
                 </div>
-              </PastelCard>
+              </div>
 
               {/* Notification Settings */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-purple-100 via-pink-100 to-white shadow-md border border-purple-100 p-8">
-                <h2 className="text-2xl font-bold text-purple-400 mb-6" style={{ fontFamily: 'Fredoka One, cursive' }}>Notification Settings</h2>
-                <div className="space-y-4">
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-purple-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  Notification Settings
+                </h2>
+                <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-purple-400">Email Notifications</h3>
-                      <p className="text-sm text-gray-600">Order updates, shipping notifications</p>
+                      <p className="text-sm text-slate-600">Order updates, shipping notifications</p>
                     </div>
                     <button
                       onClick={() => handleChannelToggle('email')}
-                      className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors shadow ${
-                        user.channels.email ? 'bg-blue-400' : 'bg-gray-200'
+                      className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
+                        user.channels.email ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.email ? 'translate-x-7' : 'translate-x-1'
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
+                          user.channels.email ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
@@ -238,17 +254,17 @@ const Account = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-purple-400">SMS Notifications</h3>
-                      <p className="text-sm text-gray-600">Order updates, delivery alerts</p>
+                      <p className="text-sm text-slate-600">Order updates, delivery alerts</p>
                     </div>
                     <button
                       onClick={() => handleChannelToggle('sms')}
-                      className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors shadow ${
-                        user.channels.sms ? 'bg-blue-400' : 'bg-gray-200'
+                      className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
+                        user.channels.sms ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.sms ? 'translate-x-7' : 'translate-x-1'
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
+                          user.channels.sms ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
@@ -257,62 +273,71 @@ const Account = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-purple-400">Push Notifications</h3>
-                      <p className="text-sm text-gray-600">Browser notifications for updates</p>
+                      <p className="text-sm text-slate-600">Browser notifications for updates</p>
                     </div>
                     <button
                       onClick={() => handleChannelToggle('push')}
-                      className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors shadow ${
-                        user.channels.push ? 'bg-blue-400' : 'bg-gray-200'
+                      className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
+                        user.channels.push ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
-                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.push ? 'translate-x-7' : 'translate-x-1'
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
+                          user.channels.push ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
                   </div>
                 </div>
-              </PastelCard>
+              </div>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-8">
               {/* Quick Actions */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-yellow-100 via-pink-100 to-white shadow-md border border-yellow-100 p-8">
-                <h2 className="text-2xl font-bold text-yellow-400 mb-4" style={{ fontFamily: 'Fredoka One, cursive' }}>Quick Actions</h2>
-                <div className="space-y-3">
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl font-bold text-yellow-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  Quick Actions
+                </h2>
+                <div className="space-y-4">
                   <button
                     onClick={handlePasswordChange}
-                    className="w-full px-4 py-2 bg-blue-400 text-white font-bold rounded-full shadow hover:bg-blue-500 transition"
+                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     Change Password
                   </button>
                   <Link
                     to="/orders"
-                    className="block w-full px-4 py-2 bg-green-400 text-white font-bold rounded-full shadow hover:bg-green-500 transition text-center"
+                    className="block w-full px-6 py-3 bg-gradient-to-r from-green-100 via-green-300 to-white text-green-700 font-bold rounded-2xl shadow-md hover:from-green-200 hover:to-green-400 hover:text-green-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     View Orders
                   </Link>
                   <Link
                     to="/addresses"
-                    className="block w-full px-4 py-2 bg-purple-400 text-white font-bold rounded-full shadow hover:bg-purple-500 transition text-center"
+                    className="block w-full px-6 py-3 bg-gradient-to-r from-purple-100 via-purple-300 to-white text-purple-700 font-bold rounded-2xl shadow-md hover:from-purple-200 hover:to-purple-400 hover:text-purple-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     Manage Addresses
                   </Link>
                 </div>
-              </PastelCard>
+              </div>
 
               {/* Preferences */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-indigo-100 via-blue-100 to-white shadow-md border border-blue-100 p-8">
-                <h2 className="text-2xl font-bold text-blue-400 mb-4" style={{ fontFamily: 'Fredoka One, cursive' }}>Preferences</h2>
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl font-bold text-blue-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  Preferences
+                </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Language</label>
                     <select
                       value={user.language}
                       onChange={handleLanguageChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                     >
                       <option value="en">English</option>
                       <option value="es">Español</option>
@@ -320,32 +345,38 @@ const Account = () => {
                     </select>
                   </div>
                 </div>
-              </PastelCard>
+              </div>
 
               {/* Account Management */}
-              <PastelCard className="rounded-3xl bg-gradient-to-r from-red-100 via-pink-100 to-white shadow-md border border-red-100 p-8">
-                <h2 className="text-2xl font-bold text-red-400 mb-4" style={{ fontFamily: 'Fredoka One, cursive' }}>Account Management</h2>
-                <div className="space-y-3">
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl font-bold text-red-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  Account Management
+                </h2>
+                <div className="space-y-4">
                   <button
                     onClick={handleDataDownload}
-                    className="w-full px-4 py-2 bg-gray-400 text-white font-bold rounded-full shadow hover:bg-gray-500 transition"
+                    className="w-full px-6 py-3 bg-gradient-to-r from-gray-100 via-gray-300 to-white text-gray-700 font-bold rounded-2xl shadow-md hover:from-gray-200 hover:to-gray-400 hover:text-gray-800 transition-all duration-300 transform hover:-translate-y-1"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     Download My Data
                   </button>
                   <button
                     onClick={handleUnsubscribe}
-                    className="w-full px-4 py-2 bg-yellow-400 text-white font-bold rounded-full shadow hover:bg-yellow-500 transition"
+                    className="w-full px-6 py-3 bg-gradient-to-r from-yellow-100 via-yellow-300 to-white text-yellow-700 font-bold rounded-2xl shadow-md hover:from-yellow-200 hover:to-yellow-400 hover:text-yellow-800 transition-all duration-300 transform hover:-translate-y-1"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     Unsubscribe from All
                   </button>
                   <button
                     onClick={handleDeleteAccount}
-                    className="w-full px-4 py-2 bg-red-400 text-white font-bold rounded-full shadow hover:bg-red-500 transition"
+                    className="w-full px-6 py-3 bg-gradient-to-r from-pink-100 via-red-200 to-white text-red-600 font-bold rounded-2xl shadow-md hover:from-pink-200 hover:to-red-300 hover:text-red-700 transition-all duration-300 transform hover:-translate-y-1"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
                   >
                     Delete Account
                   </button>
                 </div>
-              </PastelCard>
+              </div>
             </div>
           </div>
         </main>

@@ -35,10 +35,6 @@ const Footer = () => {
         {/* Social Media Icons */}
         <div className="flex gap-5 mb-4">
           <a href="#" aria-label="Facebook" className="text-blue-500 hover:text-pink-400 text-2xl"><FaFacebookF /></a>
-          <a href="#" aria-label="Instagram" className="text-pink-500 hover:text-blue-400 text-2xl"><FaInstagram /></a>
-          <a href="#" aria-label="YouTube" className="text-red-500 hover:text-blue-400 text-2xl"><FaYoutube /></a>
-          <a href="#" aria-label="TikTok" className="text-black hover:text-pink-400 text-2xl"><FaTiktok /></a>
-          <a href="#" aria-label="LinkedIn" className="text-blue-700 hover:text-pink-400 text-2xl"><FaLinkedinIn /></a>
         </div>
         {/* Newsletter Signup */}
         <form className="flex flex-col sm:flex-row items-center gap-2 w-full max-w-md mb-4">
@@ -56,7 +52,6 @@ const Footer = () => {
           <span className="bg-white rounded-lg shadow p-2 flex items-center"><SiAmericanexpress className="text-blue-600 text-2xl" /></span>
           <span className="bg-white rounded-lg shadow p-2 flex items-center"><SiApplepay className="text-black text-2xl" /></span>
           <span className="bg-white rounded-lg shadow p-2 flex items-center"><SiMastercard className="text-red-500 text-2xl" /></span>
-          <span className="bg-white rounded-lg shadow p-2 flex items-center"><SiShopify className="text-purple-500 text-2xl" /></span>
           <span className="bg-white rounded-lg shadow p-2 flex items-center"><SiVisa className="text-blue-800 text-2xl" /></span>
         </div>
       </div>

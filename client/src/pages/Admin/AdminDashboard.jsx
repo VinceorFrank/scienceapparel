@@ -138,24 +138,31 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCFAF6] p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Sales Over the Last 7 Days Chart (move to top) */}
         <SalesChart />
         {/* Revenue Over Time Chart (move to main content area) */}
         {/* Header with refresh button */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold mb-1" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>{t("dashboard")}</h1>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-slate-500">
-              {t("lastUpdated")}: {lastUpdate.toLocaleTimeString()}
+        <div className="bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 mb-8 border border-green-100">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-2 leading-tight" 
+                   style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
+                {t("dashboard")}
+              </h1>
+              <div className="w-24 h-1 rounded-full mb-4" 
+                   style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+              <p className="text-lg text-slate-600">
+                {t("lastUpdated")}: {lastUpdate.toLocaleTimeString()}
+              </p>
             </div>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="px-4 py-2 bg-pink-300 text-white rounded-full shadow hover:bg-pink-400 disabled:opacity-50 flex items-center space-x-2 font-bold transition"
+              className="px-6 py-3 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-2xl shadow-lg hover:from-pink-500 hover:to-pink-600 disabled:opacity-50 flex items-center space-x-3 font-bold transition-all duration-300 transform hover:scale-105 disabled:transform-none"
             >
-              <span>{isRefreshing ? "🔄" : "🔄"}</span>
+              <span className="text-xl">{isRefreshing ? "🔄" : "🔄"}</span>
               <span>{isRefreshing ? t("refreshing") : t("refresh")}</span>
             </button>
           </div>
@@ -185,29 +192,37 @@ const AdminDashboard = () => {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-                <p className="text-sm text-gray-600">Access frequently used admin functions</p>
+            <div className="bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
+                  Quick Actions
+                </h2>
+                <div className="w-24 h-1 mx-auto rounded-full mb-4" 
+                     style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+                <p className="text-lg text-slate-600">Access frequently used admin functions</p>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {quickActions.map((action) => (
-                    <Link
-                      key={action.title}
-                      to={action.link}
-                      className={`${action.color} text-white p-4 rounded-lg hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <action.icon className="h-8 w-8" />
-                        <div>
-                          <h3 className="font-semibold">{action.title}</h3>
-                          <p className="text-sm opacity-90">{action.description}</p>
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {quickActions.map((action) => (
+                  <Link
+                    key={action.title}
+                    to={action.link}
+                    className="group bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-pink-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                        <action.icon className="h-8 w-8 text-white" />
                       </div>
-                    </Link>
-                  ))}
-                </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-slate-700 mb-2" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                          {action.title}
+                        </h3>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                          {action.description}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
 

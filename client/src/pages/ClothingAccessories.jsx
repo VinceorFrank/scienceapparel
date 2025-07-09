@@ -1,6 +1,7 @@
 import React from "react";
 import PastelCard from "../components/PastelCard";
 import Header from "../components/Header";
+import { addCartItem } from "../api/cart";
 
 const sampleProducts = [
   {
@@ -41,8 +42,29 @@ const ClothingAccessories = () => {
   const clothingProducts = sampleProducts.filter((p) => p.category === "clothing");
   const [cartMessage, setCartMessage] = React.useState("");
 
-  const handleAddToCart = (product) => {
-    setCartMessage(`${product.name} ajouté au panier !`);
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await addCartItem(product._id, 1);
+        setCartMessage(`${product.name} ajouté au panier !`);
+      } catch (err) {
+        setCartMessage("Erreur lors de l'ajout au panier.");
+      }
+    } else {
+      let guestCart = [];
+      try {
+        guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+      } catch { guestCart = []; }
+      const existing = guestCart.find((item) => item._id === product._id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        guestCart.push({ ...product, quantity: 1 });
+      }
+      localStorage.setItem("guestCart", JSON.stringify(guestCart));
+      setCartMessage(`${product.name} ajouté au panier (invité) !`);
+    }
     setTimeout(() => setCartMessage(""), 2000);
   };
 

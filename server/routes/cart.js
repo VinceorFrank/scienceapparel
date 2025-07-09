@@ -19,6 +19,7 @@ const {
   sendUpdated, 
   sendDeleted 
 } = require('../utils/responseHandler');
+const { body } = require('express-validator');
 
 // ========================================
 // 🛒 CART MANAGEMENT ROUTES
@@ -54,15 +55,18 @@ router.get('/',
   }
 );
 
+// Add item to cart
+const validateAddToCart = [
+  body('productId').isMongoId().withMessage('productId must be a valid MongoDB ObjectId'),
+  body('quantity').isInt({ min: 1, max: 100 }).withMessage('Quantity must be between 1 and 100'),
+  handleValidationResult
+];
+
 // POST /api/cart/items - Add item to cart
 router.post('/items', 
   requireAuth,
   requirePermission(PERMISSIONS.CREATE_OWN_ORDER),
-  [
-    validateObjectId('productId'),
-    validateNumber('quantity', { min: 1, max: 100 }),
-    handleValidationResult
-  ],
+  validateAddToCart,
   async (req, res, next) => {
     try {
       const { productId, quantity = 1 } = req.body;
@@ -90,12 +94,17 @@ router.post('/items',
       // Get populated cart for response
       const populatedCart = await cart.getPopulatedCart();
 
-      // Log activity
-      await ActivityLog.create({
-        user: req.user._id,
-        action: 'add_to_cart',
-        description: `Added ${quantity}x ${product.name} to cart`
-      });
+      // Log activity (with error catch)
+      try {
+        await ActivityLog.create({
+          user: req.user._id,
+          event: 'cart_action',
+          action: 'add_to_cart',
+          description: `Added ${quantity}x ${product.name} to cart`
+        });
+      } catch (logErr) {
+        console.error('ActivityLog error (add_to_cart):', logErr);
+      }
 
       logger.info('Item added to cart', {
         userId: req.user._id,
@@ -162,17 +171,22 @@ router.put('/items/:productId',
       // Get populated cart for response
       const populatedCart = await cart.getPopulatedCart();
 
-      // Log activity
+      // Log activity (with error catch)
       const action = quantity === 0 ? 'remove_from_cart' : 'update_cart_quantity';
       const description = quantity === 0 
         ? `Removed ${product.name} from cart`
         : `Updated ${product.name} quantity to ${quantity}`;
 
-      await ActivityLog.create({
-        user: req.user._id,
-        action: action,
-        description: description
-      });
+      try {
+        await ActivityLog.create({
+          user: req.user._id,
+          event: 'cart_action',
+          action: action,
+          description: description
+        });
+      } catch (logErr) {
+        console.error('ActivityLog error (update/remove):', logErr);
+      }
 
       return sendUpdated(res, quantity === 0 ? 'Item removed from cart' : 'Item quantity updated', {
         cart: {
@@ -217,12 +231,17 @@ router.delete('/items/:productId',
       // Get populated cart for response
       const populatedCart = await cart.getPopulatedCart();
 
-      // Log activity
-      await ActivityLog.create({
-        user: req.user._id,
-        action: 'remove_from_cart',
-        description: `Removed ${productName} from cart`
-      });
+      // Log activity (with error catch)
+      try {
+        await ActivityLog.create({
+          user: req.user._id,
+          event: 'cart_action',
+          action: 'remove_from_cart',
+          description: `Removed ${productName} from cart`
+        });
+      } catch (logErr) {
+        console.error('ActivityLog error (remove_from_cart):', logErr);
+      }
 
       return sendDeleted(res, 'Item removed from cart', {
         cart: {
@@ -250,13 +269,18 @@ router.delete('/',
     try {
       const cart = await Cart.getOrCreateCart(req.user._id);
       
-      // Log activity before clearing
+      // Log activity before clearing (with error catch)
       const itemCount = cart.items.length;
-      await ActivityLog.create({
-        user: req.user._id,
-        action: 'clear_cart',
-        description: `Cleared cart with ${itemCount} items`
-      });
+      try {
+        await ActivityLog.create({
+          user: req.user._id,
+          event: 'cart_action',
+          action: 'clear_cart',
+          description: `Cleared cart with ${itemCount} items`
+        });
+      } catch (logErr) {
+        console.error('ActivityLog error (clear_cart):', logErr);
+      }
 
       // Clear cart
       await cart.clearCart();
@@ -310,12 +334,17 @@ router.post('/merge',
       // Get populated cart for response
       const populatedCart = await cart.getPopulatedCart();
 
-      // Log activity
-      await ActivityLog.create({
-        user: req.user._id,
-        action: 'merge_cart',
-        description: `Merged ${mergedCount} items from guest cart`
-      });
+      // Log activity (with error catch)
+      try {
+        await ActivityLog.create({
+          user: req.user._id,
+          event: 'cart_action',
+          action: 'merge_cart',
+          description: `Merged ${mergedCount} items from guest cart`
+        });
+      } catch (logErr) {
+        console.error('ActivityLog error (merge_cart):', logErr);
+      }
 
       return sendSuccess(res, 200, `Successfully merged ${mergedCount} items`, {
         cart: {
@@ -333,44 +362,4 @@ router.post('/merge',
   }
 );
 
-// GET /api/cart/count - Get cart item count
-router.get('/count', 
-  requireAuth,
-  requirePermission(PERMISSIONS.VIEW_OWN_ORDERS),
-  async (req, res, next) => {
-    try {
-      const cart = await Cart.getOrCreateCart(req.user._id);
-      
-      return sendSuccess(res, 200, 'Cart count retrieved successfully', {
-        count: cart.itemCount,
-        uniqueCount: cart.uniqueItemCount
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-// ========================================
-// 🧹 CART MAINTENANCE ROUTES (Admin only)
-// ========================================
-
-// POST /api/cart/cleanup - Clean up expired carts (admin only)
-router.post('/cleanup', requireAuth, requireAdmin, async (req, res, next) => {
-  try {
-    const deletedCount = await Cart.cleanupExpiredCarts();
-
-    // Log activity
-    await ActivityLog.create({
-      user: req.user._id,
-      action: 'cleanup_expired_carts',
-      description: `Cleaned up ${deletedCount} expired carts`
-    });
-
-    return sendSuccess(res, 200, `Cleaned up ${deletedCount} expired carts`, { deletedCount });
-  } catch (err) {
-    next(err);
-  }
-});
-
-module.exports = router; 
+module.exports = router;

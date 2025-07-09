@@ -42,7 +42,7 @@ export const getCartSummary = async () => {
   return res.data;
 };
 
-// Merge guest cart with user cart
+// Merge guest cart with user cart after login
 export const mergeGuestCart = async (guestCartItems) => {
   const res = await api.post('/cart/merge', { guestCartItems });
   return res.data;

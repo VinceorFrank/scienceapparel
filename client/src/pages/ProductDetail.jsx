@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProductById } from "../api/products";
+import { addCartItem, mergeGuestCart } from "../api/cart";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -28,9 +29,50 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', { product, quantity });
+  // Add this useEffect to merge guest cart after login
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const guestCart = localStorage.getItem("guestCart");
+    if (token && guestCart) {
+      try {
+        const guestCartItems = JSON.parse(guestCart).map(item => ({
+          productId: item._id,
+          quantity: item.quantity
+        }));
+        if (guestCartItems.length > 0) {
+          mergeGuestCart(guestCartItems).then(() => {
+            localStorage.removeItem("guestCart");
+          });
+        }
+      } catch {}
+    }
+  }, []);
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await addCartItem(product._id, quantity);
+        alert(`${product.name} ajouté au panier !`);
+      } catch (err) {
+        alert("Erreur lors de l'ajout au panier.");
+      }
+    } else {
+      // Guest: use localStorage
+      let guestCart = [];
+      try {
+        guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+      } catch { guestCart = []; }
+      const existing = guestCart.find((item) => item._id === product._id);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        guestCart.push({ ...product, quantity });
+      }
+      localStorage.setItem("guestCart", JSON.stringify(guestCart));
+      alert(`${product.name} ajouté au panier (invité) !`);
+    }
   };
 
   const handleBuyNow = () => {
@@ -249,13 +291,14 @@ const ProductDetail = () => {
                   </button>
                   <span className="w-16 text-center font-medium">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    onClick={() => setQuantity(Math.min(product.countInStock || product.stock, quantity + 1))}
                     className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                    disabled={quantity >= (product.countInStock || product.stock)}
                   >
                     +
                   </button>
                   <span className="text-sm text-gray-500">
-                    {product.stock} disponibles
+                    {(product.countInStock || product.stock) || 0} disponibles
                   </span>
                 </div>
               </div>

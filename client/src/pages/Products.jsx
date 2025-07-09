@@ -1,42 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PastelCard from "../components/PastelCard";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
-
-const sampleProducts = [
-  {
-    id: 1,
-    name: "T-shirt à poche",
-    price: 29.99,
-    category: "clothing",
-    image: "/placeholder.png",
-    description: "Un t-shirt original avec une poche amusante.",
-  },
-  {
-    id: 2,
-    name: "Crewneck pastel",
-    price: 49.99,
-    category: "clothing",
-    image: "/placeholder.png",
-    description: "Crewneck doux et confortable, parfait pour toutes les saisons.",
-  },
-  {
-    id: 3,
-    name: "Tote bag accessoire",
-    price: 19.99,
-    category: "accessories",
-    image: "/placeholder.png",
-    description: "Un tote bag pratique pour tous les jours.",
-  },
-  {
-    id: 4,
-    name: "Casquette pastel",
-    price: 15.99,
-    category: "accessories",
-    image: "/placeholder.png",
-    description: "Casquette stylée pour compléter votre look.",
-  },
-];
+import { addCartItem } from "../api/cart";
+import { fetchProducts } from "../api/products";
 
 const categories = [
   { key: "all", label: "Tous" },
@@ -44,17 +11,78 @@ const categories = [
   { key: "accessories", label: "Accessories" },
 ];
 
+// Helper functions for guest cart
+const getGuestCart = () => {
+  try {
+    return JSON.parse(localStorage.getItem("guestCart")) || [];
+  } catch {
+    return [];
+  }
+};
+const setGuestCart = (cart) => {
+  localStorage.setItem("guestCart", JSON.stringify(cart));
+};
+const addToGuestCart = (product) => {
+  const cart = getGuestCart();
+  const existing = cart.find((item) => item._id === product._id);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+  setGuestCart(cart);
+};
+
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [cartMessage, setCartMessage] = useState("");
+  const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await fetchProducts();
+        // data.items or data.data depending on backend response
+        setProducts(data.items || data.data || []);
+      } catch (err) {
+        setError("Erreur lors du chargement des produits");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const filteredProducts =
     selectedCategory === "all"
-      ? sampleProducts
-      : sampleProducts.filter((p) => p.category === selectedCategory);
+      ? products
+      : products.filter((p) => {
+          if (!p.category || !p.category.name) return false;
+          if (selectedCategory === "clothing") return p.category.name.toLowerCase().includes("apparel");
+          if (selectedCategory === "accessories") return p.category.name.toLowerCase().includes("accessories");
+          return false;
+        });
 
-  const handleAddToCart = (product) => {
-    setCartMessage(`${product.name} ajouté au panier !`);
+  const handleAddToCart = async (product) => {
+    setError("");
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Logged-in: call backend
+      try {
+        await addCartItem(product._id, 1);
+        setCartMessage(`${product.name} ajouté au panier !`);
+      } catch (err) {
+        setError("Erreur lors de l'ajout au panier.");
+      }
+    } else {
+      // Guest: use localStorage
+      addToGuestCart(product);
+      setCartMessage(`${product.name} ajouté au panier (invité) !`);
+    }
     setTimeout(() => setCartMessage(""), 2000);
   };
 
@@ -87,20 +115,41 @@ const Products = () => {
         {cartMessage && (
           <div className="text-center mb-4 text-green-600 font-semibold">{cartMessage}</div>
         )}
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product) => (
-            <PastelCard
-              key={product.id}
-              image={product.image}
-              name={product.name}
-              price={product.price}
-              onAddToCart={() => handleAddToCart(product)}
-            >
-              <p className="text-slate-500 text-sm mb-2">{product.description}</p>
-            </PastelCard>
-          ))}
-        </div>
+        {error && (
+          <div className="text-center mb-4 text-red-600 font-semibold">{error}</div>
+        )}
+        {loading ? (
+          <div className="text-center text-lg text-blue-400">Chargement des produits...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.length === 0 ? (
+              <div className="col-span-full text-center text-gray-500">Aucun produit trouvé.</div>
+            ) : (
+              filteredProducts.map((product) => {
+                const isOutOfStock = product.stock === 0;
+                const isArchived = product.archived;
+                return (
+                  <PastelCard
+                    key={product._id}
+                    image={product.image || "/placeholder.png"}
+                    name={product.name}
+                    price={product.price}
+                    onAddToCart={(!isOutOfStock && !isArchived) ? () => handleAddToCart(product) : undefined}
+                  >
+                    <p className="text-slate-500 text-sm mb-2">{product.description}</p>
+                    {isOutOfStock && (
+                      <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
+                    )}
+                    {isArchived && (
+                      <div className="text-gray-400 font-semibold mt-2">Produit archivé</div>
+                    )}
+                    <Link to={`/product/${product._id}`} className="block mt-2 text-blue-500 underline hover:text-blue-700 font-medium">Voir le produit</Link>
+                  </PastelCard>
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

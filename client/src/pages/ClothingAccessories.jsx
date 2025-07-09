@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import PastelCard from "../components/PastelCard";
-import { Link } from "react-router-dom";
 import Header from "../components/Header";
 
 const sampleProducts = [
@@ -38,20 +37,9 @@ const sampleProducts = [
   },
 ];
 
-const categories = [
-  { key: "all", label: "Tous" },
-  { key: "clothing", label: "Clothing & Accessories" },
-  { key: "accessories", label: "Accessories" },
-];
-
-const Products = () => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [cartMessage, setCartMessage] = useState("");
-
-  const filteredProducts =
-    selectedCategory === "all"
-      ? sampleProducts
-      : sampleProducts.filter((p) => p.category === selectedCategory);
+const ClothingAccessories = () => {
+  const clothingProducts = sampleProducts.filter((p) => p.category === "clothing");
+  const [cartMessage, setCartMessage] = React.useState("");
 
   const handleAddToCart = (product) => {
     setCartMessage(`${product.name} ajouté au panier !`);
@@ -63,33 +51,13 @@ const Products = () => {
       <Header />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-6 text-center" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-          Nos Produits
+          Clothing & Accessories
         </h1>
-        {/* Category Filter Tabs */}
-        <div className="flex flex-col items-center gap-2 mb-10">
-          <div className="flex justify-center gap-4">
-            {categories.map((cat) => (
-              <button
-                key={cat.key}
-                className={`px-6 py-2 rounded-full font-bold text-lg transition-colors duration-200 ${selectedCategory === cat.key ? 'bg-blue-400 text-white shadow' : 'bg-white text-blue-400 border border-blue-200 hover:bg-blue-100'}`}
-                onClick={() => setSelectedCategory(cat.key)}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-4 mt-2">
-            <Link to="/clothing-accessories" className="text-blue-500 underline hover:text-blue-700 font-medium">Clothing & Accessories</Link>
-            <Link to="#" className="text-blue-500 underline hover:text-blue-700 font-medium">Accessories</Link>
-          </div>
-        </div>
-        {/* Cart Message */}
         {cartMessage && (
           <div className="text-center mb-4 text-green-600 font-semibold">{cartMessage}</div>
         )}
-        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product) => (
+          {clothingProducts.map((product) => (
             <PastelCard
               key={product.id}
               image={product.image}
@@ -106,4 +74,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default ClothingAccessories; 

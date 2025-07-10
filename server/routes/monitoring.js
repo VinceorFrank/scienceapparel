@@ -24,7 +24,7 @@ const fs = require('fs');
 const { auditLog, AUDIT_EVENTS } = require('../utils/auditLogger');
 const { requirePermission } = require('../middlewares/rbac');
 const { PERMISSIONS } = require('../middlewares/rbac');
-const { comprehensiveSanitizer } = require('../middlewares/security/enhancedSanitizer');
+// Removed enhancedSanitizer import - using consolidated sanitizer instead
 const { validateHeaders } = require('../middlewares/security/requestValidation');
 const { asyncHandler } = require('../middlewares/errorHandler/standardizedErrorHandler');
 const { trackRequest } = require('../utils/monitoring');

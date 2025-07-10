@@ -156,6 +156,8 @@ const ProductForm = ({
       </div>
       <div>
         <label className="block mb-1 font-medium">Image</label>
+        {/* Admins: For best results, upload a square image (e.g., 800x800px) with the product filling the frame and no extra whitespace. */}
+        <div className="text-xs text-blue-500 mb-2">For best results, upload a <b>square image</b> (e.g., 800x800px) with the product filling the frame and no extra whitespace or padding.</div>
         <ProductImageUpload
           initialImageUrl={getImageUrl(form.image)}
           onImageChange={handleImageUpload}

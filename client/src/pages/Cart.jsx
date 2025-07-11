@@ -70,6 +70,7 @@ const Cart = () => {
       try {
         await updateCartItem(productId, quantity);
         await fetchCart();
+        window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
         setError(err.message || "Erreur lors de la mise à jour de la quantité");
       } finally {
@@ -84,6 +85,9 @@ const Cart = () => {
       localStorage.setItem("guestCart", JSON.stringify(guestItems));
       setCart({ items: guestItems, guest: true });
       setUpdating(false);
+      console.log('[Cart] Updated guestCart:', guestItems);
+      window.dispatchEvent(new Event('cartUpdated'));
+      console.log('[Cart] cartUpdated event dispatched');
     }
   };
 
@@ -94,6 +98,7 @@ const Cart = () => {
       try {
         await removeCartItem(productId);
         await fetchCart();
+        window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
         setError(err.message || "Erreur lors de la suppression de l'article");
       } finally {
@@ -106,6 +111,7 @@ const Cart = () => {
       localStorage.setItem("guestCart", JSON.stringify(guestItems));
       setCart({ items: guestItems, guest: true });
       setUpdating(false);
+      window.dispatchEvent(new Event('cartUpdated'));
     }
   };
 
@@ -146,7 +152,7 @@ const Cart = () => {
           ) : (
             <>
               {/* Cart Table */}
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto mb-6">
                 <table className="w-full text-lg font-fredoka">
                   <thead>
                     <tr className="border-b bg-pastel-100">
@@ -219,6 +225,14 @@ const Cart = () => {
                     })}
                   </tbody>
                 </table>
+              </div>
+              {/* Continue Shopping Button */}
+              <div className="mb-8 flex justify-start">
+                <Link to="/products">
+                  <button className="px-8 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-full shadow-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 text-lg">
+                    Continuer vos achats
+                  </button>
+                </Link>
               </div>
 
               {/* Special Instructions */}

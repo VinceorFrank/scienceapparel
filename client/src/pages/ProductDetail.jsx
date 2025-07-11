@@ -72,6 +72,8 @@ const ProductDetail = () => {
       }
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
       alert(`${product.name} ajouté au panier (invité) !`);
+      window.dispatchEvent(new Event('cartUpdated'));
+      console.log('[Add to Cart] cartUpdated event dispatched');
     }
   };
 

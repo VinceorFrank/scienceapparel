@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
 import { useLang } from '../utils/lang';
@@ -10,9 +10,38 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { lang, setLang, t } = useLang();
   const navigate = useNavigate();
+  const [cartItemCount, setCartItemCount] = useState(0);
 
-  // Mock cart count - replace with actual cart state later
-  const cartItemCount = 3;
+  useEffect(() => {
+    // Try to get cart from localStorage (guest cart)
+    let count = 0;
+    try {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+      if (Array.isArray(guestCart)) {
+        count = guestCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      }
+    } catch {}
+    setCartItemCount(count);
+
+    // Listen for cart changes (storage event and custom cartUpdated event)
+    const handleCartUpdate = () => {
+      let count = 0;
+      try {
+        const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+        if (Array.isArray(guestCart)) {
+          count = guestCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        }
+      } catch {}
+      setCartItemCount(count);
+      console.log('[Header] cartUpdated event received. New cartItemCount:', count);
+    };
+    window.addEventListener('storage', handleCartUpdate);
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => {
+      window.removeEventListener('storage', handleCartUpdate);
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
 
   const links = [
     { path: '/', label: t('home') },

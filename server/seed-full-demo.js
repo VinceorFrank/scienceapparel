@@ -424,7 +424,7 @@ async function seed() {
   ];
   const activityLogs = adminActions.map((action, i) => ({
     user: admin._id,
-    action,
+    event: action,
     description: `Admin performed ${action.replace('_', ' ')}`,
     createdAt: daysAgo(i),
   }));

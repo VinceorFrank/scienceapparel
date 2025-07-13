@@ -305,6 +305,13 @@ const Account = () => {
                   >
                     Social Responsibility
                   </Link>
+                  <Link
+                    to="/order-tracking"
+                    className="block w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
+                  >
+                    Track My Order
+                  </Link>
                   {/* Add more links here in the future */}
                 </div>
               </div>

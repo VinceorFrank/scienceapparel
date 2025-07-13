@@ -326,6 +326,21 @@ const OrderDetail = () => {
                 <button className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
                   📞 Contacter le support
                 </button>
+                {/* Navigation actions */}
+                <div className="flex flex-col gap-2 pt-2">
+                  <Link
+                    to="/products"
+                    className="block w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-3 px-4 rounded-lg font-bold shadow-md hover:from-blue-500 hover:to-blue-600 transition-all duration-300 text-center"
+                  >
+                    🛍️ Continuer mes achats
+                  </Link>
+                  <Link
+                    to="/"
+                    className="block w-full bg-gradient-to-r from-green-400 to-green-500 text-white py-3 px-4 rounded-lg font-bold shadow-md hover:from-green-500 hover:to-green-600 transition-all duration-300 text-center"
+                  >
+                    🏠 Retour à l'accueil
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

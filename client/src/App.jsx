@@ -42,7 +42,7 @@ import CustomerInsights from "./pages/Admin/CustomerInsights";
 import MarkdownPage from "./pages/Admin/MarkdownPage";
 import ShippingAdmin from "./pages/Admin/ShippingAdmin";
 import SignupCustomer from "./pages/Customer/SignupCustomer";
-
+import Orders from "./pages/Orders";
 
 
 const App = () => {
@@ -73,6 +73,7 @@ const App = () => {
             <Route path="/account/edit" element={<EditCustomer />} />
             <Route path="/order/:id" element={<OrderDetail />} />
             <Route path="/payment/:orderId" element={<Payment />} />
+            <Route path="/orders" element={<Orders />} />
           </Route>
 
           <Route path="/login" element={<LoginCustomer />} />

@@ -124,6 +124,21 @@ const userSchema = new mongoose.Schema({
     timezone: { 
       type: String, 
       default: 'America/Toronto' 
+    },
+    // Added fields for full account preferences support
+    topics: {
+      type: [String],
+      default: ['News', 'Promotions']
+    },
+    emailFrequency: {
+      type: String,
+      enum: ['daily', 'weekly', 'monthly'],
+      default: 'weekly'
+    },
+    channels: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false },
+      push: { type: Boolean, default: false }
     }
   },
   

@@ -1,74 +1,172 @@
 // client/src/pages/Account.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useLang } from '../utils/lang';
+import { getProfile, updateProfile, getPreferences, updatePreferences } from '../api/users';
+
+const TOPICS = ['News', 'Promotions', 'Product Updates', 'Tips & Tricks'];
 
 const Account = () => {
   const { t } = useLang();
-  const [user, setUser] = useState({
-    name: 'Jane Doe',
-    email: 'jane@example.com',
-    profilePicture: '',
-    newsletterSubscribed: true,
-    emailFrequency: 'weekly',
-    topics: ['News', 'Promotions'],
-    language: 'en',
-    channels: { email: true, sms: false, push: false },
-  });
+  const [user, setUser] = useState(null);
+  const [preferences, setPreferences] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [editEmail, setEditEmail] = useState(user.email);
-  const [editName, setEditName] = useState(user.name);
-  const [editPassword, setEditPassword] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editName, setEditName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleProfileSave = () => {
-    setUser({ ...user, name: editName, email: editEmail });
-    setEditMode(false);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const profileRes = await getProfile();
+        const userData = profileRes.data || profileRes.user || profileRes;
+        setUser(userData);
+        setEditEmail(userData.email || '');
+        setEditName(userData.name || '');
+        try {
+          const prefRes = await getPreferences();
+          setPreferences(prefRes.preferences || prefRes.data || prefRes);
+        } catch {
+          setPreferences(null);
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to load account data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Profile edit handlers
+  const handleProfileSave = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await updateProfile({ name: editName, email: editEmail });
+      setUser(res.user || res.data || { name: editName, email: editEmail });
+      setEditMode(false);
+      setSuccess('Profile updated!');
+    } catch (err) {
+      setError(err.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePasswordChange = () => {
-    alert('Password change coming soon!');
+  // Newsletter toggle
+  const handleNewsletterToggle = async () => {
+    if (!preferences) return;
+    const updated = { ...preferences, newsletter: !preferences.newsletter };
+    setPreferences(updated);
+    try {
+      await updatePreferences(updated);
+      setSuccess('Preferences updated!');
+    } catch (err) {
+      setError('Failed to update preferences');
+    }
   };
 
-  const handleNewsletterToggle = () => {
-    setUser({ ...user, newsletterSubscribed: !user.newsletterSubscribed });
+  // Frequency change
+  const handleFrequencyChange = async (e) => {
+    if (!preferences) return;
+    const updated = { ...preferences, emailFrequency: e.target.value };
+    setPreferences(updated);
+    try {
+      await updatePreferences(updated);
+      setSuccess('Preferences updated!');
+    } catch (err) {
+      setError('Failed to update preferences');
+    }
   };
 
-  const handleFrequencyChange = (e) => {
-    setUser({ ...user, emailFrequency: e.target.value });
+  // Topic toggle
+  const handleTopicToggle = async (topic) => {
+    if (!preferences) return;
+    const topics = preferences.topics || [];
+    const updatedTopics = topics.includes(topic)
+      ? topics.filter(t => t !== topic)
+      : [...topics, topic];
+    const updated = { ...preferences, topics: updatedTopics };
+    setPreferences(updated);
+    try {
+      await updatePreferences(updated);
+      setSuccess('Preferences updated!');
+    } catch (err) {
+      setError('Failed to update preferences');
+    }
   };
 
-  const handleTopicToggle = (topic) => {
-    setUser({
-      ...user,
-      topics: user.topics.includes(topic)
-        ? user.topics.filter(t => t !== topic)
-        : [...user.topics, topic],
-    });
+  // Language change
+  const handleLanguageChange = async (e) => {
+    if (!preferences) return;
+    const updated = { ...preferences, language: e.target.value };
+    setPreferences(updated);
+    try {
+      await updatePreferences(updated);
+      setSuccess('Preferences updated!');
+    } catch (err) {
+      setError('Failed to update preferences');
+    }
   };
 
-  const handleLanguageChange = (e) => {
-    setUser({ ...user, language: e.target.value });
+  // Channel toggle
+  const handleChannelToggle = async (channel) => {
+    if (!preferences) return;
+    const updatedChannels = {
+      ...((preferences.channels || { email: true, sms: false, push: false })),
+      [channel]: !preferences.channels?.[channel]
+    };
+    const updated = { ...preferences, channels: updatedChannels };
+    setPreferences(updated);
+    try {
+      await updatePreferences(updated);
+      setSuccess('Preferences updated!');
+    } catch (err) {
+      setError('Failed to update preferences');
+    }
   };
 
-  const handleChannelToggle = (channel) => {
-    setUser({
-      ...user,
-      channels: { ...user.channels, [channel]: !user.channels[channel] },
-    });
-  };
+  // Account management actions (alerts only)
+  const handleUnsubscribe = () => alert('Unsubscribe coming soon!');
+  const handleDeleteAccount = () => alert('Delete account coming soon!');
+  const handleDataDownload = () => alert('Data download coming soon!');
+  const handlePasswordChange = () => alert('Password change coming soon!');
 
-  const handleUnsubscribe = () => {
-    alert('Unsubscribe coming soon!');
-  };
-
-  const handleDeleteAccount = () => {
-    alert('Delete account coming soon!');
-  };
-
-  const handleDataDownload = () => {
-    alert('Data download coming soon!');
-  };
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+  if (error) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <span className="text-6xl mb-4 block">❌</span>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <Link
+              to="/"
+              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -103,7 +201,6 @@ const Account = () => {
                     {editMode ? 'Cancel' : 'Edit Profile'}
                   </button>
                 </div>
-
                 {editMode ? (
                   <div className="space-y-6">
                     <div>
@@ -111,7 +208,7 @@ const Account = () => {
                       <input
                         type="text"
                         value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
+                        onChange={e => setEditName(e.target.value)}
                         className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                       />
                     </div>
@@ -120,7 +217,7 @@ const Account = () => {
                       <input
                         type="email"
                         value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
+                        onChange={e => setEditEmail(e.target.value)}
                         className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                       />
                     </div>
@@ -148,9 +245,9 @@ const Account = () => {
                       <div>
                         <h3 className="text-2xl font-bold text-blue-400 mb-2" 
                             style={{ fontFamily: 'Fredoka One, cursive' }}>
-                          {user.name}
+                          {user?.name}
                         </h3>
-                        <p className="text-lg text-slate-600">{user.email}</p>
+                        <p className="text-lg text-slate-600">{user?.email}</p>
                       </div>
                     </div>
                   </div>
@@ -173,54 +270,52 @@ const Account = () => {
                     <button
                       onClick={handleNewsletterToggle}
                       className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
-                        user.newsletterSubscribed ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
+                        preferences?.newsletter ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
                         className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
-                          user.newsletterSubscribed ? 'translate-x-8' : 'translate-x-1'
+                          preferences?.newsletter ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
                   </div>
-
-                  {user.newsletterSubscribed && (
-                    <>
-                      {/* Frequency */}
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Email Frequency</label>
-                        <select
-                          value={user.emailFrequency}
-                          onChange={handleFrequencyChange}
-                          className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
-                        >
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                        </select>
+                  {/* Frequency */}
+                  {preferences?.newsletter && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Email Frequency</label>
+                      <select
+                        value={preferences?.emailFrequency || 'weekly'}
+                        onChange={handleFrequencyChange}
+                        className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                      >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+                  )}
+                  {/* Topics */}
+                  {preferences?.newsletter && (
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Topics of Interest</label>
+                      <div className="flex flex-wrap gap-3">
+                        {TOPICS.map((topic) => (
+                          <label key={topic} className="flex items-center bg-white rounded-2xl px-4 py-2 shadow-md border border-blue-100 cursor-pointer hover:shadow-lg transition-all duration-300">
+                            <input
+                              type="checkbox"
+                              checked={preferences.topics?.includes(topic) || false}
+                              onChange={() => handleTopicToggle(topic)}
+                              className="h-4 w-4 text-pink-400 focus:ring-pink-300 border-gray-300 rounded mr-2"
+                            />
+                            <span className="text-sm text-blue-400 font-semibold" 
+                                  style={{ fontFamily: 'Fredoka One, cursive' }}>
+                              {topic}
+                            </span>
+                          </label>
+                        ))}
                       </div>
-
-                      {/* Topics */}
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Topics of Interest</label>
-                        <div className="flex flex-wrap gap-3">
-                          {['News', 'Promotions', 'Product Updates', 'Tips & Tricks'].map((topic) => (
-                            <label key={topic} className="flex items-center bg-white rounded-2xl px-4 py-2 shadow-md border border-blue-100 cursor-pointer hover:shadow-lg transition-all duration-300">
-                              <input
-                                type="checkbox"
-                                checked={user.topics.includes(topic)}
-                                onChange={() => handleTopicToggle(topic)}
-                                className="h-4 w-4 text-pink-400 focus:ring-pink-300 border-gray-300 rounded mr-2"
-                              />
-                              <span className="text-sm text-blue-400 font-semibold" 
-                                    style={{ fontFamily: 'Fredoka One, cursive' }}>
-                                {topic}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
@@ -240,17 +335,16 @@ const Account = () => {
                     <button
                       onClick={() => handleChannelToggle('email')}
                       className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
-                        user.channels.email ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
+                        preferences?.channels?.email ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
                         className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.email ? 'translate-x-8' : 'translate-x-1'
+                          preferences?.channels?.email ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-purple-400">SMS Notifications</h3>
@@ -259,17 +353,16 @@ const Account = () => {
                     <button
                       onClick={() => handleChannelToggle('sms')}
                       className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
-                        user.channels.sms ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
+                        preferences?.channels?.sms ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
                         className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.sms ? 'translate-x-8' : 'translate-x-1'
+                          preferences?.channels?.sms ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-purple-400">Push Notifications</h3>
@@ -278,12 +371,12 @@ const Account = () => {
                     <button
                       onClick={() => handleChannelToggle('push')}
                       className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors shadow-lg ${
-                        user.channels.push ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
+                        preferences?.channels?.push ? 'bg-gradient-to-r from-pink-400 to-pink-500' : 'bg-gray-200'
                       }`}
                     >
                       <span
                         className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow ${
-                          user.channels.push ? 'translate-x-8' : 'translate-x-1'
+                          preferences?.channels?.push ? 'translate-x-8' : 'translate-x-1'
                         }`}
                       />
                     </button>
@@ -312,7 +405,6 @@ const Account = () => {
                   >
                     Track My Order
                   </Link>
-                  {/* Add more links here in the future */}
                 </div>
               </div>
             </div>
@@ -360,7 +452,7 @@ const Account = () => {
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">Language</label>
                     <select
-                      value={user.language}
+                      value={preferences?.language || 'en'}
                       onChange={handleLanguageChange}
                       className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                     >

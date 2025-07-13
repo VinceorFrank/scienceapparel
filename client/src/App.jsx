@@ -17,7 +17,6 @@ import Shipping from "./pages/Shipping";
 import Reviews from "./pages/Reviews";
 import Newsletter from "./pages/Newsletter";
 import Responsibility from "./pages/Responsibility";
-import Calendly from "./pages/Calendly";
 import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
@@ -82,7 +81,6 @@ const App = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/responsibility" element={<Responsibility />} />
-          <Route path="/calendly" element={<Calendly />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/tailwind-test" element={<TailwindTest />} />
           <Route path="/payment" element={<Payment />} />

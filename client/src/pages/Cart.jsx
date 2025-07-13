@@ -27,6 +27,9 @@ const Cart = () => {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [selectedShipping, setSelectedShipping] = useState(null);
   const [shippingAddress, setShippingAddress] = useState({ address: "", city: "", province: "", postalCode: "", country: "" });
+  const [availableCarriers, setAvailableCarriers] = useState([]);
+  const [carriersLoading, setCarriersLoading] = useState(false);
+  const [carriersError, setCarriersError] = useState(null);
   const navigate = useNavigate();
 
   // Fetch cart on mount
@@ -114,6 +117,40 @@ const Cart = () => {
       window.dispatchEvent(new Event('cartUpdated'));
     }
   };
+
+  const fetchAvailableCarriers = async () => {
+    setCarriersLoading(true);
+    setCarriersError(null);
+    try {
+      const res = await fetch('/api/shipping/carriers');
+      const data = await res.json();
+      if (data.success) {
+        setAvailableCarriers(data.data);
+      } else {
+        setAvailableCarriers([]);
+        setCarriersError('Could not fetch carriers');
+      }
+    } catch (err) {
+      setAvailableCarriers([]);
+      setCarriersError('Could not fetch carriers');
+    } finally {
+      setCarriersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch if address is filled and province is QC
+    if (
+      shippingAddress &&
+      shippingAddress.province &&
+      shippingAddress.province.toUpperCase() === 'QC'
+    ) {
+      fetchAvailableCarriers();
+    } else {
+      setAvailableCarriers([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shippingAddress]);
 
   // Calculate subtotal
   const subtotal = cart && cart.items
@@ -307,6 +344,47 @@ const Cart = () => {
                       selectedShipping={selectedShipping}
                       onShippingSelect={setSelectedShipping}
                     />
+                  </div>
+                </div>
+
+                {/* MOCKUP: Shipping Options Preview */}
+                <div className="my-8">
+                  <div className="bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-lg p-6 md:p-8 max-w-2xl mx-auto">
+                    <h2
+                      className="text-2xl md:text-3xl font-extrabold mb-4 text-center"
+                      style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}
+                    >
+                      Shipping Options
+                    </h2>
+                    <div className="flex flex-wrap justify-center gap-6">
+                      {/* Canada Post */}
+                      <div className="flex flex-col items-center bg-white rounded-2xl shadow-md p-4 w-44">
+                        <div className="w-12 h-12 mb-2 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full flex items-center justify-center text-2xl">
+                          <span role="img" aria-label="Canada Post">📦</span>
+                        </div>
+                        <div className="font-bold text-lg text-blue-700 mb-1">Canada Post</div>
+                        <div className="text-sm text-gray-500 mb-1">Delivery: 3-5 days</div>
+                        <div className="text-lg font-bold text-green-600 mb-1">$12.99</div>
+                        <button className="mt-2 bg-gradient-to-r from-blue-400 to-purple-500 text-white px-4 py-2 rounded-full font-semibold hover:from-blue-500 hover:to-purple-600 transition-all duration-200 shadow">
+                          Select
+                        </button>
+                      </div>
+                      {/* UPS */}
+                      <div className="flex flex-col items-center bg-white rounded-2xl shadow-md p-4 w-44">
+                        <div className="w-12 h-12 mb-2 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full flex items-center justify-center text-2xl">
+                          <span role="img" aria-label="UPS">🚚</span>
+                        </div>
+                        <div className="font-bold text-lg text-blue-700 mb-1">UPS</div>
+                        <div className="text-sm text-gray-500 mb-1">Delivery: 2-4 days</div>
+                        <div className="text-lg font-bold text-green-600 mb-1">$15.99</div>
+                        <button className="mt-2 bg-gradient-to-r from-blue-400 to-purple-500 text-white px-4 py-2 rounded-full font-semibold hover:from-blue-500 hover:to-purple-600 transition-all duration-200 shadow">
+                          Select
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400 text-center mt-4">
+                      * These are example rates. Real rates will appear here once available.
+                    </div>
                   </div>
                 </div>
 

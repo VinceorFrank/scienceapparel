@@ -32,7 +32,6 @@ const Navbar = () => {
         <li><Link to="/reviews">Avis</Link></li>
         <li><Link to="/newsletter">Newsletter</Link></li>
         <li><Link to="/responsibility">Responsabilité</Link></li>
-        <li><Link to="/calendly">Calendly</Link></li>
         <li><Link to="/complaint">Plainte</Link></li>
 
         {/* ✅ Show name and logout if logged in */}

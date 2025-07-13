@@ -161,5 +161,59 @@
   "visitUs": "Venez nous voir",
   "mapPlaceholder": "Carte interactive à venir",
   "frequentlyAsked": "Questions fréquemment posées",
-  "faqContactText": "Notre équipe de service client est là pour vous aider ! Contactez-nous par l'une des méthodes ci-dessous."
+  "faqContactText": "Notre équipe de service client est là pour vous aider ! Contactez-nous par l'une des méthodes ci-dessous.",
+  "responsibility": "Responsabilité Sociale",
+  "responsibilitySubtitle": "Découvrez notre engagement envers la durabilité environnementale et l'impact social",
+  "environmentalInitiatives": "Initiatives Environnementales",
+  "ecoPackaging": "Emballages Écologiques",
+  "ecoPackagingDesc": "Nous utilisons uniquement des emballages recyclables et biodégradables. Nos boîtes sont fabriquées à partir de matériaux 100% recyclés.",
+  "ecoPackagingFeatures": [
+    "Papier recyclé à 100%",
+    "Encres végétales",
+    "Colle naturelle"
+  ],
+  "wasteReduction": "Réduction des Déchets",
+  "wasteReductionDesc": "Nous minimisons les déchets dans nos entrepôts et encourageons nos clients à recycler nos emballages.",
+  "wasteReductionFeatures": [
+    "Optimisation des emballages",
+    "Programme de recyclage",
+    "Réduction du suremballage"
+  ],
+  "fairTrade": "Commerce Équitable",
+  "localPartners": "Partenaires Locaux",
+  "localPartnersDesc": "Nous privilégions les partenaires québécois et canadiens pour soutenir l'économie locale et réduire notre empreinte carbone.",
+  "localPartnersStats": "Plus de 80% de nos fournisseurs sont basés au Québec",
+  "workingConditions": "Conditions de Travail",
+  "workingConditionsDesc": "Nous nous assurons que tous nos partenaires respectent les standards internationaux de travail équitable.",
+  "workingConditionsFeatures": [
+    "Salaire minimum vital",
+    "Conditions de travail sûres",
+    "Pas de travail des enfants"
+  ],
+  "communityEngagement": "Engagement Communautaire",
+  "localDonations": "Donations Locales",
+  "localDonationsDesc": "Nous reversons 5% de nos bénéfices à des organisations caritatives québécoises chaque année.",
+  "localDonationsStats": "Plus de 50 000$ donnés aux associations locales en 2023",
+  "educationalPrograms": "Programmes Éducatifs",
+  "educationalProgramsDesc": "Nous soutenons des programmes éducatifs dans les écoles québécoises pour promouvoir l'entrepreneuriat.",
+  "educationalProgramsFeatures": [
+    "Ateliers en écoles",
+    "Bourses d'études",
+    "Mentorat étudiant"
+  ],
+  "transparency": "Transparence",
+  "transparencyDesc": "Nous croyons en la transparence totale. Chaque année, nous publions un rapport détaillé de nos actions sociales et environnementales.",
+  "transparencyStats": {
+    "recyclablePackaging": "95%",
+    "localSuppliers": "80%",
+    "profitsDonated": "5%"
+  },
+  "transparencyLabels": {
+    "recyclablePackaging": "Emballages recyclables",
+    "localSuppliers": "Fournisseurs locaux",
+    "profitsDonated": "Bénéfices reversés"
+  },
+  "responsibilityQuestions": "Questions sur notre responsabilité sociale ?",
+  "responsibilityContactDesc": "Notre équipe est disponible pour répondre à toutes vos questions sur nos initiatives sociales et environnementales.",
+  "contactUs": "Nous Contacter"
 } 

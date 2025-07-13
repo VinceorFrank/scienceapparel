@@ -290,6 +290,24 @@ const Account = () => {
                   </div>
                 </div>
               </div>
+
+              {/* EXTRA for Customer */}
+              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-pink-400 mb-6" 
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                  EXTRA for Customer
+                </h2>
+                <div className="space-y-4">
+                  <Link
+                    to="/responsibility"
+                    className="block w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
+                  >
+                    Social Responsibility
+                  </Link>
+                  {/* Add more links here in the future */}
+                </div>
+              </div>
             </div>
 
             {/* Sidebar */}

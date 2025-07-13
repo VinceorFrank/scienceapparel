@@ -160,5 +160,59 @@
   "hoursDescription": "We're closed on weekends and holidays",
   "visitUs": "Visit Us",
   "mapPlaceholder": "Interactive map coming soon",
-  "frequentlyAsked": "Frequently Asked Questions"
+  "frequentlyAsked": "Frequently Asked Questions",
+  "responsibility": "Social Responsibility",
+  "responsibilitySubtitle": "Learn about our commitment to environmental sustainability and social impact",
+  "environmentalInitiatives": "Environmental Initiatives",
+  "ecoPackaging": "Eco-Friendly Packaging",
+  "ecoPackagingDesc": "We use only recyclable and biodegradable packaging. Our boxes are made from 100% recycled materials.",
+  "ecoPackagingFeatures": [
+    "100% recycled paper",
+    "Vegetable-based inks",
+    "Natural glue"
+  ],
+  "wasteReduction": "Waste Reduction",
+  "wasteReductionDesc": "We minimize waste in our warehouses and encourage our customers to recycle our packaging.",
+  "wasteReductionFeatures": [
+    "Packaging optimization",
+    "Recycling program",
+    "Reduced over-packaging"
+  ],
+  "fairTrade": "Fair Trade",
+  "localPartners": "Local Partners",
+  "localPartnersDesc": "We prioritize Quebec and Canadian partners to support the local economy and reduce our carbon footprint.",
+  "localPartnersStats": "Over 80% of our suppliers are based in Quebec",
+  "workingConditions": "Working Conditions",
+  "workingConditionsDesc": "We ensure all our partners respect international fair labor standards.",
+  "workingConditionsFeatures": [
+    "Living minimum wage",
+    "Safe working conditions",
+    "No child labor"
+  ],
+  "communityEngagement": "Community Engagement",
+  "localDonations": "Local Donations",
+  "localDonationsDesc": "We donate 5% of our profits to Quebec charitable organizations each year.",
+  "localDonationsStats": "Over $50,000 donated to local organizations in 2023",
+  "educationalPrograms": "Educational Programs",
+  "educationalProgramsDesc": "We support educational programs in Quebec schools to promote entrepreneurship.",
+  "educationalProgramsFeatures": [
+    "School workshops",
+    "Student scholarships",
+    "Student mentoring"
+  ],
+  "transparency": "Transparency",
+  "transparencyDesc": "We believe in total transparency. Each year, we publish a detailed report of our social and environmental actions.",
+  "transparencyStats": {
+    "recyclablePackaging": "95%",
+    "localSuppliers": "80%",
+    "profitsDonated": "5%"
+  },
+  "transparencyLabels": {
+    "recyclablePackaging": "Recyclable packaging",
+    "localSuppliers": "Local suppliers",
+    "profitsDonated": "Profits donated"
+  },
+  "responsibilityQuestions": "Questions about our social responsibility?",
+  "responsibilityContactDesc": "Our team is available to answer all your questions about our social and environmental initiatives.",
+  "contactUs": "Contact Us"
 } 

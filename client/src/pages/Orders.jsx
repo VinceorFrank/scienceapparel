@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { reorderOrderItems } from '../utils/cart';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -243,9 +246,10 @@ const Orders = () => {
                     Track Order
                   </Link>
                   <button
-                    onClick={() => {
-                      // TODO: Implement reorder functionality
-                      alert('Reorder functionality coming soon!');
+                    onClick={async () => {
+                      await reorderOrderItems(order.orderItems);
+                      toast.success('Items added to cart!');
+                      setTimeout(() => navigate('/cart'), 1000);
                     }}
                     className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors text-sm"
                   >
@@ -267,6 +271,17 @@ const Orders = () => {
           </button>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

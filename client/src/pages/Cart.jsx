@@ -202,16 +202,17 @@ const Cart = () => {
                   </thead>
                   <tbody>
                     {cart.items.map((item, idx) => {
-                      if (!item || typeof item !== 'object' || !(item._id || item.id)) return null;
-                      const name = item.name || 'Produit';
-                      const image = item.image
-                        ? (item.image.startsWith('http') ? item.image
-                          : item.image.startsWith('/uploads/') ? item.image
-                          : `/uploads/images/${item.image}`)
-                        : '/placeholder.png';
-                      const price = item.price || 0;
+                      if (!item || typeof item !== 'object') return null;
+                      // Determine if logged-in (backend cart) or guest cart
+                      const isBackendCart = !!item.product;
+                      const name = isBackendCart ? (item.product.name || 'Product') : (item.name || 'Product');
+                      const description = isBackendCart ? (item.product.description || 'No description available') : (item.description || 'No description available');
+                      const image = isBackendCart
+                        ? (item.product.image ? (item.product.image.startsWith('http') ? item.product.image : item.product.image.startsWith('/uploads/') ? item.product.image : `/uploads/images/${item.product.image}`) : '/placeholder.png')
+                        : (item.image ? (item.image.startsWith('http') ? item.image : item.image.startsWith('/uploads/') ? item.image : `/uploads/images/${item.image}`) : '/placeholder.png');
+                      const price = isBackendCart ? (item.product.price || 0) : (item.price || 0);
                       const quantity = item.quantity || 1;
-                      const productId = item._id || item.id || idx;
+                      const productId = isBackendCart ? (item.product._id) : (item._id || item.id || idx);
                       return (
                         <tr key={productId} className="border-b last:border-b-0 hover:bg-pastel-50 transition rounded-lg">
                           <td className="py-4 flex items-center gap-6">
@@ -220,7 +221,7 @@ const Cart = () => {
                             </div>
                             <div className="flex flex-col">
                               <span className="font-bold text-2xl md:text-3xl text-gray-800">{name}</span>
-                              <span className="text-sm md:text-base text-gray-600 mt-1">{item.description || 'Aucune description disponible'}</span>
+                              <span className="text-sm md:text-base text-gray-600 mt-1">{description}</span>
                             </div>
                           </td>
                           <td className="py-4 text-center text-xl text-blue-700 font-semibold">{price.toFixed(2)} $</td>
@@ -249,10 +250,9 @@ const Cart = () => {
                           <td className="py-4 text-center">
                             <button
                               onClick={() => handleRemoveItem(productId)}
-                              className="text-red-400 hover:text-red-600 text-3xl px-3 rounded-full bg-pastel-100 hover:bg-pastel-200 transition shadow-sm"
-                              title="Supprimer l'article"
-                              aria-label="Supprimer l'article"
+                              className="text-red-500 hover:text-red-700 text-2xl font-bold px-2 py-1 rounded-lg focus:outline-none"
                               disabled={updating}
+                              aria-label="Supprimer l'article"
                             >
                               ×
                             </button>

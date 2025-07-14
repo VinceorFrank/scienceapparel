@@ -147,7 +147,7 @@ cartSchema.methods.clearCart = function() {
 cartSchema.methods.getPopulatedCart = function() {
   return this.populate({
     path: 'items.product',
-    select: 'name price image stock category',
+    select: 'name description price image stock category',
     populate: { path: 'category', select: 'name' }
   });
 };

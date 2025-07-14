@@ -1,6 +1,6 @@
 // client/src/pages/Account.jsx
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useLang } from '../utils/lang';
 import { getProfile, updateProfile, getPreferences, updatePreferences } from '../api/users';
@@ -17,6 +17,7 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,6 +139,17 @@ const Account = () => {
   const handleDeleteAccount = () => alert('Delete account coming soon!');
   const handleDataDownload = () => alert('Data download coming soon!');
   const handlePasswordChange = () => alert('Password change coming soon!');
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    // Optionally clear guest cart
+    // localStorage.removeItem('guestCart');
+    navigate('/login');
+  };
 
   if (loading) {
     return (
@@ -410,89 +422,101 @@ const Account = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-8">
-              {/* Quick Actions */}
-              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <h2 className="text-2xl font-bold text-yellow-400 mb-6" 
-                    style={{ fontFamily: 'Fredoka One, cursive' }}>
-                  Quick Actions
-                </h2>
-                <div className="space-y-4">
-                  <button
-                    onClick={handlePasswordChange}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    Change Password
-                  </button>
-                  <Link
-                    to="/orders"
-                    className="block w-full px-6 py-3 bg-gradient-to-r from-green-100 via-green-300 to-white text-green-700 font-bold rounded-2xl shadow-md hover:from-green-200 hover:to-green-400 hover:text-green-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    View Orders
-                  </Link>
-                  <Link
-                    to="/addresses"
-                    className="block w-full px-6 py-3 bg-gradient-to-r from-purple-100 via-purple-300 to-white text-purple-700 font-bold rounded-2xl shadow-md hover:from-purple-200 hover:to-purple-400 hover:text-purple-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    Manage Addresses
-                  </Link>
-                </div>
-              </div>
-
-              {/* Preferences */}
-              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <h2 className="text-2xl font-bold text-blue-400 mb-6" 
-                    style={{ fontFamily: 'Fredoka One, cursive' }}>
-                  Preferences
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Language</label>
-                    <select
-                      value={preferences?.language || 'en'}
-                      onChange={handleLanguageChange}
-                      className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+            <div className="space-y-8 flex flex-col h-full justify-between">
+              <div>
+                {/* Quick Actions */}
+                <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                  <h2 className="text-2xl font-bold text-yellow-400 mb-6" 
+                      style={{ fontFamily: 'Fredoka One, cursive' }}>
+                    Quick Actions
+                  </h2>
+                  <div className="space-y-4">
+                    <button
+                      onClick={handlePasswordChange}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
                     >
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                    </select>
+                      Change Password
+                    </button>
+                    <Link
+                      to="/orders"
+                      className="block w-full px-6 py-3 bg-gradient-to-r from-green-100 via-green-300 to-white text-green-700 font-bold rounded-2xl shadow-md hover:from-green-200 hover:to-green-400 hover:text-green-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
+                    >
+                      View Orders
+                    </Link>
+                    <Link
+                      to="/addresses"
+                      className="block w-full px-6 py-3 bg-gradient-to-r from-purple-100 via-purple-300 to-white text-purple-700 font-bold rounded-2xl shadow-md hover:from-purple-200 hover:to-purple-400 hover:text-purple-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
+                    >
+                      Manage Addresses
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Preferences */}
+                <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                  <h2 className="text-2xl font-bold text-blue-400 mb-6" 
+                      style={{ fontFamily: 'Fredoka One, cursive' }}>
+                    Preferences
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Language</label>
+                      <select
+                        value={preferences?.language || 'en'}
+                        onChange={handleLanguageChange}
+                        className="w-full px-4 py-3 border border-blue-200 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Management */}
+                <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                  <h2 className="text-2xl font-bold text-red-400 mb-6" 
+                      style={{ fontFamily: 'Fredoka One, cursive' }}>
+                    Account Management
+                  </h2>
+                  <div className="space-y-4">
+                    <button
+                      onClick={handleDataDownload}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-gray-100 via-gray-300 to-white text-gray-700 font-bold rounded-2xl shadow-md hover:from-gray-200 hover:to-gray-400 hover:text-gray-800 transition-all duration-300 transform hover:-translate-y-1"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
+                    >
+                      Download My Data
+                    </button>
+                    <button
+                      onClick={handleUnsubscribe}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-yellow-100 via-yellow-300 to-white text-yellow-700 font-bold rounded-2xl shadow-md hover:from-yellow-200 hover:to-yellow-400 hover:text-yellow-800 transition-all duration-300 transform hover:-translate-y-1"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
+                    >
+                      Unsubscribe from All
+                    </button>
+                    <button
+                      onClick={handleDeleteAccount}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-pink-100 via-red-200 to-white text-red-600 font-bold rounded-2xl shadow-md hover:from-pink-200 hover:to-red-300 hover:text-red-700 transition-all duration-300 transform hover:-translate-y-1"
+                      style={{ fontFamily: 'Fredoka One, cursive' }}
+                    >
+                      Delete Account
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* Account Management */}
-              <div className="group bg-gradient-to-br from-yellow-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-yellow-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <h2 className="text-2xl font-bold text-red-400 mb-6" 
-                    style={{ fontFamily: 'Fredoka One, cursive' }}>
-                  Account Management
-                </h2>
-                <div className="space-y-4">
-                  <button
-                    onClick={handleDataDownload}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-gray-100 via-gray-300 to-white text-gray-700 font-bold rounded-2xl shadow-md hover:from-gray-200 hover:to-gray-400 hover:text-gray-800 transition-all duration-300 transform hover:-translate-y-1"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    Download My Data
-                  </button>
-                  <button
-                    onClick={handleUnsubscribe}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-yellow-100 via-yellow-300 to-white text-yellow-700 font-bold rounded-2xl shadow-md hover:from-yellow-200 hover:to-yellow-400 hover:text-yellow-800 transition-all duration-300 transform hover:-translate-y-1"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    Unsubscribe from All
-                  </button>
-                  <button
-                    onClick={handleDeleteAccount}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-pink-100 via-red-200 to-white text-red-600 font-bold rounded-2xl shadow-md hover:from-pink-200 hover:to-red-300 hover:text-red-700 transition-all duration-300 transform hover:-translate-y-1"
-                    style={{ fontFamily: 'Fredoka One, cursive' }}
-                  >
-                    Delete Account
-                  </button>
-                </div>
+              {/* Disconnect Button at the bottom */}
+              <div className="mt-8">
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-red-200 via-red-300 to-white text-red-700 font-bold rounded-2xl shadow-md hover:from-red-300 hover:to-red-400 hover:text-red-800 transition-all duration-300 transform hover:-translate-y-1 text-center"
+                  style={{ fontFamily: 'Fredoka One, cursive', boxShadow: '0 4px 24px 0 rgba(255,0,0,0.08)' }}
+                >
+                  Disconnect
+                </button>
               </div>
             </div>
           </div>

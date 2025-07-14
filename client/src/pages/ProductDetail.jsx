@@ -55,6 +55,7 @@ const ProductDetail = () => {
       try {
         await addCartItem(product._id, quantity);
         alert(`${product.name} ajouté au panier !`);
+        window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
         alert("Erreur lors de l'ajout au panier.");
       }

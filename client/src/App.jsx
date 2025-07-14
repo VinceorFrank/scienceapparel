@@ -43,77 +43,80 @@ import MarkdownPage from "./pages/Admin/MarkdownPage";
 import ShippingAdmin from "./pages/Admin/ShippingAdmin";
 import SignupCustomer from "./pages/Customer/SignupCustomer";
 import Orders from "./pages/Orders";
+import { CartProvider } from './components/CartContext';
 
 
 const App = () => {
   return (
-    <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <Routes>
-        {/* Public site layout */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/order-tracking" element={<OrderTracking />} />
+    <CartProvider>
+      <Router>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <Routes>
+          {/* Public site layout */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/order-tracking" element={<OrderTracking />} />
 
-          <Route element={<RequireCustomer />}>
-            <Route path="/account" element={<Account />} />
-            <Route path="/account/edit" element={<EditCustomer />} />
-            <Route path="/order/:id" element={<OrderDetail />} />
-            <Route path="/payment/:orderId" element={<Payment />} />
-            <Route path="/orders" element={<Orders />} />
+            <Route element={<RequireCustomer />}>
+              <Route path="/account" element={<Account />} />
+              <Route path="/account/edit" element={<EditCustomer />} />
+              <Route path="/order/:id" element={<OrderDetail />} />
+              <Route path="/payment/:orderId" element={<Payment />} />
+              <Route path="/orders" element={<Orders />} />
+            </Route>
+
+            <Route path="/login" element={<LoginCustomer />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/newsletter" element={<Newsletter />} />
+            <Route path="/responsibility" element={<Responsibility />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/tailwind-test" element={<TailwindTest />} />
+            <Route path="/order-test" element={<OrderTest />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/signup" element={<SignupCustomer />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
-          <Route path="/login" element={<LoginCustomer />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/shipping" element={<Shipping />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/newsletter" element={<Newsletter />} />
-          <Route path="/responsibility" element={<Responsibility />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/tailwind-test" element={<TailwindTest />} />
-          <Route path="/order-test" element={<OrderTest />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/signup" element={<SignupCustomer />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
+          {/* Admin login route (standalone, no sidebar) */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Admin login route (standalone, no sidebar) */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-
-        {/* Admin dashboard layout */}
-       <Route path="/admin" element={<RequireAdmin />}>
-  <Route element={<AdminLayout />}>
-    <Route index element={<AdminDashboard />} />
-    <Route path="dashboard" element={<AdminDashboard />} />
-    <Route path="products" element={<ProductsAdmin />} />
-    <Route path="orders" element={<OrdersAdmin />} />
-    <Route path="users" element={<UsersAdmin />} />
-    <Route path="categories" element={<CategoriesAdmin />} />
-    <Route path="support" element={<SupportAdmin />} />
-    <Route path="newsletter" element={<NewsletterAdmin />} />
-    <Route path="activity-log" element={<ActivityLogAdmin />} />
-    <Route path="data-management" element={<DataManagement />} />
-    <Route path="customer-insights" element={<CustomerInsights />} />
-    <Route path="troubleshoot" element={<MarkdownPage fileName='troubleshoot-admin-panel.md' title='Admin Panel Troubleshooting' />} />
-    <Route path="shipping" element={<ShippingAdmin />} />
+          {/* Admin dashboard layout */}
+         <Route path="/admin" element={<RequireAdmin />}>
+    <Route element={<AdminLayout />}>
+      <Route index element={<AdminDashboard />} />
+      <Route path="dashboard" element={<AdminDashboard />} />
+      <Route path="products" element={<ProductsAdmin />} />
+      <Route path="orders" element={<OrdersAdmin />} />
+      <Route path="users" element={<UsersAdmin />} />
+      <Route path="categories" element={<CategoriesAdmin />} />
+      <Route path="support" element={<SupportAdmin />} />
+      <Route path="newsletter" element={<NewsletterAdmin />} />
+      <Route path="activity-log" element={<ActivityLogAdmin />} />
+      <Route path="data-management" element={<DataManagement />} />
+      <Route path="customer-insights" element={<CustomerInsights />} />
+      <Route path="troubleshoot" element={<MarkdownPage fileName='troubleshoot-admin-panel.md' title='Admin Panel Troubleshooting' />} />
+      <Route path="shipping" element={<ShippingAdmin />} />
+    </Route>
   </Route>
-</Route>
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </CartProvider>
   );
 };
 

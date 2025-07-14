@@ -58,4 +58,7 @@ export const reorderOrderItems = async (orderItems) => {
       localStorage.setItem('guestCart', JSON.stringify(cart));
     }
   }
+  
+  // Dispatch cart update event after all items are added
+  window.dispatchEvent(new Event('cartUpdated'));
 }; 

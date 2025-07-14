@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
 import { useLang } from '../utils/lang';
+import { useCartContext } from './CartContext';
 
 const Header = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -10,38 +11,12 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { lang, setLang, t } = useLang();
   const navigate = useNavigate();
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { cartCount } = useCartContext();
+  
+  // Debug logging
+  console.log('[Header] Current cartCount:', cartCount);
 
-  useEffect(() => {
-    // Try to get cart from localStorage (guest cart)
-    let count = 0;
-    try {
-      const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
-      if (Array.isArray(guestCart)) {
-        count = guestCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-      }
-    } catch {}
-    setCartItemCount(count);
 
-    // Listen for cart changes (storage event and custom cartUpdated event)
-    const handleCartUpdate = () => {
-      let count = 0;
-      try {
-        const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
-        if (Array.isArray(guestCart)) {
-          count = guestCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        }
-      } catch {}
-      setCartItemCount(count);
-      console.log('[Header] cartUpdated event received. New cartItemCount:', count);
-    };
-    window.addEventListener('storage', handleCartUpdate);
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    return () => {
-      window.removeEventListener('storage', handleCartUpdate);
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
-  }, []);
 
   const links = [
     { path: '/', label: t('home') },
@@ -133,9 +108,9 @@ const Header = () => {
             aria-label="Cart"
           >
             <FiShoppingCart size={26} />
-            {cartItemCount > 0 && (
+            {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {cartItemCount}
+                {cartCount}
               </span>
             )}
           </button>

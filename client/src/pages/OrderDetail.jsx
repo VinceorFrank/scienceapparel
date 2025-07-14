@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getOrderById } from "../api/orders";
+import { reorderOrderItems } from "../utils/cart";
+import { toast } from "react-toastify";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -99,6 +101,17 @@ const OrderDetail = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleReorder = async () => {
+    try {
+      await reorderOrderItems(order.orderItems);
+      toast.success('Items added to cart successfully!');
+      // Navigate to cart page after successful reorder
+      navigate('/cart');
+    } catch (error) {
+      toast.error('Failed to add items to cart. Please try again.');
+    }
   };
 
   if (loading) {
@@ -308,6 +321,15 @@ const OrderDetail = () => {
                 )}
               </div>
             </div>
+            {/* Reorder Button */}
+            <button
+              onClick={handleReorder}
+              className="w-full px-6 py-3 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-2xl shadow-md hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:-translate-y-1 mb-4"
+              style={{ fontFamily: 'Fredoka One, cursive' }}
+            >
+              🔄 Reorder Items
+            </button>
+            
             {/* Print/Download Invoice (placeholder) */}
             <button
               onClick={() => alert('Invoice download coming soon!')}

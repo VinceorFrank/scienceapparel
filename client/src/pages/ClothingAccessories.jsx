@@ -48,6 +48,7 @@ const ClothingAccessories = () => {
       try {
         await addCartItem(product._id, 1);
         setCartMessage(`${product.name} ajouté au panier !`);
+        window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
         setCartMessage("Erreur lors de l'ajout au panier.");
       }
@@ -64,6 +65,7 @@ const ClothingAccessories = () => {
       }
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
       setCartMessage(`${product.name} ajouté au panier (invité) !`);
+      window.dispatchEvent(new Event('cartUpdated'));
     }
     setTimeout(() => setCartMessage(""), 2000);
   };

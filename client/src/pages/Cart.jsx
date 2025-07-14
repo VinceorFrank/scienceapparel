@@ -334,12 +334,20 @@ const Cart = () => {
                   {/* Shipping Calculator (shows carriers/rates if address is filled) */}
                   <div className="mt-4">
                     <ShippingCalculator
-                      orderItems={cart.items.map(item => ({
-                        name: item.name || 'Produit',
-                        qty: item.quantity || 1,
-                        price: item.price || 0,
-                        product: item._id || item.id || null
-                      }))}
+                      orderItems={cart.items.map(item => {
+                        // Determine if logged-in (backend cart) or guest cart
+                        const isBackendCart = !!item.product;
+                        const name = isBackendCart ? (item.product.name || 'Product') : (item.name || 'Product');
+                        const price = isBackendCart ? (item.product.price || 0) : (item.price || 0);
+                        const productId = isBackendCart ? (item.product._id) : (item._id || item.id);
+                        
+                        return {
+                          name: name,
+                          qty: item.quantity || 1,
+                          price: price,
+                          product: productId
+                        };
+                      })}
                       destination={shippingAddress}
                       selectedShipping={selectedShipping}
                       onShippingSelect={setSelectedShipping}

@@ -31,6 +31,7 @@ const addToGuestCart = (product) => {
     cart.push({ ...product, quantity: 1 });
   }
   setGuestCart(cart);
+  window.dispatchEvent(new Event('cartUpdated'));
 };
 
 const Products = () => {
@@ -75,6 +76,7 @@ const Products = () => {
       try {
         await addCartItem(product._id, 1);
         setCartMessage(`${product.name} ajouté au panier !`);
+        window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
         setError("Erreur lors de l'ajout au panier.");
       }
@@ -82,6 +84,7 @@ const Products = () => {
       // Guest: use localStorage
       addToGuestCart(product);
       setCartMessage(`${product.name} ajouté au panier (invité) !`);
+      window.dispatchEvent(new Event('cartUpdated'));
     }
     setTimeout(() => setCartMessage(""), 2000);
   };

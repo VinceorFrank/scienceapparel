@@ -40,6 +40,17 @@ const createOrder = async (orderData, user) => {
     throw new Error('Total price mismatch');
   }
 
+  // STOCK CHECK: Ensure all products have enough stock
+  for (const item of orderItems) {
+    const product = await Product.findById(item.product);
+    if (!product) {
+      throw new Error(`Product not found: ${item.product}`);
+    }
+    if (product.stock < item.qty) {
+      throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.qty}`);
+    }
+  }
+
   // Create order
   const order = new Order({
     user: user._id,

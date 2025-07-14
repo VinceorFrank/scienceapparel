@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProductById } from "../api/products";
-import { addCartItem, mergeGuestCart } from "../api/cart";
+import { addCartItem, mergeGuestCart, getCart } from "../api/cart";
+import { toast } from 'react-toastify';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cartQuantity, setCartQuantity] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,7 +29,32 @@ const ProductDetail = () => {
     };
 
     fetchProduct();
+    fetchCartQuantity();
+    window.addEventListener('cartUpdated', fetchCartQuantity);
+    return () => window.removeEventListener('cartUpdated', fetchCartQuantity);
   }, [id]);
+
+  const fetchCartQuantity = async () => {
+    const token = localStorage.getItem("token");
+    if (!product) return;
+    if (!token) {
+      let guestCart = [];
+      try {
+        guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+      } catch { guestCart = []; }
+      const existing = guestCart.find((item) => item._id === id);
+      setCartQuantity(existing ? existing.quantity : 0);
+    } else {
+      try {
+        const data = await getCart();
+        const items = data.data?.cart?.items || data.cart?.items || [];
+        const found = items.find(item => (item.product?._id || item.product || item._id) === id);
+        setCartQuantity(found ? found.quantity : 0);
+      } catch {
+        setCartQuantity(0);
+      }
+    }
+  };
 
   // Add this useEffect to merge guest cart after login
   useEffect(() => {
@@ -51,13 +78,19 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     if (!product) return;
     const token = localStorage.getItem("token");
+    const remainingStock = product.stock - cartQuantity;
+    if (remainingStock <= 0) {
+      toast.error('Stock épuisé ou déjà dans votre panier.', { position: "top-center", autoClose: 2000 });
+      return;
+    }
     if (token) {
       try {
         await addCartItem(product._id, quantity);
-        alert(`${product.name} ajouté au panier !`);
+        toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
         window.dispatchEvent(new Event('cartUpdated'));
+        await fetchCartQuantity();
       } catch (err) {
-        alert("Erreur lors de l'ajout au panier.");
+        toast.error("Erreur lors de l'ajout au panier.", { position: "top-center", autoClose: 2000 });
       }
     } else {
       // Guest: use localStorage
@@ -72,9 +105,9 @@ const ProductDetail = () => {
         guestCart.push({ ...product, quantity });
       }
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
-      alert(`${product.name} ajouté au panier (invité) !`);
+      toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
       window.dispatchEvent(new Event('cartUpdated'));
-      console.log('[Add to Cart] cartUpdated event dispatched');
+      await fetchCartQuantity();
     }
   };
 
@@ -146,6 +179,8 @@ const ProductDetail = () => {
     product.image,
     ...(product.additionalImages || [])
   ].filter(Boolean);
+
+  const remainingStock = product.stock - cartQuantity;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -301,7 +336,7 @@ const ProductDetail = () => {
                     +
                   </button>
                   <span className="text-sm text-gray-500">
-                    {(product.countInStock || product.stock) || 0} disponibles
+                    {remainingStock || 0} disponibles
                   </span>
                 </div>
               </div>
@@ -310,7 +345,7 @@ const ProductDetail = () => {
               <div className="space-y-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={product.stock === 0}
+                  disabled={remainingStock <= 0}
                   className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   🛒 Ajouter au panier
@@ -325,7 +360,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Stock Status */}
-              {product.stock === 0 && (
+              {remainingStock <= 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
                     <span className="text-red-500">⚠️</span>
@@ -337,14 +372,14 @@ const ProductDetail = () => {
                 </div>
               )}
 
-              {product.stock > 0 && product.stock <= 5 && (
+              {remainingStock > 0 && remainingStock <= 5 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
                     <span className="text-yellow-500">⚡</span>
                     <span className="text-yellow-700 font-medium">Stock limité</span>
                   </div>
                   <p className="text-yellow-600 text-sm mt-1">
-                    Plus que {product.stock} exemplaire(s) en stock !
+                    Plus que {remainingStock} exemplaire(s) en stock !
                   </p>
                 </div>
               )}

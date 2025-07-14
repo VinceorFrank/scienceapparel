@@ -8,6 +8,7 @@ import {
   clearCart,
   getCartSummary,
 } from "../api/cart";
+import { fetchProducts } from "../api/products";
 import ShippingCalculator from "../components/ShippingCalculator";
 import Header from "../components/Header";
 
@@ -30,6 +31,7 @@ const Cart = () => {
   const [availableCarriers, setAvailableCarriers] = useState([]);
   const [carriersLoading, setCarriersLoading] = useState(false);
   const [carriersError, setCarriersError] = useState(null);
+  const [productStocks, setProductStocks] = useState({});
   const navigate = useNavigate();
 
   // Fetch cart on mount
@@ -152,6 +154,28 @@ const Cart = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shippingAddress]);
 
+  useEffect(() => {
+    // Fetch live stocks whenever the cart changes
+    fetchLiveStocks();
+  }, [cart]);
+
+  const fetchLiveStocks = async () => {
+    // Fetch all products in the cart and get their latest stock
+    let ids = (cart && cart.items) ? cart.items.map(item => item.product?._id || item._id) : [];
+    if (ids.length === 0) return;
+    try {
+      const allProducts = await fetchProducts();
+      const stocks = {};
+      ids.forEach(id => {
+        const prod = (allProducts.items || allProducts.data || []).find(p => p._id === id);
+        if (prod) stocks[id] = prod.stock;
+      });
+      setProductStocks(stocks);
+    } catch {
+      setProductStocks({});
+    }
+  };
+
   // Calculate subtotal
   const subtotal = cart && cart.items
     ? cart.items.reduce((sum, item) => {
@@ -213,6 +237,11 @@ const Cart = () => {
                       const price = isBackendCart ? (item.product.price || 0) : (item.price || 0);
                       const quantity = item.quantity || 1;
                       const productId = isBackendCart ? (item.product._id) : (item._id || item.id || idx);
+                      const currentStock = productStocks[productId] || 0;
+                      const remainingStock = currentStock - quantity;
+                      const showStockLabel = remainingStock <= 10 && remainingStock > 0;
+                      const isOutOfStock = remainingStock === 0;
+                      const isQuantityExceeded = remainingStock <= 0;
                       return (
                         <tr key={productId} className="border-b last:border-b-0 hover:bg-pastel-50 transition rounded-lg">
                           <td className="py-4 flex items-center gap-6">
@@ -222,6 +251,12 @@ const Cart = () => {
                             <div className="flex flex-col">
                               <span className="font-bold text-2xl md:text-3xl text-gray-800">{name}</span>
                               <span className="text-sm md:text-base text-gray-600 mt-1">{description}</span>
+                              {showStockLabel && (
+                                <div className="text-yellow-600 font-semibold mt-2">Stock: {remainingStock}</div>
+                              )}
+                              {isOutOfStock && (
+                                <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
+                              )}
                             </div>
                           </td>
                           <td className="py-4 text-center text-xl text-blue-700 font-semibold">{price.toFixed(2)} $</td>
@@ -239,12 +274,15 @@ const Cart = () => {
                               <button
                                 onClick={() => handleQuantityChange(productId, quantity + 1)}
                                 className="px-3 py-2 text-2xl font-bold text-gray-500 hover:text-blue-600"
-                                disabled={updating}
+                                disabled={updating || isQuantityExceeded}
                                 aria-label="Augmenter la quantité"
                               >
                                 +
                               </button>
                             </div>
+                            {isQuantityExceeded && (
+                              <span className="ml-2 text-xs text-yellow-600">Stock: {currentStock}</span>
+                            )}
                           </td>
                           <td className="py-4 text-center text-xl font-bold text-green-700">{(price * quantity).toFixed(2)} $</td>
                           <td className="py-4 text-center">

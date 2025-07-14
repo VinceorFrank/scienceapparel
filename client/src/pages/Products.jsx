@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import PastelCard from "../components/PastelCard";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
-import { addCartItem } from "../api/cart";
+import { addCartItem, getCart } from "../api/cart";
 import { fetchProducts } from "../api/products";
+import { toast } from 'react-toastify';
 
 const categories = [
   { key: "all", label: "Tous" },
@@ -22,6 +23,18 @@ const getGuestCart = () => {
 const setGuestCart = (cart) => {
   localStorage.setItem("guestCart", JSON.stringify(cart));
 };
+const getCartQuantity = (productId) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    // For simplicity, only check guest cart here; backend cart check would require API call
+    // For a real app, fetch cart from backend and check quantity
+    return 0;
+  } else {
+    const cart = getGuestCart();
+    const item = cart.find((i) => i._id === productId);
+    return item ? item.quantity : 0;
+  }
+};
 const addToGuestCart = (product) => {
   const cart = getGuestCart();
   const existing = cart.find((item) => item._id === product._id);
@@ -36,10 +49,10 @@ const addToGuestCart = (product) => {
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [cartMessage, setCartMessage] = useState("");
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cartQuantities, setCartQuantities] = useState({});
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -47,7 +60,6 @@ const Products = () => {
       setError("");
       try {
         const data = await fetchProducts();
-        // data.items or data.data depending on backend response
         setProducts(data.items || data.data || []);
       } catch (err) {
         setError("Erreur lors du chargement des produits");
@@ -56,7 +68,37 @@ const Products = () => {
       }
     };
     loadProducts();
+    updateCartQuantities();
+    window.addEventListener('cartUpdated', updateCartQuantities);
+    return () => window.removeEventListener('cartUpdated', updateCartQuantities);
   }, []);
+
+  const updateCartQuantities = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      const cart = getGuestCart();
+      const quantities = {};
+      cart.forEach(item => {
+        quantities[item._id] = item.quantity;
+      });
+      setCartQuantities(quantities);
+    } else {
+      // Fetch cart from backend for logged-in users
+      try {
+        const data = await getCart();
+        const items = data.data?.cart?.items || data.cart?.items || [];
+        const quantities = {};
+        items.forEach(item => {
+          // item.product can be an object or id
+          const id = item.product?._id || item.product || item._id;
+          quantities[id] = item.quantity;
+        });
+        setCartQuantities(quantities);
+      } catch {
+        setCartQuantities({});
+      }
+    }
+  };
 
   const filteredProducts =
     selectedCategory === "all"
@@ -70,23 +112,33 @@ const Products = () => {
 
   const handleAddToCart = async (product) => {
     setError("");
+    const currentQty = cartQuantities[product._id] || 0;
+    if (product.stock === 0) {
+      toast.error(`${product.name} is out of stock!`, { position: "top-center", autoClose: 2000 });
+      return;
+    }
+    if (product.stock <= currentQty) {
+      toast.warn(`Only ${product.stock} in stock. You already have ${currentQty} in your cart.`, { position: "top-center", autoClose: 3000 });
+      return;
+    }
     const token = localStorage.getItem("token");
     if (token) {
-      // Logged-in: call backend
+      // Logged-in: call backend and refresh cart quantities
       try {
         await addCartItem(product._id, 1);
-        setCartMessage(`${product.name} ajouté au panier !`);
+        toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
         window.dispatchEvent(new Event('cartUpdated'));
+        await updateCartQuantities();
       } catch (err) {
-        setError("Erreur lors de l'ajout au panier.");
+        toast.error("Erreur lors de l'ajout au panier.", { position: "top-center", autoClose: 2000 });
       }
     } else {
       // Guest: use localStorage
       addToGuestCart(product);
-      setCartMessage(`${product.name} ajouté au panier (invité) !`);
-      window.dispatchEvent(new Event('cartUpdated'));
+      toast.success(`${product.name} ajouté au panier (invité) !`, { position: "top-center", autoClose: 2000 });
+      const newQty = (cartQuantities[product._id] || 0) + 1;
+      setCartQuantities({ ...cartQuantities, [product._id]: newQty });
     }
-    setTimeout(() => setCartMessage(""), 2000);
   };
 
   return (
@@ -114,10 +166,6 @@ const Products = () => {
             <Link to="#" className="text-blue-500 underline hover:text-blue-700 font-medium">Accessories</Link>
           </div>
         </div>
-        {/* Cart Message */}
-        {cartMessage && (
-          <div className="text-center mb-4 text-green-600 font-semibold">{cartMessage}</div>
-        )}
         {error && (
           <div className="text-center mb-4 text-red-600 font-semibold">{error}</div>
         )}
@@ -131,20 +179,30 @@ const Products = () => {
               filteredProducts.map((product) => {
                 const isOutOfStock = product.stock === 0;
                 const isArchived = product.archived;
+                const currentQty = cartQuantities[product._id] || 0;
+                const remainingStock = Math.max(product.stock - currentQty, 0);
+                const isLowStock = remainingStock <= 10;
+                const isMaxed = product.stock > 0 && currentQty >= product.stock;
                 return (
                   <PastelCard
                     key={product._id}
                     image={product.image || "/placeholder.png"}
                     name={product.name}
                     price={product.price}
-                    onAddToCart={(!isOutOfStock && !isArchived) ? () => handleAddToCart(product) : undefined}
+                    onAddToCart={(!isOutOfStock && !isArchived && !isMaxed) ? () => handleAddToCart(product) : undefined}
                   >
                     <p className="text-slate-500 text-sm mb-2">{product.description}</p>
-                    {isOutOfStock && (
+                    {remainingStock <= 10 && remainingStock > 0 && (
+                      <div className="text-yellow-600 font-semibold mt-1">Stock: {remainingStock}</div>
+                    )}
+                    {remainingStock === 0 && (
                       <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
                     )}
                     {isArchived && (
                       <div className="text-gray-400 font-semibold mt-2">Produit archivé</div>
+                    )}
+                    {isMaxed && remainingStock > 0 && (
+                      <div className="text-orange-500 font-semibold mt-2">Max in cart</div>
                     )}
                     <Link to={`/product/${product._id}`} className="block mt-2 text-blue-500 underline hover:text-blue-700 font-medium">Voir le produit</Link>
                   </PastelCard>

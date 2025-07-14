@@ -165,21 +165,16 @@ const Home = () => {
                     <p className="text-sm text-slate-500 mb-4 leading-relaxed">
                       {product.description}
                     </p>
-                    {remainingStock <= 10 && remainingStock > 0 && (
-                      <div className="text-yellow-600 font-semibold mt-1">Stock: {remainingStock}</div>
-                    )}
-                    {remainingStock === 0 && (
+                    <div className="text-yellow-600 font-semibold mt-1">Stock: {product.stock}</div>
+                    {product.stock === 0 && (
                       <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
-                    )}
-                    {isMaxed && remainingStock > 0 && (
-                      <div className="text-orange-500 font-semibold mt-2">Max in cart</div>
                     )}
                     <div className="flex items-center justify-between">
                       <span className="text-pink-500 font-bold text-xl">${product.price?.toFixed(2)}</span>
                       <button
                         className="px-4 py-2 bg-pink-300 text-white font-semibold rounded-full text-sm hover:bg-pink-400 transition-colors disabled:opacity-50"
                         onClick={() => handleAddToCart(product)}
-                        disabled={remainingStock === 0 || isMaxed}
+                        disabled={product.stock === 0}
                       >
                         {t('addToCart') || 'Add to Cart'}
                       </button>

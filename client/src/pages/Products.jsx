@@ -192,17 +192,9 @@ const Products = () => {
                     onAddToCart={(!isOutOfStock && !isArchived && !isMaxed) ? () => handleAddToCart(product) : undefined}
                   >
                     <p className="text-slate-500 text-sm mb-2">{product.description}</p>
-                    {remainingStock <= 10 && remainingStock > 0 && (
-                      <div className="text-yellow-600 font-semibold mt-1">Stock: {remainingStock}</div>
-                    )}
-                    {remainingStock === 0 && (
+                    <div className="text-yellow-600 font-semibold mt-1">Stock: {product.stock}</div>
+                    {product.stock === 0 && (
                       <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
-                    )}
-                    {isArchived && (
-                      <div className="text-gray-400 font-semibold mt-2">Produit archivé</div>
-                    )}
-                    {isMaxed && remainingStock > 0 && (
-                      <div className="text-orange-500 font-semibold mt-2">Max in cart</div>
                     )}
                     <Link to={`/product/${product._id}`} className="block mt-2 text-blue-500 underline hover:text-blue-700 font-medium">Voir le produit</Link>
                   </PastelCard>

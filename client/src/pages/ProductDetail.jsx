@@ -289,7 +289,7 @@ const ProductDetail = () => {
                   <span className="text-gray-600">4.5 (128 avis)</span>
                 </div>
                 <span className="text-gray-500">•</span>
-                <span className="text-gray-600">{product.stock} en stock</span>
+                <span className="text-yellow-600 font-semibold">Stock: {product.stock}</span>
               </div>
 
               {/* Description */}
@@ -345,8 +345,7 @@ const ProductDetail = () => {
               <div className="space-y-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={remainingStock <= 0}
-                  className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   🛒 Ajouter au panier
                 </button>

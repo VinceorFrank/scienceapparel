@@ -251,12 +251,7 @@ const Cart = () => {
                             <div className="flex flex-col">
                               <span className="font-bold text-2xl md:text-3xl text-gray-800">{name}</span>
                               <span className="text-sm md:text-base text-gray-600 mt-1">{description}</span>
-                              {showStockLabel && (
-                                <div className="text-yellow-600 font-semibold mt-2">Stock: {remainingStock}</div>
-                              )}
-                              {isOutOfStock && (
-                                <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
-                              )}
+                              <div className="text-yellow-600 font-semibold mt-2">Stock: {currentStock}</div>
                             </div>
                           </td>
                           <td className="py-4 text-center text-xl text-blue-700 font-semibold">{price.toFixed(2)} $</td>
@@ -274,7 +269,7 @@ const Cart = () => {
                               <button
                                 onClick={() => handleQuantityChange(productId, quantity + 1)}
                                 className="px-3 py-2 text-2xl font-bold text-gray-500 hover:text-blue-600"
-                                disabled={updating || isQuantityExceeded}
+                                disabled={updating}
                                 aria-label="Augmenter la quantité"
                               >
                                 +

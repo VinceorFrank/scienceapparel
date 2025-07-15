@@ -1,16 +1,26 @@
 // client/src/pages/OrderDetail.jsx
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { getOrderById } from "../api/orders";
 import { reorderOrderItems } from "../utils/cart";
 import { toast } from "react-toastify";
 
 const OrderDetail = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const navigate = useNavigate();
+
+  // Check if we're coming from a successful payment
+  useEffect(() => {
+    if (location.state?.paymentSuccess) {
+      setPaymentSuccess(true);
+      toast.success('🎉 Payment successful! Your order has been confirmed.');
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -36,8 +46,9 @@ const OrderDetail = () => {
 
   const getOrderStatus = (order) => {
     if (!order.isPaid) return { text: "Awaiting Payment", color: "bg-yellow-100 text-yellow-800", icon: "⏳" };
-    if (!order.isDelivered) return { text: "In Transit", color: "bg-blue-100 text-blue-800", icon: "🚚" };
-    return { text: "Delivered", color: "bg-green-100 text-green-800", icon: "✅" };
+    if (order.isPaid && !order.isDelivered) return { text: "Payment Received", color: "bg-green-100 text-green-800", icon: "✅" };
+    if (order.isDelivered) return { text: "Delivered", color: "bg-blue-100 text-blue-800", icon: "📦" };
+    return { text: "Processing", color: "bg-blue-100 text-blue-800", icon: "🚚" };
   };
 
   const getOrderTimeline = (order) => {
@@ -164,6 +175,19 @@ const OrderDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-blue-50">
       <div className="container mx-auto p-6">
+        {/* Payment Success Banner */}
+        {paymentSuccess && (
+          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg">
+            <div className="flex items-center">
+              <span className="text-2xl mr-3">🎉</span>
+              <div>
+                <h3 className="font-semibold text-lg">Payment Successful!</h3>
+                <p className="text-sm">Your order has been confirmed and is being processed. You will receive an email confirmation shortly.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

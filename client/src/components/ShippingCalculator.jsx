@@ -88,13 +88,17 @@ const ShippingCalculator = ({
 
   // Calculate shipping rates when component mounts or dependencies change
   useEffect(() => {
-    if (testMode && orderItems && orderItems.length > 0) {
-      // Test mode: always show mock options
-      setShippingOptions(MOCK_SHIPPING_OPTIONS);
-      if (!selectedShipping) {
-        onShippingSelect(MOCK_SHIPPING_OPTIONS[0]);
+    if (testMode) {
+      // Test mode: ALWAYS show mock options, never call real API
+      console.log('Test mode active - showing mock shipping options');
+      if (orderItems && orderItems.length > 0) {
+        setShippingOptions(MOCK_SHIPPING_OPTIONS);
+        if (!selectedShipping) {
+          onShippingSelect(MOCK_SHIPPING_OPTIONS[0]);
+        }
       }
     } else if (orderItems && orderItems.length > 0 && destination) {
+      // Only call real API if NOT in test mode
       calculateRates();
     } else if (orderItems && orderItems.length > 0) {
       // For testing: show mock options even without complete address
@@ -258,7 +262,14 @@ const ShippingCalculator = ({
             )}
           </div>
           <button
-            onClick={calculateRates}
+            onClick={() => {
+              if (testMode) {
+                // In test mode, just re-select the first mock option
+                onShippingSelect(MOCK_SHIPPING_OPTIONS[0]);
+              } else {
+                calculateRates();
+              }
+            }}
             disabled={loading}
             className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
           >

@@ -54,11 +54,14 @@ const PaymentForm = ({ order, onPaymentSuccess, onPaymentError }) => {
       const data = await response.json();
 
       if (data.success) {
-        setPaymentIntent(data.data);
+        setPaymentIntent(data.data.paymentIntent);
+        console.log('Payment intent created:', data.data);
+        console.log('Test mode:', data.data.testMode);
       } else {
         throw new Error(data.message || 'Failed to create payment intent');
       }
     } catch (err) {
+      console.error('Create payment intent error:', err);
       setError(err.message);
       toast.error(err.message);
     } finally {
@@ -77,26 +80,13 @@ const PaymentForm = ({ order, onPaymentSuccess, onPaymentError }) => {
     setError(null);
 
     try {
-      // Confirm card payment
-      const { error: stripeError, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(
-        paymentIntent.clientSecret,
-        {
-          payment_method: {
-            card: elements.getElement(CardElement),
-            billing_details: {
-              name: order.user?.name || 'Customer',
-              email: order.user?.email || 'customer@example.com',
-            },
-          },
-        }
-      );
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
-      }
-
-      if (confirmedIntent.status === 'succeeded') {
-        // Confirm payment with our backend
+      // Check if we're in test mode (payment intent ID starts with 'pi_test_')
+      const isTestMode = paymentIntent.id.startsWith('pi_test_');
+      
+      if (isTestMode) {
+        console.log('Test mode: simulating payment confirmation');
+        
+        // Simulate payment confirmation for test mode
         const confirmResponse = await fetch('/api/payment/confirm', {
           method: 'POST',
           headers: {
@@ -104,22 +94,64 @@ const PaymentForm = ({ order, onPaymentSuccess, onPaymentError }) => {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            paymentIntentId: confirmedIntent.id
+            paymentIntentId: paymentIntent.id
           })
         });
 
         const confirmData = await confirmResponse.json();
 
         if (confirmData.success) {
-          toast.success('Payment successful!');
+          toast.success('Test payment successful!');
           onPaymentSuccess && onPaymentSuccess(confirmData.data);
         } else {
-          throw new Error(confirmData.message || 'Payment confirmation failed');
+          throw new Error(confirmData.message || 'Test payment confirmation failed');
         }
       } else {
-        throw new Error('Payment was not successful');
+        // Real Stripe payment flow
+        const { error: stripeError, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(
+          paymentIntent.clientSecret,
+          {
+            payment_method: {
+              card: elements.getElement(CardElement),
+              billing_details: {
+                name: order.user?.name || 'Customer',
+                email: order.user?.email || 'customer@example.com',
+              },
+            },
+          }
+        );
+
+        if (stripeError) {
+          throw new Error(stripeError.message);
+        }
+
+        if (confirmedIntent.status === 'succeeded') {
+          // Confirm payment with our backend
+          const confirmResponse = await fetch('/api/payment/confirm', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              paymentIntentId: confirmedIntent.id
+            })
+          });
+
+          const confirmData = await confirmResponse.json();
+
+          if (confirmData.success) {
+            toast.success('Payment successful!');
+            onPaymentSuccess && onPaymentSuccess(confirmData.data);
+          } else {
+            throw new Error(confirmData.message || 'Payment confirmation failed');
+          }
+        } else {
+          throw new Error('Payment was not successful');
+        }
       }
     } catch (err) {
+      console.error('Payment error:', err);
       setError(err.message);
       toast.error(err.message);
       onPaymentError && onPaymentError(err);
@@ -141,6 +173,11 @@ const PaymentForm = ({ order, onPaymentSuccess, onPaymentError }) => {
         <p className="text-gray-600">
           {t('orderTotal') || 'Order Total'}: <span className="font-semibold">${order.totalPrice.toFixed(2)}</span>
         </p>
+        {paymentIntent && paymentIntent.id.startsWith('pi_test_') && (
+          <div className="mt-2 p-2 bg-blue-100 border border-blue-300 rounded text-blue-700 text-sm">
+            🧪 <strong>Test Mode:</strong> This is a test payment. No real charges will be made.
+          </div>
+        )}
       </div>
 
       {error && (

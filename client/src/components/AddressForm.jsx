@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLang } from "../utils/lang";
 
 const defaultState = {
   firstName: "",
@@ -13,6 +14,7 @@ const defaultState = {
 };
 
 const AddressForm = ({ initialData, onSave, onCancel }) => {
+  const { t } = useLang();
   const [form, setForm] = useState(initialData || defaultState);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -20,13 +22,13 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
   /* ---------- helpers ---------- */
   const validate = () => {
     const errs = {};
-    if (!form.firstName.trim())  errs.firstName  = "Prénom requis";
-    if (!form.lastName.trim())   errs.lastName   = "Nom requis";
-    if (!form.address.trim())    errs.address    = "Adresse requise";
-    if (!form.city.trim())       errs.city       = "Ville requise";
-    if (!form.province.trim())   errs.province   = "Province / État requis";   // 🆕
-    if (!form.postalCode.trim()) errs.postalCode = "Code postal requis";
-    if (!form.country.trim())    errs.country    = "Pays requis";
+    if (!form.firstName.trim())  errs.firstName  = t("firstNameRequired");
+    if (!form.lastName.trim())   errs.lastName   = t("lastNameRequired");
+    if (!form.address.trim())    errs.address    = t("addressRequired");
+    if (!form.city.trim())       errs.city       = t("cityRequired");
+    if (!form.province.trim())   errs.province   = t("provinceRequired");
+    if (!form.postalCode.trim()) errs.postalCode = t("postalCodeRequired");
+    if (!form.country.trim())    errs.country    = t("countryRequired");
     return errs;
   };
 
@@ -59,7 +61,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
         {["firstName", "lastName"].map((field) => (
           <div className="flex-1" key={field}>
             <label className="block text-sm font-medium mb-1">
-              {field === "firstName" ? "Prénom" : "Nom"} *
+              {field === "firstName" ? t("firstName") : t("lastName")} *
             </label>
             <input
               type="text"
@@ -80,7 +82,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
 
       {/* Address line */}
       <div>
-        <label className="block text-sm font-medium mb-1">Adresse *</label>
+        <label className="block text-sm font-medium mb-1">{t("address")} *</label>
         <input
           type="text"
           name="address"
@@ -99,9 +101,9 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
       {/* City - Province - Postal */}
       <div className="flex space-x-4">
         {[
-          { name: "city", label: "Ville", autoComplete: "address-level2" },
-          { name: "province", label: "Province / État", autoComplete: "address-level1" },
-          { name: "postalCode", label: "Code postal", autoComplete: "postal-code" },
+          { name: "city", label: t("city"), autoComplete: "address-level2" },
+          { name: "province", label: t("province"), autoComplete: "address-level1" },
+          { name: "postalCode", label: t("postalCode"), autoComplete: "postal-code" },
         ].map(({ name, label, autoComplete }) => (
           <div className="flex-1" key={name}>
             <label className="block text-sm font-medium mb-1">{label} *</label>
@@ -124,7 +126,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
 
       {/* Country */}
       <div>
-        <label className="block text-sm font-medium mb-1">Pays *</label>
+        <label className="block text-sm font-medium mb-1">{t("country")} *</label>
         <input
           type="text"
           name="country"
@@ -150,7 +152,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
           onChange={handleChange}
         />
         <label htmlFor="isDefault" className="text-sm">
-          Définir comme adresse par défaut
+          {t("setAsDefaultAddress")}
         </label>
       </div>
 
@@ -161,7 +163,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
           disabled={saving}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? "Enregistrement..." : initialData ? "Mettre à jour" : "Ajouter"}
+          {saving ? t("saving") : initialData ? t("update") : t("add")}
         </button>
         <button
           type="button"
@@ -169,7 +171,7 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
           disabled={saving}
           className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
         >
-          Annuler
+          {t("cancel")}
         </button>
       </div>
     </form>

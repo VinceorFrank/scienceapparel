@@ -8,8 +8,10 @@ import {
 } from '../api/users';
 import Layout from '../components/Layout';
 import PastelCard from '../components/PastelCard';
+import { useLang } from '../utils/lang';
 
 const Addresses = () => {
+  const { t } = useLang();
   const [addresses, setAddresses] = useState({ shipping: [], billing: [], all: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,10 +58,10 @@ const Addresses = () => {
 
       if (editingAddress) {
         await updateAddress(editingAddress._id, formData);
-        setSuccess('Address updated successfully!');
+        setSuccess(t('addressUpdatedSuccess'));
       } else {
         await addAddress(formData);
-        setSuccess('Address added successfully!');
+        setSuccess(t('addressAddedSuccess'));
       }
 
       setShowAddForm(false);
@@ -89,13 +91,13 @@ const Addresses = () => {
   };
 
   const handleDelete = async (addressId) => {
-    if (!window.confirm('Are you sure you want to delete this address?')) {
+    if (!window.confirm(t('confirmDeleteAddress'))) {
       return;
     }
 
     try {
       await deleteAddress(addressId);
-      setSuccess('Address deleted successfully!');
+      setSuccess(t('addressDeletedSuccess'));
       loadAddresses();
     } catch (err) {
       setError(err.message);
@@ -105,7 +107,7 @@ const Addresses = () => {
   const handleSetDefault = async (addressId) => {
     try {
       await setDefaultAddress(addressId);
-      setSuccess('Default address updated successfully!');
+      setSuccess(t('defaultAddressUpdatedSuccess'));
       loadAddresses();
     } catch (err) {
       setError(err.message);
@@ -145,11 +147,11 @@ const Addresses = () => {
         <div className="flex items-center space-x-2">
           <span className="text-xl">{getAddressTypeIcon(address.type)}</span>
           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getAddressTypeColor(address.type)}`}>
-            {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+            {t(address.type)}
           </span>
           {address.isDefault && (
             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-              Default
+              {t('default')}
             </span>
           )}
         </div>
@@ -158,21 +160,21 @@ const Addresses = () => {
             onClick={() => handleEdit(address)}
             className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
           >
-            Edit
+            {t('edit')}
           </button>
           {!address.isDefault && (
             <button
               onClick={() => handleSetDefault(address._id)}
               className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
             >
-              Set Default
+              {t('setDefault')}
             </button>
           )}
           <button
             onClick={() => handleDelete(address._id)}
             className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
           >
-            Delete
+            {t('delete')}
           </button>
         </div>
       </div>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useLang } from '../../utils/lang';
 import { registerUser } from '../../api/users';
 
 const SignupCustomer = () => {
   const navigate = useNavigate();
+  const { t } = useLang();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -20,7 +22,7 @@ const SignupCustomer = () => {
     setLoading(true);
     try {
       await registerUser(form);
-      setSuccess('Registration successful! You can now log in.');
+      setSuccess(t('registrationSuccessful'));
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       setError(err.message);
@@ -32,12 +34,12 @@ const SignupCustomer = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{t('createAccount')}</h2>
         {error && <div className="mb-4 text-red-600">{error}</div>}
         {success && <div className="mb-4 text-green-600">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 mb-1">Full Name</label>
+            <label className="block text-gray-700 mb-1">{t('fullName')}</label>
             <input
               type="text"
               name="name"
@@ -48,7 +50,7 @@ const SignupCustomer = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">Email</label>
+            <label className="block text-gray-700 mb-1">{t('email')}</label>
             <input
               type="email"
               name="email"
@@ -59,7 +61,7 @@ const SignupCustomer = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">Password</label>
+            <label className="block text-gray-700 mb-1">{t('password')}</label>
             <input
               type="password"
               name="password"
@@ -75,12 +77,12 @@ const SignupCustomer = () => {
             className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             disabled={loading}
           >
-            {loading ? 'Registering...' : 'Sign Up'}
+            {loading ? t('registering') : t('signUp')}
           </button>
         </form>
         <div className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">Log in</Link>
+          {t('alreadyHaveAccount')} {' '}
+          <Link to="/login" className="text-blue-600 hover:underline">{t('logIn')}</Link>
         </div>
       </div>
     </div>

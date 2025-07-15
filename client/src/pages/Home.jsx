@@ -163,7 +163,7 @@ const Home = () => {
             {t('featuredProducts')}
           </h2>
           {loading ? (
-            <div className="text-center text-lg text-blue-400">Loading products...</div>
+            <div className="text-center text-lg text-blue-400">{t('loadingProducts')}</div>
           ) : error ? (
             <div className="text-center text-red-500">{error}</div>
           ) : (
@@ -193,9 +193,9 @@ const Home = () => {
                     <p className="text-sm text-slate-500 mb-4 leading-relaxed">
                       {product.description}
                     </p>
-                    <div className="text-yellow-600 font-semibold mt-1">Stock: {product.stock}</div>
+                    <div className="text-yellow-600 font-semibold mt-1">{t('stock')}: {product.stock}</div>
                     {isOutOfStock && (
-                      <div className="text-red-500 font-semibold mt-2">{t('outOfStock') || 'Rupture de stock'}</div>
+                      <div className="text-red-500 font-semibold mt-2">{t('outOfStock')}</div>
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-pink-500 font-bold text-xl">${product.price?.toFixed(2)}</span>
@@ -204,7 +204,7 @@ const Home = () => {
                         onClick={() => handleAddToCart(product)}
                         disabled={isOutOfStock}
                       >
-                        {t('addToCart') || 'Add to Cart'}
+                        {t('addToCart')}
                       </button>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ const Home = () => {
             {t('featuredProducts')}
           </h2>
           {loading ? (
-            <div className="text-center text-lg text-blue-400">Loading products...</div>
+            <div className="text-center text-lg text-blue-400">{t('loadingProducts')}</div>
           ) : error ? (
             <div className="text-center text-red-500">{error}</div>
           ) : (
@@ -283,9 +283,9 @@ const Home = () => {
                     <p className="text-sm text-slate-500 mb-4 leading-relaxed">
                       {product.description}
                     </p>
-                    <div className="text-yellow-600 font-semibold mt-1">Stock: {product.stock}</div>
+                    <div className="text-yellow-600 font-semibold mt-1">{t('stock')}: {product.stock}</div>
                     {isOutOfStock && (
-                      <div className="text-red-500 font-semibold mt-2">{t('outOfStock') || 'Rupture de stock'}</div>
+                      <div className="text-red-500 font-semibold mt-2">{t('outOfStock')}</div>
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-pink-500 font-bold text-xl">${product.price?.toFixed(2)}</span>
@@ -294,7 +294,7 @@ const Home = () => {
                         onClick={() => handleAddToCart(product)}
                         disabled={isOutOfStock}
                       >
-                        {t('addToCart') || 'Add to Cart'}
+                        {t('addToCart')}
                       </button>
                     </div>
                   </div>

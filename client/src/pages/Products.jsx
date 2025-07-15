@@ -5,11 +5,12 @@ import Header from "../components/Header";
 import { addCartItem, getCart } from "../api/cart";
 import { fetchProducts } from "../api/products";
 import { toast } from 'react-toastify';
+import { useLang } from "../utils/lang";
 
 const categories = [
-  { key: "all", label: "Tous" },
-  { key: "clothing", label: "Clothing & Accessories" },
-  { key: "accessories", label: "Accessories" },
+  { key: "all", label: "all" },
+  { key: "clothing", label: "clothingAndAccessories" },
+  { key: "accessories", label: "accessories" },
 ];
 
 // Helper functions for guest cart
@@ -48,6 +49,7 @@ const addToGuestCart = (product) => {
 };
 
 const Products = () => {
+  const { t } = useLang();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [error, setError] = useState("");
   const [products, setProducts] = useState([]);
@@ -62,7 +64,7 @@ const Products = () => {
         const data = await fetchProducts();
         setProducts(data.items || data.data || []);
       } catch (err) {
-        setError("Erreur lors du chargement des produits");
+        setError(t('errorLoadingProducts'));
       } finally {
         setLoading(false);
       }
@@ -126,16 +128,16 @@ const Products = () => {
       // Logged-in: call backend and refresh cart quantities
       try {
         await addCartItem(product._id, 1);
-        toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
+        toast.success(`${product.name} ${t('addedToCart')}`, { position: "top-center", autoClose: 2000 });
         window.dispatchEvent(new Event('cartUpdated'));
         await updateCartQuantities();
       } catch (err) {
-        toast.error("Erreur lors de l'ajout au panier.", { position: "top-center", autoClose: 2000 });
+        toast.error(t('errorAddingToCart'), { position: "top-center", autoClose: 2000 });
       }
     } else {
       // Guest: use localStorage
       addToGuestCart(product);
-      toast.success(`${product.name} ajouté au panier (invité) !`, { position: "top-center", autoClose: 2000 });
+      toast.success(`${product.name} ${t('addedToCartGuest')}`, { position: "top-center", autoClose: 2000 });
       const newQty = (cartQuantities[product._id] || 0) + 1;
       setCartQuantities({ ...cartQuantities, [product._id]: newQty });
     }
@@ -146,7 +148,7 @@ const Products = () => {
       <Header />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-6 text-center" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-          Nos Produits
+          {t('ourProducts')}
         </h1>
         {/* Category Filter Tabs */}
         <div className="flex flex-col items-center gap-2 mb-10">
@@ -157,24 +159,24 @@ const Products = () => {
                 className={`px-6 py-2 rounded-full font-bold text-lg transition-colors duration-200 ${selectedCategory === cat.key ? 'bg-blue-400 text-white shadow' : 'bg-white text-blue-400 border border-blue-200 hover:bg-blue-100'}`}
                 onClick={() => setSelectedCategory(cat.key)}
               >
-                {cat.label}
+                {t(cat.label)}
               </button>
             ))}
           </div>
           <div className="flex gap-4 mt-2">
-            <Link to="/clothing-accessories" className="text-blue-500 underline hover:text-blue-700 font-medium">Clothing & Accessories</Link>
-            <Link to="#" className="text-blue-500 underline hover:text-blue-700 font-medium">Accessories</Link>
+            <Link to="/clothing-accessories" className="text-blue-500 underline hover:text-blue-700 font-medium">{t('clothingAndAccessories')}</Link>
+            <Link to="#" className="text-blue-500 underline hover:text-blue-700 font-medium">{t('accessories')}</Link>
           </div>
         </div>
         {error && (
           <div className="text-center mb-4 text-red-600 font-semibold">{error}</div>
         )}
         {loading ? (
-          <div className="text-center text-lg text-blue-400">Chargement des produits...</div>
+          <div className="text-center text-lg text-blue-400">{t('loadingProducts')}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.length === 0 ? (
-              <div className="col-span-full text-center text-gray-500">Aucun produit trouvé.</div>
+              <div className="col-span-full text-center text-gray-500">{t('noProductsFound')}</div>
             ) : (
               filteredProducts.map((product) => {
                 const isOutOfStock = product.stock === 0;
@@ -192,11 +194,11 @@ const Products = () => {
                     onAddToCart={(!isOutOfStock && !isArchived && !isMaxed) ? () => handleAddToCart(product) : undefined}
                   >
                     <p className="text-slate-500 text-sm mb-2">{product.description}</p>
-                    <div className="text-yellow-600 font-semibold mt-1">Stock: {product.stock}</div>
+                    <div className="text-yellow-600 font-semibold mt-1">{t('stock')}: {product.stock}</div>
                     {product.stock === 0 && (
-                      <div className="text-red-500 font-semibold mt-2">Rupture de stock</div>
+                      <div className="text-red-500 font-semibold mt-2">{t('outOfStock')}</div>
                     )}
-                    <Link to={`/product/${product._id}`} className="block mt-2 text-blue-500 underline hover:text-blue-700 font-medium">Voir le produit</Link>
+                    <Link to={`/product/${product._id}`} className="block mt-2 text-blue-500 underline hover:text-blue-700 font-medium">{t('viewProduct')}</Link>
                   </PastelCard>
                 );
               })

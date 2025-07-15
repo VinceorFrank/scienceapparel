@@ -12,6 +12,7 @@ import {
 import { fetchProducts } from "../api/products";
 import ShippingCalculator from "../components/ShippingCalculator";
 import Header from "../components/Header";
+import { useLang } from "../utils/lang";
 
 const getGuestCart = () => {
   try {
@@ -22,6 +23,7 @@ const getGuestCart = () => {
 };
 
 const Cart = () => {
+  const { t } = useLang();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -65,7 +67,7 @@ const Cart = () => {
       const data = await getCart();
       setCart(data.data.cart);
     } catch (err) {
-      setError(err.message || "Erreur lors du chargement du panier");
+      setError(err.message || t("errorLoadingCart"));
     } finally {
       setLoading(false);
     }
@@ -108,7 +110,7 @@ const Cart = () => {
         await fetchCart();
         window.dispatchEvent(new Event('cartUpdated'));
       } catch (err) {
-        setError(err.message || "Erreur lors de la suppression de l'article");
+        setError(err.message || t("errorRemovingItem"));
       } finally {
         setUpdating(false);
       }
@@ -201,7 +203,7 @@ const Cart = () => {
       <Header />
       {/* Header */}
       <header className="text-center py-8">
-        <h1 className="text-3xl md:text-4xl font-bold font-fredoka tracking-tight mb-2 text-blue-400">Panier</h1>
+        <h1 className="text-3xl md:text-4xl font-bold font-fredoka tracking-tight mb-2 text-blue-400">{t('cart')}</h1>
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-start px-2">
@@ -210,8 +212,8 @@ const Cart = () => {
           {/* If cart is empty */}
           {(!cart || !cart.items || cart.items.length === 0) ? (
             <div className="w-full max-w-md bg-white rounded-lg shadow p-8 flex flex-col items-center mt-8">
-              <p className="text-lg font-semibold mb-4">Votre panier est vide</p>
-              <Link to="/products" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-fredoka">Découvrir nos produits</Link>
+                              <p className="text-lg font-semibold mb-4">{t('yourCartIsEmpty')}</p>
+              <Link to="/products" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-fredoka">{t('discoverOurProducts')}</Link>
             </div>
           ) : (
             <>
@@ -220,10 +222,10 @@ const Cart = () => {
                 <table className="w-full text-lg font-fredoka">
                   <thead>
                     <tr className="border-b bg-pastel-100">
-                      <th className="py-3 text-left text-xl">Produit</th>
-                      <th className="py-3 text-center text-xl">Prix</th>
-                      <th className="py-3 text-center text-xl">Quantité</th>
-                      <th className="py-3 text-center text-xl">Total</th>
+                                      <th className="py-3 text-left text-xl">{t('product')}</th>
+                <th className="py-3 text-center text-xl">{t('price')}</th>
+                <th className="py-3 text-center text-xl">{t('quantity')}</th>
+                <th className="py-3 text-center text-xl">{t('total')}</th>
                       <th className="py-3 text-center text-xl"></th>
                     </tr>
                   </thead>
@@ -254,7 +256,7 @@ const Cart = () => {
                             <div className="flex flex-col">
                               <span className="font-bold text-2xl md:text-3xl text-gray-800">{name}</span>
                               <span className="text-sm md:text-base text-gray-600 mt-1">{description}</span>
-                              <div className="text-yellow-600 font-semibold mt-2">Stock: {currentStock}</div>
+                              <div className="text-yellow-600 font-semibold mt-2">{t('stock')}: {currentStock}</div>
                             </div>
                           </td>
                           <td className="py-4 text-center text-xl text-blue-700 font-semibold">{price.toFixed(2)} $</td>
@@ -264,7 +266,7 @@ const Cart = () => {
                                 onClick={() => handleQuantityChange(productId, Math.max(1, quantity - 1))}
                                 className="px-3 py-2 text-2xl font-bold text-gray-500 hover:text-blue-600"
                                 disabled={updating || quantity <= 1}
-                                aria-label="Diminuer la quantité"
+                                aria-label={t('decreaseQuantity')}
                               >
                                 −
                               </button>
@@ -273,13 +275,13 @@ const Cart = () => {
                                 onClick={() => handleQuantityChange(productId, quantity + 1)}
                                 className="px-3 py-2 text-2xl font-bold text-gray-500 hover:text-blue-600"
                                 disabled={updating}
-                                aria-label="Augmenter la quantité"
+                                aria-label={t('increaseQuantity')}
                               >
                                 +
                               </button>
                             </div>
                             {isQuantityExceeded && (
-                              <span className="ml-2 text-xs text-yellow-600">Stock: {currentStock}</span>
+                              <span className="ml-2 text-xs text-yellow-600">{t('stock')}: {currentStock}</span>
                             )}
                           </td>
                           <td className="py-4 text-center text-xl font-bold text-green-700">{(price * quantity).toFixed(2)} $</td>
@@ -288,7 +290,7 @@ const Cart = () => {
                               onClick={() => handleRemoveItem(productId)}
                               className="text-red-500 hover:text-red-700 text-2xl font-bold px-2 py-1 rounded-lg focus:outline-none"
                               disabled={updating}
-                              aria-label="Supprimer l'article"
+                              aria-label={t('removeItem')}
                             >
                               ×
                             </button>
@@ -303,18 +305,18 @@ const Cart = () => {
               <div className="mb-8 flex justify-start">
                 <Link to="/products">
                   <button className="px-8 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-full shadow-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 text-lg">
-                    Continuer vos achats
+                    {t('continueShopping')}
                   </button>
                 </Link>
               </div>
 
               {/* Special Instructions */}
               <div>
-                <label htmlFor="specialInstructions" className="block font-semibold mb-2">Instructions spéciales</label>
+                <label htmlFor="specialInstructions" className="block font-semibold mb-2">{t('specialInstructions')}</label>
                 <textarea
                   id="specialInstructions"
                   className="w-full border rounded p-2 min-h-[60px] text-base"
-                  placeholder="Ajoutez des instructions pour votre commande (optionnel)"
+                  placeholder={t('specialInstructionsPlaceholder')}
                   value={specialInstructions}
                   onChange={e => setSpecialInstructions(e.target.value)}
                 />
@@ -324,12 +326,12 @@ const Cart = () => {
               <div className="flex flex-col md:flex-row gap-6 justify-between items-start">
                 {/* Shipping Address Form */}
                 <div className="flex-1 bg-pastel-100 rounded-lg p-4 mb-2">
-                  <div className="font-semibold mb-2">Adresse de livraison</div>
+                  <div className="font-semibold mb-2">{t('shippingAddress')}</div>
                   <div className="text-xs text-gray-500 mb-3">
-                    Format recommandé: Province en 2 lettres (QC), Code postal sans espaces (H2J3M7)
+                    {t('addressFormatHint')}
                   </div>
                   <div className="text-xs text-blue-600 mb-3">
-                    💡 Remplissez l'adresse pour voir les options de livraison
+                    💡 {t('fillAddressForShipping')}
                   </div>
                   <form className="flex flex-col gap-2">
                     <input
@@ -337,7 +339,7 @@ const Cart = () => {
                       name="address"
                       value={shippingAddress.address}
                       onChange={e => setShippingAddress({ ...shippingAddress, address: e.target.value.trim() })}
-                      placeholder="Adresse"
+                      placeholder={t('address')}
                       className="border rounded p-2"
                       autoComplete="street-address"
                     />
@@ -346,7 +348,7 @@ const Cart = () => {
                       name="city"
                       value={shippingAddress.city}
                       onChange={e => setShippingAddress({ ...shippingAddress, city: e.target.value.trim() })}
-                      placeholder="Ville"
+                      placeholder={t('city')}
                       className="border rounded p-2"
                       autoComplete="address-level2"
                     />
@@ -360,7 +362,7 @@ const Cart = () => {
                           province: e.target.value.trim().toUpperCase()   // QC not Québec
                         })
                       }
-                      placeholder="Province (ex: QC)"
+                      placeholder={t('provincePlaceholder')}
                       className="border rounded p-2"
                       autoComplete="address-level1"
                     />
@@ -374,7 +376,7 @@ const Cart = () => {
                           postalCode: e.target.value.toUpperCase().replace(/\s+/g, "")
                         })
                       }
-                      placeholder="Code postal (ex: H2J3M7)"
+                      placeholder={t('postalCodePlaceholder')}
                       className="border rounded p-2"
                       autoComplete="postal-code"
                     />
@@ -383,7 +385,7 @@ const Cart = () => {
                       name="country"
                       value={shippingAddress.country}
                       onChange={e => setShippingAddress({ ...shippingAddress, country: e.target.value.trim().toUpperCase() })}
-                      placeholder="Pays"
+                      placeholder={t('country')}
                       className="border rounded p-2"
                       autoComplete="country"
                     />
@@ -419,25 +421,25 @@ const Cart = () => {
                 {/* Order Summary */}
                 <div className="flex-1 bg-pastel-100 rounded-lg p-4">
                   <div className="flex justify-between mb-2 text-lg">
-                    <span>Sous-total</span>
+                    <span>{t('subtotal')}</span>
                     <span className="font-bold">{subtotal.toFixed(2)} $</span>
                   </div>
                   <div className="flex justify-between mb-2 text-lg">
-                    <span>Livraison</span>
+                    <span>{t('shipping')}</span>
                     <span className="font-bold">{selectedShipping ? `${selectedShipping.rate.toFixed(2)} $` : '--'}</span>
                   </div>
                   <div className="flex justify-between mb-2 text-lg">
-                    <span>Estimation livraison</span>
-                    <span className="font-bold">{selectedShipping ? `${selectedShipping.estimatedDays} jours` : '--'}</span>
+                    <span>{t('estimatedDelivery')}</span>
+                                          <span className="font-bold">{selectedShipping ? `${selectedShipping.estimatedDays} ${t('days')}` : '--'}</span>
                   </div>
                   {selectedShipping && (
                     <div className="text-sm text-green-600 mb-2">
-                      ✓ {selectedShipping.carrier} sélectionné
+                      ✓ {selectedShipping.carrier} {t('selected')}
                     </div>
                   )}
-                  <div className="text-gray-500 text-sm mb-2">Commande minimum : 20 $<br />Taxes et transport en sus</div>
+                  <div className="text-gray-500 text-sm mb-2">{t('minimumOrder')}<br />{t('taxesAndShippingExtra')}</div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                    <span>Total</span>
+                    <span>{t('total')}</span>
                     <span>{(subtotal + (selectedShipping ? selectedShipping.rate : 0)).toFixed(2)} $</span>
                   </div>
                   <button
@@ -449,7 +451,7 @@ const Cart = () => {
                     onClick={() => navigate('/shipping', { state: { cart, shippingAddress } })}
                     disabled={updating || !selectedShipping}
                   >
-                    {!selectedShipping ? 'Sélectionnez une option de livraison' : 'Continuer vers la livraison'}
+                    {!selectedShipping ? t('selectShippingOption') : t('continueToShipping')}
                   </button>
                 </div>
               </div>

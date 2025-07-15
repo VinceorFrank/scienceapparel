@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
+import { useLang } from "../utils/lang";
 
 const Reviews = () => {
+  const { t } = useLang();
   const [activeTab, setActiveTab] = useState('all');
 
   // Sample reviews data
@@ -87,7 +89,7 @@ const Reviews = () => {
       <Header />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-8 text-center" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-          Avis Clients
+          {t('customerReviews')}
         </h1>
 
         {/* Overall Rating Section */}
@@ -95,19 +97,19 @@ const Reviews = () => {
           <div className="text-center">
             <div className="text-6xl font-bold text-blue-600 mb-2">{averageRating.toFixed(1)}</div>
             <div className="text-2xl mb-2">{renderStars(Math.round(averageRating))}</div>
-            <p className="text-gray-600 mb-4">Basé sur {reviews.length} avis vérifiés</p>
+            <p className="text-gray-600 mb-4">{t('basedOnReviews', { count: reviews.length })}</p>
             <div className="flex justify-center gap-8 text-sm">
               <div className="text-center">
                 <div className="text-lg font-bold text-green-600">98%</div>
-                <div className="text-gray-500">Clients satisfaits</div>
+                <div className="text-gray-500">{t('satisfiedCustomers')}</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-blue-600">24h</div>
-                <div className="text-gray-500">Livraison moyenne</div>
+                <div className="text-gray-500">{t('averageDelivery')}</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-purple-600">4.8/5</div>
-                <div className="text-gray-500">Note globale</div>
+                <div className="text-gray-500">{t('overallRating')}</div>
               </div>
             </div>
           </div>
@@ -117,9 +119,9 @@ const Reviews = () => {
         <div className="flex justify-center mb-8">
           <div className="bg-white rounded-full p-2 shadow-lg border border-pink-100">
             {[
-              { key: 'all', label: 'Tous les avis' },
-              { key: 'clothing', label: 'Vêtements' },
-              { key: 'accessories', label: 'Accessoires' }
+              { key: 'all', label: t('allReviews') },
+              { key: 'clothing', label: t('clothing') },
+              { key: 'accessories', label: t('accessories') }
             ].map(tab => (
               <button
                 key={tab.key}
@@ -148,7 +150,7 @@ const Reviews = () => {
                     <span className="text-sm text-gray-500">{review.date}</span>
                     {review.verified && (
                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                        ✓ Vérifié
+                        ✓ {t('verified')}
                       </span>
                     )}
                   </div>
@@ -166,34 +168,34 @@ const Reviews = () => {
         {/* Write Review Section */}
         <div className="mt-12 bg-white rounded-2xl p-8 shadow-lg border border-pink-100">
           <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-            Partagez Votre Expérience
+            {t('shareYourExperience')}
           </h2>
           <div className="max-w-2xl mx-auto">
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom complet
+                  {t('fullName')}
                 </label>
                 <input
                   type="text"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Votre nom"
+                  placeholder={t('yourName')}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Produit acheté
+                  {t('purchasedProduct')}
                 </label>
                 <input
                   type="text"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nom du produit"
+                  placeholder={t('productName')}
                 />
               </div>
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Note
+                {t('rating')}
               </label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map(star => (

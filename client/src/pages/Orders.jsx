@@ -3,8 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { reorderOrderItems } from '../utils/cart';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useLang } from '../utils/lang';
 
 const Orders = () => {
+  const { t } = useLang();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,12 +49,12 @@ const Orders = () => {
     }
     
     const statusConfig = {
-      'pending': { color: 'bg-yellow-100 text-yellow-800', text: 'Pending', icon: '⏳' },
-      'processing': { color: 'bg-blue-100 text-blue-800', text: 'Processing', icon: '⚙️' },
-      'shipped': { color: 'bg-green-100 text-green-800', text: 'Shipped', icon: '📦' },
-      'delivered': { color: 'bg-green-100 text-green-800', text: 'Delivered', icon: '✅' },
-      'cancelled': { color: 'bg-red-100 text-red-800', text: 'Cancelled', icon: '❌' },
-      'refunded': { color: 'bg-purple-100 text-purple-800', text: 'Refunded', icon: '💰' }
+      'pending': { color: 'bg-yellow-100 text-yellow-800', text: t('pending'), icon: '⏳' },
+      'processing': { color: 'bg-blue-100 text-blue-800', text: t('processing'), icon: '⚙️' },
+      'shipped': { color: 'bg-green-100 text-green-800', text: t('shipped'), icon: '📦' },
+      'delivered': { color: 'bg-green-100 text-green-800', text: t('delivered'), icon: '✅' },
+      'cancelled': { color: 'bg-red-100 text-red-800', text: t('cancelled'), icon: '❌' },
+      'refunded': { color: 'bg-purple-100 text-purple-800', text: t('refunded'), icon: '💰' }
     };
     
     const config = statusConfig[status?.toLowerCase()] || statusConfig['pending'];
@@ -98,10 +100,10 @@ const Orders = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-yellow-50 to-blue-50 py-10 px-2">
         <div className="w-full max-w-3xl">
-          <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">My Orders</h1>
+          <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">{t('myOrders')}</h1>
           <div className="flex flex-col items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg text-blue-400">Loading your orders...</p>
+            <p className="text-lg text-blue-400">{t('loadingOrders')}</p>
           </div>
         </div>
       </div>
@@ -112,16 +114,16 @@ const Orders = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-yellow-50 to-blue-50 py-10 px-2">
         <div className="w-full max-w-3xl">
-          <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">My Orders</h1>
+          <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">{t('myOrders')}</h1>
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold text-red-700 mb-2">Error Loading Orders</h3>
+            <h3 className="text-xl font-semibold text-red-700 mb-2">{t('errorLoadingOrders')}</h3>
             <p className="text-red-600 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
             >
-              Try Again
+              {t('tryAgain')}
             </button>
           </div>
         </div>
@@ -132,18 +134,18 @@ const Orders = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-yellow-50 to-blue-50 py-10 px-2">
       <div className="w-full max-w-4xl">
-        <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">My Orders</h1>
+        <h1 className="text-4xl font-bold text-center text-blue-400 mb-6 font-fredoka">{t('myOrders')}</h1>
         
         {orders.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Orders Yet</h3>
-            <p className="text-gray-500 mb-6">Start shopping to see your orders here!</p>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">{t('noOrdersYet')}</h3>
+            <p className="text-gray-500 mb-6">{t('startShoppingToSeeOrders')}</p>
             <Link
               to="/products"
               className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
             >
-              Browse Products
+              {t('browseProducts')}
             </Link>
           </div>
         ) : (
@@ -158,16 +160,16 @@ const Orders = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-bold text-lg text-blue-500">
-                        Order #{order._id.slice(-6).toUpperCase()}
+                        {t('order')} #{order._id.slice(-6).toUpperCase()}
                       </h3>
                       {getStatusBadge(order)}
                     </div>
                     <p className="text-sm text-gray-500">
-                      Placed on {formatDate(order.createdAt)}
+                      {t('placedOn')} {formatDate(order.createdAt)}
                     </p>
                     {order.isPaid && (
                       <p className="text-sm text-green-600 font-semibold">
-                        ✅ Paid on {formatDate(order.paidAt)}
+                        ✅ {t('paidOn')} {formatDate(order.paidAt)}
                       </p>
                     )}
                   </div>
@@ -176,14 +178,14 @@ const Orders = () => {
                       ${order.totalPrice?.toFixed(2) || '0.00'}
                     </div>
                     <p className="text-sm text-gray-500">
-                      {order.orderItems?.length || 0} item{(order.orderItems?.length || 0) !== 1 ? 's' : ''}
+                      {order.orderItems?.length || 0} {t('item', { count: order.orderItems?.length || 0 })}
                     </p>
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div className="mb-4">
-                  <h4 className="font-semibold text-blue-400 mb-3">Items:</h4>
+                  <h4 className="font-semibold text-blue-400 mb-3">{t('items')}:</h4>
                   <div className="space-y-3">
                     {order.orderItems && order.orderItems.length > 0 ? (
                       order.orderItems.map((item, idx) => (

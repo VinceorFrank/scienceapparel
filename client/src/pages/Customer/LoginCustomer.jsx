@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLang } from "../../utils/lang";
 import api from "../../api/config";
 
 const LoginCustomer = () => {
@@ -7,6 +8,7 @@ const LoginCustomer = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { t } = useLang();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ const LoginCustomer = () => {
 
       navigate("/account");
     } catch (err) {
-      setError("Identifiants invalides ou erreur serveur.");
+      setError(t('invalidCredentials'));
     }
   };
 
@@ -33,18 +35,18 @@ const LoginCustomer = () => {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">Connexion Client</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{t('customerLogin')}</h2>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         <input
           type="email"
-          placeholder="Email"
+          placeholder={t('email')}
           className="w-full border p-2 mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
-          placeholder="Mot de passe"
+          placeholder={t('password')}
           className="w-full border p-2 mb-6"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -53,12 +55,12 @@ const LoginCustomer = () => {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Se connecter
+          {t('login')}
         </button>
       </form>
       <div className="mt-4 text-center text-sm text-gray-600">
-        Pas encore de compte ?{' '}
-        <a href="/signup" className="text-blue-600 hover:underline">Créer un compte</a>
+        {t('noAccountYet')} {' '}
+        <a href="/signup" className="text-blue-600 hover:underline">{t('createAccount')}</a>
       </div>
     </div>
   );

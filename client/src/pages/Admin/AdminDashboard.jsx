@@ -123,9 +123,9 @@ const AdminDashboard = () => {
   ];
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: ChartBarIcon },
-    { id: 'analytics', name: 'Advanced Analytics', icon: ArrowTrendingUpIcon },
-    { id: 'insights', name: 'Business Insights', icon: DocumentTextIcon }
+    { id: 'overview', name: t('overview'), icon: ChartBarIcon },
+    { id: 'analytics', name: t('advancedAnalytics'), icon: ArrowTrendingUpIcon },
+    { id: 'insights', name: t('businessInsights'), icon: DocumentTextIcon }
   ];
 
   const handleTabChange = (tabId) => {
@@ -195,11 +195,11 @@ const AdminDashboard = () => {
             <div className="bg-gradient-to-br from-green-100 via-yellow-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-green-100">
               <div className="text-center mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-                  Quick Actions
+                  {t('quickActions')}
                 </h2>
                 <div className="w-24 h-1 mx-auto rounded-full mb-4" 
                      style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
-                <p className="text-lg text-slate-600">Access frequently used admin functions</p>
+                <p className="text-lg text-slate-600">{t('quickActionsDesc')}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {quickActions.map((action) => (
@@ -242,10 +242,10 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
-                      Conversion Rate
+                      {t('conversionRate')}
                     </h3>
                     <p className="text-3xl font-bold text-blue-600 mb-2">2.4%</p>
-                    <p className="text-sm text-slate-600">+0.3% from last month</p>
+                    <p className="text-sm text-slate-600">{t('fromLastMonth', { value: '+0.3%' })}</p>
                   </div>
                 </div>
               </div>
@@ -257,10 +257,10 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
-                      Customer CLV
+                      {t('customerCLV')}
                     </h3>
                     <p className="text-3xl font-bold text-green-600 mb-2">$127</p>
-                    <p className="text-sm text-slate-600">+$12 from last month</p>
+                    <p className="text-sm text-slate-600">{t('fromLastMonth', { value: '+$12' })}</p>
                   </div>
                 </div>
               </div>
@@ -272,10 +272,10 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
-                      Abandonment Rate
+                      {t('abandonmentRate')}
                     </h3>
                     <p className="text-3xl font-bold text-purple-600 mb-2">18.2%</p>
-                    <p className="text-sm text-slate-600">-2.1% from last month</p>
+                    <p className="text-sm text-slate-600">{t('fromLastMonth', { value: '-2.1%' })}</p>
                   </div>
                 </div>
               </div>
@@ -287,10 +287,10 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-slate-700 mb-1" style={{ fontFamily: 'Fredoka One, cursive' }}>
-                      Newsletter Engagement
+                      {t('newsletterEngagement')}
                     </h3>
                     <p className="text-3xl font-bold text-orange-600 mb-2">24.7%</p>
-                    <p className="text-sm text-slate-600">+3.2% from last month</p>
+                    <p className="text-sm text-slate-600">{t('fromLastMonth', { value: '+3.2%' })}</p>
                   </div>
                 </div>
               </div>
@@ -299,8 +299,8 @@ const AdminDashboard = () => {
             {/* Advanced Analytics Charts */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Advanced Analytics</h2>
-                <p className="text-sm text-gray-600">Comprehensive business performance metrics</p>
+                <h2 className="text-lg font-semibold text-gray-900">{t('advancedAnalytics')}</h2>
+                <p className="text-sm text-gray-600">{t('comprehensiveMetrics')}</p>
               </div>
               <div className="p-6">
                 <InsightsCharts />
@@ -314,86 +314,86 @@ const AdminDashboard = () => {
             {/* Business Insights */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Business Insights</h2>
-                <p className="text-sm text-gray-600">Actionable recommendations based on your data</p>
+                <h2 className="text-lg font-semibold text-gray-900">{t('businessInsights')}</h2>
+                <p className="text-sm text-gray-600">{t('actionableRecommendations')}</p>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Revenue Insights */}
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-blue-900 mb-2">Revenue Insights</h3>
+                    <h3 className="font-semibold text-blue-900 mb-2">{t('revenueInsights')}</h3>
                     <ul className="space-y-2 text-sm text-blue-800">
-                      <li>• Your top 3 products generate 45% of revenue</li>
-                      <li>• Weekend sales are 23% higher than weekdays</li>
-                      <li>• Average order value increased by 12% this month</li>
-                      <li>• 67% of customers are repeat buyers</li>
+                      <li>• {t('topProductsRevenue')}</li>
+                      <li>• {t('weekendSalesHigher')}</li>
+                      <li>• {t('averageOrderValueIncrease')}</li>
+                      <li>• {t('repeatBuyersPercentage')}</li>
                     </ul>
                   </div>
 
                   {/* Customer Insights */}
                   <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-green-900 mb-2">Customer Insights</h3>
+                    <h3 className="font-semibold text-green-900 mb-2">{t('customerInsights')}</h3>
                     <ul className="space-y-2 text-sm text-green-800">
-                      <li>• 78% of customers are from the United States</li>
-                      <li>• New customer acquisition cost is $45</li>
-                      <li>• Customer satisfaction rate is 4.2/5</li>
-                      <li>• 34% of customers subscribe to newsletters</li>
+                      <li>• {t('customersFromUS')}</li>
+                      <li>• {t('customerAcquisitionCost')}</li>
+                      <li>• {t('customerSatisfactionRate')}</li>
+                      <li>• {t('newsletterSubscribersPercentage')}</li>
                     </ul>
                   </div>
 
                   {/* Inventory Insights */}
                   <div className="bg-orange-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-orange-900 mb-2">Inventory Insights</h3>
+                    <h3 className="font-semibold text-orange-900 mb-2">{t('inventoryInsights')}</h3>
                     <ul className="space-y-2 text-sm text-orange-800">
-                      <li>• 5 products are running low on stock</li>
-                      <li>• Apparel category has highest turnover</li>
-                      <li>• Seasonal products peak in December</li>
-                      <li>• Average restock time is 3.2 days</li>
+                      <li>• {t('lowStockProducts')}</li>
+                      <li>• {t('apparelHighestTurnover')}</li>
+                      <li>• {t('seasonalProductsPeak')}</li>
+                      <li>• {t('averageRestockTime')}</li>
                     </ul>
                   </div>
 
                   {/* Marketing Insights */}
                   <div className="bg-purple-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-purple-900 mb-2">Marketing Insights</h3>
+                    <h3 className="font-semibold text-purple-900 mb-2">{t('marketingInsights')}</h3>
                     <ul className="space-y-2 text-sm text-purple-800">
-                      <li>• Email campaigns have 24.7% open rate</li>
-                      <li>• Social media drives 18% of traffic</li>
-                      <li>• Cart abandonment recovery rate is 12%</li>
-                      <li>• Newsletter subscribers spend 34% more</li>
+                      <li>• {t('emailCampaignsOpenRate')}</li>
+                      <li>• {t('socialMediaTraffic')}</li>
+                      <li>• {t('cartAbandonmentRecovery')}</li>
+                      <li>• {t('newsletterSubscribersSpendMore')}</li>
                     </ul>
                   </div>
                 </div>
 
                 {/* Recommendations */}
                 <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-                  <h3 className="font-semibold text-yellow-900 mb-3">Recommended Actions</h3>
+                  <h3 className="font-semibold text-yellow-900 mb-3">{t('recommendedActions')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm font-medium text-yellow-900">Optimize Cart Recovery</p>
-                        <p className="text-xs text-yellow-800">Implement abandoned cart emails to recover 18.2% of lost sales</p>
+                        <p className="text-sm font-medium text-yellow-900">{t('optimizeCartRecovery')}</p>
+                        <p className="text-xs text-yellow-800">{t('implementAbandonedCartEmails')}</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm font-medium text-yellow-900">Restock Low Inventory</p>
-                        <p className="text-xs text-yellow-800">5 products need immediate restocking to avoid stockouts</p>
+                        <p className="text-sm font-medium text-yellow-900">{t('restockLowInventory')}</p>
+                        <p className="text-xs text-yellow-800">{t('productsNeedRestocking')}</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm font-medium text-yellow-900">Enhance Newsletter Strategy</p>
-                        <p className="text-xs text-yellow-800">Focus on weekend campaigns for 23% higher engagement</p>
+                        <p className="text-sm font-medium text-yellow-900">{t('enhanceNewsletterStrategy')}</p>
+                        <p className="text-xs text-yellow-800">{t('focusWeekendCampaigns')}</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm font-medium text-yellow-900">Target Repeat Customers</p>
-                        <p className="text-xs text-yellow-800">67% of customers are repeat buyers - focus on retention</p>
+                        <p className="text-sm font-medium text-yellow-900">{t('targetRepeatCustomers')}</p>
+                        <p className="text-xs text-yellow-800">{t('focusOnRetention')}</p>
                       </div>
                     </div>
                   </div>

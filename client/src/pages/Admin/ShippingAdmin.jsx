@@ -126,9 +126,9 @@ const ShippingAdmin = () => {
   };
 
   const tabs = [
-    { id: 'carriers', name: 'Carriers', icon: TruckIcon },
-    { id: 'tiers', name: 'Box Tiers', icon: CogIcon },
-    { id: 'analytics', name: 'Analytics', icon: ChartBarIcon }
+    { id: 'carriers', name: t('carriers'), icon: TruckIcon },
+    { id: 'tiers', name: t('boxTiers'), icon: CogIcon },
+    { id: 'analytics', name: t('analytics'), icon: ChartBarIcon }
   ];
 
   if (loading) {
@@ -136,7 +136,7 @@ const ShippingAdmin = () => {
       <div className="p-6">
         <div className="flex items-center justify-center space-x-2">
           <ArrowPathIcon className="h-6 w-6 animate-spin text-blue-600" />
-          <span>Loading shipping settings...</span>
+          <span>{t('loadingShippingSettings')}</span>
         </div>
       </div>
     );
@@ -147,8 +147,8 @@ const ShippingAdmin = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shipping Management</h1>
-          <p className="text-gray-600">Configure shipping carriers, box tiers, and view analytics</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('shippingManagement')}</h1>
+          <p className="text-gray-600">{t('shippingManagementDesc')}</p>
         </div>
 
         {/* Tab Navigation */}

@@ -3,8 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getProductById } from "../api/products";
 import { addCartItem, mergeGuestCart, getCart } from "../api/cart";
 import { toast } from 'react-toastify';
+import { useLang } from "../utils/lang";
 
 const ProductDetail = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -22,7 +24,7 @@ const ProductDetail = () => {
         setProduct(response);
       } catch (err) {
         console.error(err);
-        setError("Impossible de charger les détails du produit.");
+        setError(t("errorLoadingProductDetails"));
       } finally {
         setLoading(false);
       }
@@ -80,17 +82,17 @@ const ProductDetail = () => {
     const token = localStorage.getItem("token");
     const remainingStock = product.stock - cartQuantity;
     if (remainingStock <= 0) {
-      toast.error('Stock épuisé ou déjà dans votre panier.', { position: "top-center", autoClose: 2000 });
+      toast.error(t('stockExhaustedOrInCart'), { position: "top-center", autoClose: 2000 });
       return;
     }
     if (token) {
       try {
         await addCartItem(product._id, quantity);
-        toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
+        toast.success(`${product.name} ${t('addedToCart')}`, { position: "top-center", autoClose: 2000 });
         window.dispatchEvent(new Event('cartUpdated'));
         await fetchCartQuantity();
       } catch (err) {
-        toast.error("Erreur lors de l'ajout au panier.", { position: "top-center", autoClose: 2000 });
+        toast.error(t("errorAddingToCart"), { position: "top-center", autoClose: 2000 });
       }
     } else {
       // Guest: use localStorage
@@ -105,7 +107,7 @@ const ProductDetail = () => {
         guestCart.push({ ...product, quantity });
       }
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
-      toast.success(`${product.name} ajouté au panier !`, { position: "top-center", autoClose: 2000 });
+      toast.success(`${product.name} ${t('addedToCart')}`, { position: "top-center", autoClose: 2000 });
       window.dispatchEvent(new Event('cartUpdated'));
       await fetchCartQuantity();
     }
@@ -143,13 +145,13 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <span className="text-6xl mb-4 block">❌</span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Erreur</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('error')}</h2>
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate('/products')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Retour aux produits
+            {t('backToProducts')}
           </button>
         </div>
       </div>
@@ -161,13 +163,13 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <span className="text-6xl mb-4 block">🔍</span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Produit introuvable</h2>
-          <p className="text-gray-600 mb-4">Ce produit n'existe pas ou a été supprimé.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('productNotFound')}</h2>
+          <p className="text-gray-600 mb-4">{t('productNotFoundDesc')}</p>
           <button
             onClick={() => navigate('/products')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Retour aux produits
+            {t('backToProducts')}
           </button>
         </div>
       </div>
@@ -193,7 +195,7 @@ const ProductDetail = () => {
                 onClick={() => navigate("/")}
                 className="hover:text-blue-600 transition-colors"
               >
-                Accueil
+                {t('home')}
               </button>
             </li>
             <li>/</li>
@@ -202,7 +204,7 @@ const ProductDetail = () => {
                 onClick={() => navigate("/products")}
                 className="hover:text-blue-600 transition-colors"
               >
-                Produits
+                {t('products')}
               </button>
             </li>
             <li>/</li>
@@ -211,7 +213,7 @@ const ProductDetail = () => {
                 onClick={() => navigate(`/products?category=${product.category?._id}`)}
                 className="hover:text-blue-600 transition-colors"
               >
-                {product.category?.name || "Catégorie"}
+                {product.category?.name || t('category')}
               </button>
             </li>
             <li>/</li>
@@ -289,7 +291,7 @@ const ProductDetail = () => {
                   <span className="text-gray-600">4.5 (128 avis)</span>
                 </div>
                 <span className="text-gray-500">•</span>
-                <span className="text-yellow-600 font-semibold">Stock: {product.stock}</span>
+                                    <span className="text-yellow-600 font-semibold">{t('stock')}: {product.stock}</span>
               </div>
 
               {/* Description */}
@@ -318,7 +320,7 @@ const ProductDetail = () => {
               {/* Quantity Selector */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantité
+                  {t('quantity')}
                 </label>
                 <div className="flex items-center space-x-3">
                   <button
@@ -336,7 +338,7 @@ const ProductDetail = () => {
                     +
                   </button>
                   <span className="text-sm text-gray-500">
-                    {remainingStock || 0} disponibles
+                    {remainingStock || 0} {t('available')}
                   </span>
                 </div>
               </div>
@@ -347,14 +349,14 @@ const ProductDetail = () => {
                   onClick={handleAddToCart}
                   className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  🛒 Ajouter au panier
+                  🛒 {t('addToCart')}
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
                   className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
                 >
-                  💳 Acheter maintenant
+                  💳 {t('buyNow')}
                 </button>
               </div>
 
@@ -363,10 +365,10 @@ const ProductDetail = () => {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
                     <span className="text-red-500">⚠️</span>
-                    <span className="text-red-700 font-medium">Rupture de stock</span>
+                    <span className="text-red-700 font-medium">{t('outOfStock')}</span>
                   </div>
                   <p className="text-red-600 text-sm mt-1">
-                    Ce produit n'est actuellement pas disponible.
+                    {t('productNotAvailable')}
                   </p>
                 </div>
               )}
@@ -375,10 +377,10 @@ const ProductDetail = () => {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2">
                     <span className="text-yellow-500">⚡</span>
-                    <span className="text-yellow-700 font-medium">Stock limité</span>
+                    <span className="text-yellow-700 font-medium">{t('limitedStock')}</span>
                   </div>
                   <p className="text-yellow-600 text-sm mt-1">
-                    Plus que {remainingStock} exemplaire(s) en stock !
+                    {t('onlyLeftInStock', { count: remainingStock })}
                   </p>
                 </div>
               )}
@@ -388,11 +390,11 @@ const ProductDetail = () => {
             <div className="border-t pt-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">SKU:</span>
+                  <span className="text-gray-600">{t('sku')}:</span>
                   <p className="font-medium">{product._id.slice(-6)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600">Référence:</span>
+                  <span className="text-gray-600">{t('reference')}:</span>
                   <p className="font-medium">{product.name.slice(0, 8).toUpperCase()}</p>
                 </div>
               </div>
@@ -403,7 +405,7 @@ const ProductDetail = () => {
         {/* Reviews Section */}
         <div className="mt-16">
           <div className="border-t pt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">Avis clients</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">{t('customerReviews')}</h2>
             
             {/* Reviews Summary */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -415,14 +417,14 @@ const ProductDetail = () => {
                       <span key={star} className="text-yellow-400">⭐</span>
                     ))}
                   </div>
-                  <p className="text-gray-600">Basé sur 128 avis</p>
+                  <p className="text-gray-600">{t('basedOnReviews', { count: 128 })}</p>
                 </div>
                 
                 <div className="md:col-span-2">
                   <div className="space-y-2">
                     {[5, 4, 3, 2, 1].map((rating) => (
                       <div key={rating} className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-600 w-8">{rating} étoiles</span>
+                        <span className="text-sm text-gray-600 w-8">{rating} {t('stars')}</span>
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-yellow-400 h-2 rounded-full"
@@ -451,14 +453,13 @@ const ProductDetail = () => {
                       <p className="font-medium text-gray-900">Jean Dupont</p>
                       <div className="flex items-center space-x-1">
                         <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
-                        <span className="text-gray-500 text-sm">Il y a 2 jours</span>
+                        <span className="text-gray-500 text-sm">{t('daysAgo', { count: 2 })}</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <p className="text-gray-700">
-                  Excellent produit ! La qualité est au rendez-vous et la livraison a été rapide. 
-                  Je recommande vivement ce produit à tous ceux qui cherchent quelque chose de fiable.
+                  {t('review1')}
                 </p>
               </div>
 
@@ -472,14 +473,13 @@ const ProductDetail = () => {
                       <p className="font-medium text-gray-900">Marie Laurent</p>
                       <div className="flex items-center space-x-1">
                         <span className="text-yellow-400">⭐⭐⭐⭐</span>
-                        <span className="text-gray-500 text-sm">Il y a 1 semaine</span>
+                        <span className="text-gray-500 text-sm">{t('weekAgo')}</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <p className="text-gray-700">
-                  Très satisfaite de mon achat. Le produit correspond parfaitement à la description. 
-                  Seul petit bémol : la livraison a pris un peu plus de temps que prévu.
+                  {t('review2')}
                 </p>
               </div>
             </div>
@@ -487,7 +487,7 @@ const ProductDetail = () => {
             {/* Write Review Button */}
             <div className="mt-8 text-center">
               <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                ✍️ Écrire un avis
+                ✍️ {t('writeReview')}
               </button>
             </div>
           </div>
@@ -496,11 +496,11 @@ const ProductDetail = () => {
         {/* Related Products */}
         <div className="mt-16">
           <div className="border-t pt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">Produits similaires</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">{t('similarProducts')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Placeholder for related products */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 text-center">
-                <p className="text-gray-500">Produits similaires à venir...</p>
+                <p className="text-gray-500">{t('similarProductsComingSoon')}</p>
               </div>
             </div>
           </div>

@@ -260,9 +260,9 @@ const ProductsAdmin = () => {
                   onChange={(e) => setAdvancedFilters({...advancedFilters, stockLevel: e.target.value})}
                 >
                   <option value="">{t('all') || 'All'}</option>
-                  <option value="inStock">{t('inStock') || 'In Stock'}</option>
-                  <option value="lowStock">{t('lowStock') || 'Low Stock'}</option>
-                  <option value="outOfStock">{t('outOfStock') || 'Out of Stock'}</option>
+                                  <option value="inStock">{t('inStock')}</option>
+                <option value="lowStock">{t('lowStock')}</option>
+                <option value="outOfStock">{t('outOfStock')}</option>
                 </select>
               </div>
               <div>
@@ -284,8 +284,8 @@ const ProductsAdmin = () => {
                   onChange={(e) => setAdvancedFilters({...advancedFilters, status: e.target.value})}
                 >
                   <option value="">{t('all') || 'All'}</option>
-                  <option value="active">{t('active') || 'Active'}</option>
-                  <option value="inactive">{t('inactive') || 'Inactive'}</option>
+                                  <option value="active">{t('active')}</option>
+                <option value="inactive">{t('inactive')}</option>
                 </select>
               </div>
               <div>
@@ -340,11 +340,11 @@ const ProductsAdmin = () => {
                 onChange={(e) => setBulkAction(e.target.value)}
               >
                 <option value="">{t('selectAction') || 'Select Action'}</option>
-                <option value="archive">{t('archive') || 'Archive'}</option>
-                <option value="unarchive">{t('unarchive') || 'Unarchive'}</option>
-                <option value="feature">{t('feature') || 'Feature'}</option>
-                <option value="unfeature">{t('unfeature') || 'Unfeature'}</option>
-                <option value="delete">{t('delete') || 'Delete'}</option>
+                <option value="archive">{t('archive')}</option>
+                <option value="unarchive">{t('unarchive')}</option>
+                <option value="feature">{t('feature')}</option>
+                <option value="unfeature">{t('unfeature')}</option>
+                <option value="delete">{t('delete')}</option>
               </select>
               <button
                 onClick={handleBulkAction}
@@ -440,9 +440,9 @@ const ProductsAdmin = () => {
       {isDeleteConfirmOpen && (
         <>
           {console.log('[ProductsAdmin] Delete confirmation modal is open')}
-          <Modal open={true} onClose={handleCloseDeleteConfirm} title={t('confirmDelete') || 'Confirm Delete'}>
+                      <Modal open={true} onClose={handleCloseDeleteConfirm} title={t('confirmDelete')}>
             <div className="p-4">
-              <p className="mb-4 text-lg">{t('areYouSureDelete') || 'Are you sure you want to delete the product'} <b>{productToDelete?.name}</b>?</p>
+              <p className="mb-4 text-lg">{t('areYouSureDelete')} <b>{productToDelete?.name}</b>?</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={handleCloseDeleteConfirm}

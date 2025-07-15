@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "check-i18n": "node scripts/check-locale.js",
+    "check-locale": "node scripts/check-locale.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

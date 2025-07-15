@@ -12,8 +12,10 @@ import { createOrder } from '../api/orders';
 import { toast } from 'react-toastify';
 import ShippingCalculator from "../components/ShippingCalculator";
 import { getTestOrderId } from '../utils/testUtils';
+import { useLang } from '../utils/lang';
 
 const Shipping = () => {
+  const { t } = useLang();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -248,14 +250,14 @@ const Shipping = () => {
     return (
       <div className="max-w-2xl mx-auto p-6 text-red-600">
         <p>{error}</p>
-        <button onClick={fetchAddresses} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">Réessayer</button>
+        <button onClick={fetchAddresses} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">{t('tryAgain')}</button>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Livraison</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('shipping')}</h1>
       
       {/* Success Message */}
       {successMessage && (
@@ -266,13 +268,13 @@ const Shipping = () => {
       
       {/* Address Selection */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Adresse de livraison</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('shippingAddress')}</h2>
         {addresses.length === 0 ? (
-          <div className="text-gray-500 mb-4">Aucune adresse enregistrée.</div>
+          <div className="text-gray-500 mb-4">{t('noAddressesSaved')}</div>
         ) : (
-          <div className="text-green-600 mb-4">
-            {addresses.filter(a => a.type === 'shipping').length} adresse(s) enregistrée(s)
-          </div>
+                      <div className="text-green-600 mb-4">
+              {addresses.filter(a => a.type === 'shipping').length} {t('addressesSaved')}
+            </div>
         )}
         <div className="space-y-3 mb-4">
           {addresses.filter(a => a.type === 'shipping').map(address => (
@@ -284,11 +286,11 @@ const Shipping = () => {
               <div>
                 <div className="font-medium">{address.firstName} {address.lastName}</div>
                 <div className="text-sm text-gray-600">{address.address}, {address.city}, {address.state || address.province}, {address.postalCode}, {address.country}</div>
-                {address.isDefault && <span className="text-xs text-blue-600">Adresse par défaut</span>}
+                {address.isDefault && <span className="text-xs text-blue-600">{t('defaultAddress')}</span>}
               </div>
               <div className="flex space-x-2">
-                <button onClick={e => { e.stopPropagation(); handleEditAddress(address); }} className="text-blue-600 hover:underline">Modifier</button>
-                <button onClick={e => { e.stopPropagation(); handleDeleteAddress(address._id); }} className="text-red-500 hover:underline">Supprimer</button>
+                <button onClick={e => { e.stopPropagation(); handleEditAddress(address); }} className="text-blue-600 hover:underline">{t('edit')}</button>
+                <button onClick={e => { e.stopPropagation(); handleDeleteAddress(address._id); }} className="text-red-500 hover:underline">{t('delete')}</button>
               </div>
             </div>
           ))}
@@ -297,7 +299,7 @@ const Shipping = () => {
           onClick={() => { setShowAddressForm(true); setEditingAddress(null); }}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Ajouter une adresse
+          {t('addAddress')}
         </button>
         {showAddressForm && (
           <div className="mt-4">
@@ -312,7 +314,7 @@ const Shipping = () => {
 
       {/* Shipping Options */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Options de livraison</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('shippingOptions')}</h2>
         <div className="space-y-3">
           {/* ShippingCalculator handles everything including mock options */}
           <ShippingCalculator
@@ -334,14 +336,14 @@ const Shipping = () => {
           className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300"
           onClick={() => navigate('/cart')}
         >
-          Retour au panier
+          {t('backToCart')}
         </button>
         <button
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
           onClick={handleProceedToPayment}
           disabled={!selectedAddressId || !selectedShipping || orderLoading}
         >
-          {orderLoading ? 'Création de la commande...' : 'Passer au paiement'}
+          {orderLoading ? t('creatingOrder') : t('proceedToPayment')}
         </button>
       </div>
     </div>

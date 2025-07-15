@@ -15,22 +15,23 @@ import {
   formatAddress 
 } from '../api/shipping';
 import { toast } from 'react-hot-toast';
+import { useLang } from '../utils/lang';
 
 // Helper function to validate address
 const validateAddress = (destination) => {
-  if (!destination) return 'Shipping address is required.';
+  if (!destination) return t('shippingAddressRequired');
   
   // For testing: only require basic address info
   const requiredFields = [
-    { key: 'address', label: 'Address' },
-    { key: 'city', label: 'City' },
+    { key: 'address', label: t('address') },
+    { key: 'city', label: t('city') },
   ];
   
   // Optional fields for testing (will use defaults if missing)
   const optionalFields = [
-    { key: 'province', label: 'Province/State', default: 'QC' },
-    { key: 'postalCode', label: 'Postal Code', default: 'H2J3M7' },
-    { key: 'country', label: 'Country', default: 'CA' },
+    { key: 'province', label: t('province'), default: 'QC' },
+    { key: 'postalCode', label: t('postalCode'), default: 'H2J3M7' },
+    { key: 'country', label: t('country'), default: 'CA' },
   ];
   
   for (const field of requiredFields) {
@@ -77,6 +78,7 @@ const ShippingCalculator = ({
   className = '',
   testMode = true // Enable test mode by default for easier testing
 }) => {
+  const { t } = useLang();
   const [shippingOptions, setShippingOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -111,7 +113,7 @@ const ShippingCalculator = ({
 
   const calculateRates = async () => {
     if (!orderItems || orderItems.length === 0) {
-      setError('No items to calculate shipping for');
+      setError(t('noItemsForShipping'));
       return;
     }
 
@@ -197,13 +199,13 @@ const ShippingCalculator = ({
       <div className={`bg-gray-50 rounded-lg p-4 ${className}`}>
         <div className="flex items-center space-x-2 text-gray-500">
           <TruckIcon className="h-5 w-5" />
-          <span>Please provide a shipping address to calculate rates</span>
+          <span>{t('provideShippingAddress')}</span>
         </div>
         {/* For testing: show mock options even without address */}
         {orderItems && orderItems.length > 0 && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
             <div className="text-sm text-blue-700 mb-3">
-              💡 <strong>Test Mode:</strong> Showing mock shipping options for testing
+              💡 <strong>{t('testMode')}:</strong> {t('showingMockShippingOptions')}
             </div>
             <div className="space-y-3">
               {MOCK_SHIPPING_OPTIONS.map((option, index) => (
@@ -234,7 +236,7 @@ const ShippingCalculator = ({
                         ${option.rate.toFixed(2)}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {option.estimatedDays} day{option.estimatedDays !== 1 ? 's' : ''}
+                        {option.estimatedDays} {t('day')}{option.estimatedDays !== 1 ? t('s') : ''}
                       </div>
                     </div>
                   </div>
@@ -254,10 +256,10 @@ const ShippingCalculator = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <TruckIcon className="h-6 w-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Shipping Options</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('shippingOptions')}</h3>
             {testMode && (
               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                TEST MODE
+                {t('testMode').toUpperCase()}
               </span>
             )}
           </div>
@@ -274,7 +276,7 @@ const ShippingCalculator = ({
             className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
           >
             <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <span>{t('refresh')}</span>
           </button>
         </div>
         
@@ -287,7 +289,7 @@ const ShippingCalculator = ({
             </div>
             <div className="flex items-center space-x-1">
               <span>📦</span>
-              <span>{totalItems} items</span>
+              <span>{totalItems} {t('items')}</span>
             </div>
             <div className="flex items-center space-x-1">
               <span>⚖️</span>
@@ -302,7 +304,7 @@ const ShippingCalculator = ({
         <div className="p-6 text-center">
           <div className="flex items-center justify-center space-x-2">
             <ArrowPathIcon className="h-5 w-5 animate-spin text-blue-600" />
-            <span className="text-gray-600">Calculating shipping rates...</span>
+            <span className="text-gray-600">{t('calculatingShippingRates')}</span>
           </div>
         </div>
       )}
@@ -318,7 +320,7 @@ const ShippingCalculator = ({
             onClick={calculateRates}
             className="mt-2 text-sm text-blue-600 hover:text-blue-700"
           >
-            Try again
+            {t('tryAgain')}
           </button>
         </div>
       )}
@@ -357,9 +359,9 @@ const ShippingCalculator = ({
                   <div className="text-lg font-semibold text-gray-900">
                     {formatCurrency(option.rate)}
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {option.estimatedDays} day{option.estimatedDays !== 1 ? 's' : ''}
-                  </div>
+                                        <div className="text-sm text-gray-500">
+                        {option.estimatedDays} {t('day')}{option.estimatedDays !== 1 ? t('s') : ''}
+                      </div>
                 </div>
               </div>
               
@@ -367,7 +369,7 @@ const ShippingCalculator = ({
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <CalendarIcon className="h-4 w-4" />
-                    <span>Estimated delivery:</span>
+                    <span>{t('estimatedDelivery')}:</span>
                   </div>
                   <span className="font-medium">
                     {formatDeliveryDate(option.estimatedDays)}
@@ -376,7 +378,7 @@ const ShippingCalculator = ({
                 
                 {option.tracking && (
                   <div className="mt-1 text-xs text-green-600">
-                    ✓ Tracking included
+                    ✓ {t('trackingIncluded')}
                   </div>
                 )}
               </div>
@@ -389,7 +391,7 @@ const ShippingCalculator = ({
       {!loading && !error && shippingOptions.length === 0 && (
         <div className="p-6 text-center text-gray-500">
           <TruckIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-          <p>No shipping options available for this address</p>
+          <p>{t('noShippingOptionsAvailable')}</p>
         </div>
       )}
 
@@ -397,7 +399,7 @@ const ShippingCalculator = ({
       {destination && (
         <div className="p-4 bg-gray-50 border-t border-gray-200">
           <div className="text-sm text-gray-600">
-            <div className="font-medium mb-1">Shipping to:</div>
+            <div className="font-medium mb-1">{t('shippingTo')}:</div>
             <div>{formatAddress(destination)}</div>
           </div>
         </div>

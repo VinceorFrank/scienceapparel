@@ -99,7 +99,7 @@ const validateAddress = [
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage('First name must be between 1 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
     .withMessage('First name can only contain letters and spaces'),
 
   body('lastName')
@@ -107,7 +107,7 @@ const validateAddress = [
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage('Last name must be between 1 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
     .withMessage('Last name can only contain letters and spaces'),
 
   body('address')
@@ -121,15 +121,24 @@ const validateAddress = [
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('City must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
     .withMessage('City can only contain letters and spaces'),
 
+  body('province')
+    .isString()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Province must be between 2 and 50 characters')
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
+    .withMessage('Province can only contain letters and spaces'),
+
   body('state')
+    .optional()
     .isString()
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('State must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
     .withMessage('State can only contain letters and spaces'),
 
   body('postalCode')
@@ -145,7 +154,7 @@ const validateAddress = [
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Country must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s]+$/)
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
     .withMessage('Country can only contain letters and spaces'),
 
   body('phone')

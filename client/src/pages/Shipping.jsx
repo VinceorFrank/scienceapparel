@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import usePersistentState from "../hooks/usePersistentState";
 import {
   getAddresses,
   addAddress,
@@ -8,6 +9,9 @@ import {
 } from "../api/users";
 import { getShippingRates } from "../api/shipping";
 import AddressForm from "../components/AddressForm";
+import { createOrder } from '../api/orders';
+import { toast } from 'react-toastify';
+import ShippingCalculator from "../components/ShippingCalculator";
 
 const Shipping = () => {
   const [addresses, setAddresses] = useState([]);
@@ -20,14 +24,34 @@ const Shipping = () => {
   const [error, setError] = useState(null);
   const [ratesLoading, setRatesLoading] = useState(false);
   const [ratesError, setRatesError] = useState(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderError, setOrderError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const cart = location.state?.cart;
+  const cart         = location.state?.cart;
+  const passedAddr   = location.state?.shippingAddress;
+
+  // persist the address long-term
+  const [savedAddr, setSavedAddr] =
+    usePersistentState("shippingAddress", {
+      address:"", city:"", province:"", postalCode:"", country:"CA"
+    });
 
   // Fetch addresses on mount
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  // Auto-populate address from cart state if available
+  useEffect(() => {
+    if (!passedAddr) return;                // nothing came from Cart
+    const normalised = {
+      ...passedAddr,
+      province: passedAddr.province?.toUpperCase(),
+      country: "CA"
+    };
+    setSavedAddr(normalised);               // 1) store to localStorage
+  }, [passedAddr, setSavedAddr]);
 
   const fetchAddresses = async () => {
     setLoading(true);
@@ -69,8 +93,9 @@ const Shipping = () => {
         {
           address: address.address,
           city: address.city,
+          province: address.province,        // server requires this
           postalCode: address.postalCode,
-          country: address.country
+          country: "CA"
         }
       );
       setShippingOptions(result.options || []);
@@ -121,6 +146,37 @@ const Shipping = () => {
       setError(err.message || "Erreur lors de la suppression de l'adresse");
     }
   };
+
+  // Add handler for proceeding to payment
+  const handleProceedToPayment = async () => {
+    setOrderLoading(true);
+    setOrderError(null);
+    try {
+      // Prepare order data
+      const orderData = {
+        cart,
+        address: addresses.find(a => a._id === selectedAddressId),
+        shipping: selectedShipping,
+      };
+      const response = await createOrder(orderData);
+      if (response && response.success && response.data && response.data._id) {
+        setSavedAddr(addresses.find(a => a._id === selectedAddressId)); // remember last good
+        navigate(`/payment/${response.data._id}`);
+      } else {
+        throw new Error(response.message || 'Order creation failed');
+      }
+    } catch (err) {
+      setOrderError(err.message);
+      toast.error(err.message || 'Order creation failed');
+      // Optionally, update or redirect cart here
+    } finally {
+      setOrderLoading(false);
+    }
+  };
+
+  // Find the selected address object
+  const selectedAddress = addresses.find(a => a._id === selectedAddressId);
+  console.log('Selected shipping address for calculator:', selectedAddress);
 
   if (loading) {
     return (
@@ -197,19 +253,13 @@ const Shipping = () => {
           <div className="text-gray-500">Aucune option de livraison disponible pour cette adresse.</div>
         )}
         <div className="space-y-3">
-          {shippingOptions.map(option => (
-            <div
-              key={option.carrier + option.service}
-              className={`flex items-center justify-between p-3 rounded border cursor-pointer ${selectedShipping === option ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
-              onClick={() => setSelectedShipping(option)}
-            >
-              <div>
-                <div className="font-medium">{option.carrier} - {option.service}</div>
-                <div className="text-sm text-gray-600">Estimation: {option.estimatedDays} jours • {option.deliveryDateFormatted}</div>
-              </div>
-              <div className="font-bold text-blue-700 text-lg">${option.rate.toFixed(2)}</div>
-            </div>
-          ))}
+          {/* Pass the selected address as destination */}
+          <ShippingCalculator
+            orderItems={cart?.items || []}
+            destination={selectedAddress}
+            selectedShipping={selectedShipping}
+            onShippingSelect={setSelectedShipping}
+          />
         </div>
       </div>
 
@@ -223,10 +273,10 @@ const Shipping = () => {
         </button>
         <button
           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-          onClick={() => navigate('/payment', { state: { cart, selectedAddress: addresses.find(a => a._id === selectedAddressId), selectedShipping } })}
-          disabled={!selectedAddressId || !selectedShipping}
+          onClick={handleProceedToPayment}
+          disabled={!selectedAddressId || !selectedShipping || orderLoading}
         >
-          Passer au paiement
+          {orderLoading ? 'Création de la commande...' : 'Passer au paiement'}
         </button>
       </div>
     </div>

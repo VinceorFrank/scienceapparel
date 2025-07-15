@@ -136,8 +136,9 @@ class ShippingService {
 
   // Validate if address is in Québec
   isQuebecAddress(address) {
-    const quebecProvinces = ['QC', 'Québec', 'Quebec'];
-    return quebecProvinces.includes(address.province?.toUpperCase());
+    const quebecProvinces = ['QC', 'QUÉBEC', 'QUEBEC'];
+    const province = address.province?.toUpperCase() || address.state?.toUpperCase();
+    return quebecProvinces.includes(province);
   }
 
   // Get rate from specific carrier

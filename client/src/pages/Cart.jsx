@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import usePersistentState from "../hooks/usePersistentState";
 import {
   getCart,
   addCartItem,
@@ -27,7 +28,9 @@ const Cart = () => {
   const [updating, setUpdating] = useState(false);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [selectedShipping, setSelectedShipping] = useState(null);
-  const [shippingAddress, setShippingAddress] = useState({ address: "", city: "", province: "", postalCode: "", country: "" });
+  const [shippingAddress, setShippingAddress] = usePersistentState("shippingAddress", {
+    address: "", city: "", province: "", postalCode: "", country: "CA"
+  });
   const [availableCarriers, setAvailableCarriers] = useState([]);
   const [carriersLoading, setCarriersLoading] = useState(false);
   const [carriersError, setCarriersError] = useState(null);
@@ -322,46 +325,67 @@ const Cart = () => {
                 {/* Shipping Address Form */}
                 <div className="flex-1 bg-pastel-100 rounded-lg p-4 mb-2">
                   <div className="font-semibold mb-2">Adresse de livraison</div>
+                  <div className="text-xs text-gray-500 mb-3">
+                    Format recommandé: Province en 2 lettres (QC), Code postal sans espaces (H2J3M7)
+                  </div>
+                  <div className="text-xs text-blue-600 mb-3">
+                    💡 Remplissez l'adresse pour voir les options de livraison
+                  </div>
                   <form className="flex flex-col gap-2">
                     <input
                       type="text"
                       name="address"
                       value={shippingAddress.address}
-                      onChange={e => setShippingAddress({ ...shippingAddress, address: e.target.value })}
+                      onChange={e => setShippingAddress({ ...shippingAddress, address: e.target.value.trim() })}
                       placeholder="Adresse"
                       className="border rounded p-2"
+                      autoComplete="street-address"
                     />
                     <input
                       type="text"
                       name="city"
                       value={shippingAddress.city}
-                      onChange={e => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                      onChange={e => setShippingAddress({ ...shippingAddress, city: e.target.value.trim() })}
                       placeholder="Ville"
                       className="border rounded p-2"
+                      autoComplete="address-level2"
                     />
                     <input
                       type="text"
                       name="province"
                       value={shippingAddress.province}
-                      onChange={e => setShippingAddress({ ...shippingAddress, province: e.target.value })}
-                      placeholder="Province"
+                      onChange={e =>
+                        setShippingAddress({
+                          ...shippingAddress,
+                          province: e.target.value.trim().toUpperCase()   // QC not Québec
+                        })
+                      }
+                      placeholder="Province (ex: QC)"
                       className="border rounded p-2"
+                      autoComplete="address-level1"
                     />
                     <input
                       type="text"
                       name="postalCode"
                       value={shippingAddress.postalCode}
-                      onChange={e => setShippingAddress({ ...shippingAddress, postalCode: e.target.value })}
-                      placeholder="Code postal"
+                      onChange={e =>
+                        setShippingAddress({
+                          ...shippingAddress,
+                          postalCode: e.target.value.toUpperCase().replace(/\s+/g, "")
+                        })
+                      }
+                      placeholder="Code postal (ex: H2J3M7)"
                       className="border rounded p-2"
+                      autoComplete="postal-code"
                     />
                     <input
                       type="text"
                       name="country"
                       value={shippingAddress.country}
-                      onChange={e => setShippingAddress({ ...shippingAddress, country: e.target.value })}
+                      onChange={e => setShippingAddress({ ...shippingAddress, country: e.target.value.trim().toUpperCase() })}
                       placeholder="Pays"
                       className="border rounded p-2"
+                      autoComplete="country"
                     />
                   </form>
                   {/* Shipping Calculator (shows carriers/rates if address is filled) */}
@@ -384,50 +408,13 @@ const Cart = () => {
                       destination={shippingAddress}
                       selectedShipping={selectedShipping}
                       onShippingSelect={setSelectedShipping}
+                      className="w-full"
+                      testMode={true}
                     />
                   </div>
                 </div>
 
-                {/* MOCKUP: Shipping Options Preview */}
-                <div className="my-8">
-                  <div className="bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-lg p-6 md:p-8 max-w-2xl mx-auto">
-                    <h2
-                      className="text-2xl md:text-3xl font-extrabold mb-4 text-center"
-                      style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}
-                    >
-                      Shipping Options
-                    </h2>
-                    <div className="flex flex-wrap justify-center gap-6">
-                      {/* Canada Post */}
-                      <div className="flex flex-col items-center bg-white rounded-2xl shadow-md p-4 w-44">
-                        <div className="w-12 h-12 mb-2 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full flex items-center justify-center text-2xl">
-                          <span role="img" aria-label="Canada Post">📦</span>
-                        </div>
-                        <div className="font-bold text-lg text-blue-700 mb-1">Canada Post</div>
-                        <div className="text-sm text-gray-500 mb-1">Delivery: 3-5 days</div>
-                        <div className="text-lg font-bold text-green-600 mb-1">$12.99</div>
-                        <button className="mt-2 bg-gradient-to-r from-blue-400 to-purple-500 text-white px-4 py-2 rounded-full font-semibold hover:from-blue-500 hover:to-purple-600 transition-all duration-200 shadow">
-                          Select
-                        </button>
-                      </div>
-                      {/* UPS */}
-                      <div className="flex flex-col items-center bg-white rounded-2xl shadow-md p-4 w-44">
-                        <div className="w-12 h-12 mb-2 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full flex items-center justify-center text-2xl">
-                          <span role="img" aria-label="UPS">🚚</span>
-                        </div>
-                        <div className="font-bold text-lg text-blue-700 mb-1">UPS</div>
-                        <div className="text-sm text-gray-500 mb-1">Delivery: 2-4 days</div>
-                        <div className="text-lg font-bold text-green-600 mb-1">$15.99</div>
-                        <button className="mt-2 bg-gradient-to-r from-blue-400 to-purple-500 text-white px-4 py-2 rounded-full font-semibold hover:from-blue-500 hover:to-purple-600 transition-all duration-200 shadow">
-                          Select
-                        </button>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-400 text-center mt-4">
-                      * These are example rates. Real rates will appear here once available.
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Order Summary */}
                 <div className="flex-1 bg-pastel-100 rounded-lg p-4">
@@ -443,17 +430,26 @@ const Cart = () => {
                     <span>Estimation livraison</span>
                     <span className="font-bold">{selectedShipping ? `${selectedShipping.estimatedDays} jours` : '--'}</span>
                   </div>
+                  {selectedShipping && (
+                    <div className="text-sm text-green-600 mb-2">
+                      ✓ {selectedShipping.carrier} sélectionné
+                    </div>
+                  )}
                   <div className="text-gray-500 text-sm mb-2">Commande minimum : 20 $<br />Taxes et transport en sus</div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
                     <span>Total</span>
                     <span>{(subtotal + (selectedShipping ? selectedShipping.rate : 0)).toFixed(2)} $</span>
                   </div>
                   <button
-                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-fredoka text-lg mt-4"
-                    onClick={() => navigate('/shipping', { state: { cart, specialInstructions, shippingAddress, selectedShipping } })}
+                    className={`w-full px-6 py-3 rounded-lg transition-colors font-fredoka text-lg mt-4 ${
+                      updating || !selectedShipping
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                    onClick={() => navigate('/shipping', { state: { cart, shippingAddress } })}
                     disabled={updating || !selectedShipping}
                   >
-                    Paiement
+                    {!selectedShipping ? 'Sélectionnez une option de livraison' : 'Continuer vers la livraison'}
                   </button>
                 </div>
               </div>

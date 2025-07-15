@@ -13,12 +13,14 @@ import api from './config';
  */
 export const calculateShippingRates = async (orderItems, origin, destination) => {
   try {
+    // Prepare payload to match backend expectations
+    const payload = {
+      cartItems: orderItems,
+      destinationAddress: destination
+    };
+    console.log('Shipping rates payload:', payload); // Debug log
     // Use the real rates endpoint
-    const response = await api.post('/shipping/rates', {
-      orderItems,
-      origin,
-      destination
-    });
+    const response = await api.post('/shipping/rates', payload);
     return response.data;
   } catch (error) {
     console.error('Error calculating shipping rates:', error);

@@ -5,6 +5,7 @@ const defaultState = {
   lastName: "",
   address: "",
   city: "",
+  province: "",      // ➕ NEW – matches validator
   postalCode: "",
   country: "",
   type: "shipping",
@@ -16,20 +17,22 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
+  /* ---------- helpers ---------- */
   const validate = () => {
     const errs = {};
-    if (!form.firstName) errs.firstName = "Prénom requis";
-    if (!form.lastName) errs.lastName = "Nom requis";
-    if (!form.address) errs.address = "Adresse requise";
-    if (!form.city) errs.city = "Ville requise";
-    if (!form.postalCode) errs.postalCode = "Code postal requis";
-    if (!form.country) errs.country = "Pays requis";
+    if (!form.firstName.trim())  errs.firstName  = "Prénom requis";
+    if (!form.lastName.trim())   errs.lastName   = "Nom requis";
+    if (!form.address.trim())    errs.address    = "Adresse requise";
+    if (!form.city.trim())       errs.city       = "Ville requise";
+    if (!form.province.trim())   errs.province   = "Province / État requis";   // 🆕
+    if (!form.postalCode.trim()) errs.postalCode = "Code postal requis";
+    if (!form.country.trim())    errs.country    = "Pays requis";
     return errs;
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
+  const handleChange = ({ target }) => {
+    const { name, value, type, checked } = target;
+    setForm(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
@@ -39,110 +42,132 @@ const AddressForm = ({ initialData, onSave, onCancel }) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
+    if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      await onSave(form);
+      await onSave(form);        // parent keeps full address incl. province
     } finally {
       setSaving(false);
     }
   };
 
+  /* ---------- UI ---------- */
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* First & Last name */}
       <div className="flex space-x-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Prénom *</label>
-          <input
-            type="text"
-            name="firstName"
-            value={form.firstName}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.firstName && <div className="text-red-500 text-xs mt-1">{errors.firstName}</div>}
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Nom *</label>
-          <input
-            type="text"
-            name="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.lastName && <div className="text-red-500 text-xs mt-1">{errors.lastName}</div>}
-        </div>
+        {["firstName", "lastName"].map((field) => (
+          <div className="flex-1" key={field}>
+            <label className="block text-sm font-medium mb-1">
+              {field === "firstName" ? "Prénom" : "Nom"} *
+            </label>
+            <input
+              type="text"
+              name={field}
+              autoComplete={field === "firstName" ? "given-name" : "family-name"}
+              value={form[field]}
+              onChange={handleChange}
+              className={`w-full border rounded px-3 py-2 ${
+                errors[field] ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors[field] && (
+              <div className="text-red-500 text-xs mt-1">{errors[field]}</div>
+            )}
+          </div>
+        ))}
       </div>
+
+      {/* Address line */}
       <div>
         <label className="block text-sm font-medium mb-1">Adresse *</label>
         <input
           type="text"
           name="address"
+          autoComplete="street-address"
           value={form.address}
           onChange={handleChange}
-          className={`w-full border rounded px-3 py-2 ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full border rounded px-3 py-2 ${
+            errors.address ? "border-red-500" : "border-gray-300"
+          }`}
         />
-        {errors.address && <div className="text-red-500 text-xs mt-1">{errors.address}</div>}
+        {errors.address && (
+          <div className="text-red-500 text-xs mt-1">{errors.address}</div>
+        )}
       </div>
+
+      {/* City - Province - Postal */}
       <div className="flex space-x-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Ville *</label>
-          <input
-            type="text"
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.city && <div className="text-red-500 text-xs mt-1">{errors.city}</div>}
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Code postal *</label>
-          <input
-            type="text"
-            name="postalCode"
-            value={form.postalCode}
-            onChange={handleChange}
-            className={`w-full border rounded px-3 py-2 ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.postalCode && <div className="text-red-500 text-xs mt-1">{errors.postalCode}</div>}
-        </div>
+        {[
+          { name: "city", label: "Ville", autoComplete: "address-level2" },
+          { name: "province", label: "Province / État", autoComplete: "address-level1" },
+          { name: "postalCode", label: "Code postal", autoComplete: "postal-code" },
+        ].map(({ name, label, autoComplete }) => (
+          <div className="flex-1" key={name}>
+            <label className="block text-sm font-medium mb-1">{label} *</label>
+            <input
+              type="text"
+              name={name}
+              autoComplete={autoComplete}
+              value={form[name]}
+              onChange={handleChange}
+              className={`w-full border rounded px-3 py-2 ${
+                errors[name] ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors[name] && (
+              <div className="text-red-500 text-xs mt-1">{errors[name]}</div>
+            )}
+          </div>
+        ))}
       </div>
+
+      {/* Country */}
       <div>
         <label className="block text-sm font-medium mb-1">Pays *</label>
         <input
           type="text"
           name="country"
+          autoComplete="country-name"
           value={form.country}
           onChange={handleChange}
-          className={`w-full border rounded px-3 py-2 ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full border rounded px-3 py-2 ${
+            errors.country ? "border-red-500" : "border-gray-300"
+          }`}
         />
-        {errors.country && <div className="text-red-500 text-xs mt-1">{errors.country}</div>}
+        {errors.country && (
+          <div className="text-red-500 text-xs mt-1">{errors.country}</div>
+        )}
       </div>
+
+      {/* Default address toggle */}
       <div className="flex items-center space-x-2">
         <input
           type="checkbox"
           name="isDefault"
+          id="isDefault"
           checked={form.isDefault}
           onChange={handleChange}
-          id="isDefault"
         />
-        <label htmlFor="isDefault" className="text-sm">Définir comme adresse par défaut</label>
+        <label htmlFor="isDefault" className="text-sm">
+          Définir comme adresse par défaut
+        </label>
       </div>
+
+      {/* Buttons */}
       <div className="flex space-x-4 mt-4">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           disabled={saving}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
           {saving ? "Enregistrement..." : initialData ? "Mettre à jour" : "Ajouter"}
         </button>
         <button
           type="button"
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
           onClick={onCancel}
           disabled={saving}
+          className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
         >
           Annuler
         </button>

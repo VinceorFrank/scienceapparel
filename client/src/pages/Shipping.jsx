@@ -11,6 +11,7 @@ import AddressForm from "../components/AddressForm";
 import { createOrder } from '../api/orders';
 import { toast } from 'react-toastify';
 import ShippingCalculator from "../components/ShippingCalculator";
+import { getTestOrderId } from '../utils/testUtils';
 
 const Shipping = () => {
   const [addresses, setAddresses] = useState([]);
@@ -213,9 +214,11 @@ const Shipping = () => {
         console.error('Order error details:', orderError.message);
         console.error('Order error response:', orderError.response?.data);
         
-        // For testing: navigate to a test payment page with a fake order ID
+        // For testing: create a valid MongoDB ObjectId format
+        const testOrderId = getTestOrderId();
+        console.log('Using test order ID:', testOrderId);
         setSavedAddr(selectedAddress);
-        navigate(`/payment/test-order-123`);
+        navigate(`/payment/${testOrderId}`);
       }
     } catch (err) {
       console.error('Payment button error:', err);

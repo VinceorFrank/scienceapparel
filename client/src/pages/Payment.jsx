@@ -5,6 +5,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { toast } from 'react-toastify';
 import PaymentForm from '../components/PaymentForm';
 import { useLang } from '../utils/lang';
+import { getTestOrderId } from '../utils/testUtils';
 
 // Initialize Stripe (you'll need to add your publishable key to environment variables)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
@@ -27,10 +28,10 @@ const Payment = () => {
       setLoading(true);
       
       // For test orders, create mock data
-      if (orderId === 'test-order-123') {
+      if (orderId === getTestOrderId()) {
         console.log('Using test order data');
         const mockOrder = {
-          _id: 'test-order-123',
+          _id: getTestOrderId(),
           orderItems: [
             {
               name: 'Test Product',

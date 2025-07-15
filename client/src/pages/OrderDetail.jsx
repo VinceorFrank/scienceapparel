@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { getOrderById } from "../api/orders";
 import { reorderOrderItems } from "../utils/cart";
 import { toast } from "react-toastify";
+import { getTestOrderId } from "../utils/testUtils";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -32,9 +33,52 @@ const OrderDetail = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
+        
+        // Check if this is a test order
+        if (id === getTestOrderId()) {
+          console.log('Using test order data for order detail');
+          const mockOrder = {
+            _id: getTestOrderId(),
+            orderItems: [
+              {
+                name: 'Test Product',
+                qty: 1,
+                price: 29.99,
+                image: '/placeholder.png',
+                product: {
+                  name: 'Test Product',
+                  image: '/placeholder.png'
+                }
+              }
+            ],
+            totalPrice: 34.49,
+            taxPrice: 4.50,
+            shippingPrice: 12.99,
+            itemsPrice: 29.99,
+            isPaid: true,
+            paidAt: new Date().toISOString(),
+            orderStatus: 'confirmed',
+            createdAt: new Date().toISOString(),
+            shippingAddress: {
+              address: '4070, rue Chambord',
+              city: 'Montréal',
+              postalCode: 'H2J3M7',
+              country: 'Canada'
+            },
+            user: {
+              name: 'Test User',
+              email: 'test@example.com'
+            }
+          };
+          setOrder(mockOrder);
+          return;
+        }
+        
+        // For real orders, fetch from API
         const response = await getOrderById(id);
         setOrder(response.data);
       } catch (err) {
+        console.error('Fetch order error:', err);
         setError("Unable to load order details.");
       } finally {
         setLoading(false);
@@ -183,6 +227,19 @@ const OrderDetail = () => {
               <div>
                 <h3 className="font-semibold text-lg">Payment Successful!</h3>
                 <p className="text-sm">Your order has been confirmed and is being processed. You will receive an email confirmation shortly.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Test Mode Banner */}
+        {order && order._id === getTestOrderId() && (
+          <div className="mb-6 bg-blue-100 border border-blue-400 text-blue-700 px-6 py-4 rounded-lg">
+            <div className="flex items-center">
+              <span className="text-2xl mr-3">🧪</span>
+              <div>
+                <h3 className="font-semibold text-lg">Test Order</h3>
+                <p className="text-sm">This is a test order for development purposes. No real transaction occurred.</p>
               </div>
             </div>
           </div>

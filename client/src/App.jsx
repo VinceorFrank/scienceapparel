@@ -18,7 +18,6 @@ import Reviews from "./pages/Reviews";
 import Newsletter from "./pages/Newsletter";
 import Responsibility from "./pages/Responsibility";
 import Contact from "./pages/Contact";
-import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import TailwindTest from "./pages/TailwindTest";

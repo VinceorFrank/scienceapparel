@@ -95,10 +95,10 @@ const Payment = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pastel-pink via-pastel-blue to-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('loading') || 'Loading...'}</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -106,11 +106,11 @@ const Payment = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pastel-pink via-pastel-blue to-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❌</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {t('error') || 'Error'}
+            {t('error')}
           </h2>
           <p className="text-red-600 mb-4">{error}</p>
           <button
@@ -126,7 +126,7 @@ const Payment = () => {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pastel-pink via-pastel-blue to-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❓</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -148,7 +148,7 @@ const Payment = () => {
 
   if (order.isPaid) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-pastel-pink via-pastel-blue to-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">✅</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -169,7 +169,7 @@ const Payment = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-pastel-pink via-pastel-blue to-white py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
@@ -243,7 +243,7 @@ const Payment = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-md">
+              <div className="bg-gradient-to-r from-pastel-yellow to-pastel-green p-4 rounded-md">
                 <h3 className="font-medium text-gray-900 mb-2">
                   {t('shippingAddress') || 'Shipping Address'}
                 </h3>

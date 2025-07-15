@@ -111,7 +111,7 @@ const Newsletter = () => {
 
                 <p className="text-xs text-gray-500 text-center">
                   En vous abonnant, vous acceptez notre{' '}
-                  <a href="#" className="text-blue-600 hover:underline">politique de confidentialité</a>
+                  <a href="/privacy" className="text-blue-600 hover:underline">politique de confidentialité</a>
                   {' '}et recevrez des emails marketing.
                 </p>
               </form>

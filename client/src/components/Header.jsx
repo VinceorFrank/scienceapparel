@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
 import { useLang } from '../utils/lang';
 import { useCartContext } from './CartContext';
+import AuthBadge from './AuthBadge';
 
 const Header = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -28,9 +29,9 @@ const Header = () => {
     { path: '/contact', label: t('contactUs') },
   ];
 
-  // Mock user state - replace with actual auth state later
-  const isLoggedIn = false;
-  const user = isLoggedIn ? { name: 'John Doe' } : null;
+  // Real user state from localStorage
+  const isLoggedIn = !!localStorage.getItem("token");
+  const user = isLoggedIn ? { name: localStorage.getItem("userName") || 'User' } : null;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -67,7 +68,7 @@ const Header = () => {
         <div className="flex items-center gap-2 text-blue-400 w-16">
           <button
             onClick={() => setMenuOpen(!isMenuOpen)}
-            className="rounded-full bg-pink-200 p-2 border border-pink-300 shadow hover:bg-pink-300 transition"
+            className="rounded-full bg-pink-200 p-2 border border-pink-300 shadow hover:bg-pink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2"
             aria-label="Open menu"
           >
             <FiMenu size={22} />
@@ -81,30 +82,35 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Right side - Icons and Language Toggle */}
-        <div className="flex items-center gap-3 w-16 justify-end">
+        {/* Right side - Icons, AuthBadge, and Language Toggle */}
+        <div className="flex items-center gap-3 justify-end">
+          {/* AuthBadge - shows when logged in */}
+          <AuthBadge />
+          
           {/* Search Icon */}
           <button
             onClick={() => setSearchExpanded(!isSearchExpanded)}
-            className="text-blue-400 hover:text-pink-400 transition-colors"
+            className="text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
             aria-label="Search"
           >
             <FiSearch size={26} />
           </button>
 
-          {/* User Icon */}
-          <button
+          {/* User Icon - only show when not logged in */}
+          {!isLoggedIn && (
+                      <button
             onClick={() => setUserPopupOpen(!isUserPopupOpen)}
-            className="text-blue-400 hover:text-pink-400 transition-colors"
+            className="text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
             aria-label="User menu"
           >
-            <FiUser size={26} />
-          </button>
+              <FiUser size={26} />
+            </button>
+          )}
 
           {/* Cart Icon with Badge */}
           <button
             onClick={handleCartClick}
-            className="relative text-blue-400 hover:text-pink-400 transition-colors"
+            className="relative text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
             aria-label="Cart"
           >
             <FiShoppingCart size={26} />
@@ -118,7 +124,7 @@ const Header = () => {
           {/* Language Toggle */}
           <button
             onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
-            className="px-4 py-1 rounded-full bg-pink-200 text-blue-700 font-bold border-2 border-pink-300 hover:bg-pink-300 shadow transition"
+            className="px-4 py-1 rounded-full bg-pink-200 text-blue-700 font-bold border-2 border-pink-300 hover:bg-pink-300 shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2"
           >
             {lang === 'en' ? 'FR' : 'EN'}
           </button>
@@ -135,8 +141,8 @@ const Header = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-64 px-3 py-1.5 rounded-full border border-blue-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent text-sm"
+                placeholder={t('searchProducts')}
+                className="w-full sm:w-64 px-3 py-1.5 rounded-full border border-blue-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent text-sm"
                 autoFocus
               />
               <button
@@ -161,7 +167,7 @@ const Header = () => {
       {isUserPopupOpen && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 z-50" onClick={() => setUserPopupOpen(false)}>
           <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-2xl p-8 w-80 max-w-md border border-blue-100"
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-2xl p-8 w-full max-w-sm sm:max-w-md border border-blue-100"
             onClick={e => e.stopPropagation()}
           >
             <div className="text-center mb-6">
@@ -222,7 +228,7 @@ const Header = () => {
       {isMenuOpen && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-30 z-40" onClick={() => setMenuOpen(false)}>
           <div
-            className="absolute top-4 left-4 bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-2xl p-6 w-72 max-h-[80vh] overflow-y-auto border border-blue-100 flex flex-col gap-2 animate-fade-in"
+            className="absolute top-4 left-4 bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-2xl p-6 w-full max-w-xs sm:max-w-sm md:max-w-md max-h-[80vh] overflow-y-auto border border-blue-100 flex flex-col gap-2 animate-fade-in"
             onClick={e => e.stopPropagation()}
           >
             <button

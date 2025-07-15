@@ -34,7 +34,7 @@ const Footer = () => {
         <p className="mb-4 text-slate-500 text-sm">234 Rue Test, Longueuil, QC J4Y2G6 Canada</p>
         {/* Social Media Icons */}
         <div className="flex gap-5 mb-4">
-          <a href="#" aria-label="Facebook" className="text-blue-500 hover:text-pink-400 text-2xl"><FaFacebookF /></a>
+                      <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-blue-500 hover:text-pink-400 text-2xl"><FaFacebookF /></a>
         </div>
         {/* Newsletter Signup */}
         <form className="flex flex-col sm:flex-row items-center gap-2 w-full max-w-md mb-4">

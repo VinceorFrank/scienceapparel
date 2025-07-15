@@ -17,7 +17,7 @@ const AdminLayout = () => {
       </svg>
       
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-br from-green-100 via-yellow-100 to-white p-6 z-10 shadow-2xl flex flex-col border-r-2 border-green-200">
+      <aside className="w-full max-w-xs sm:max-w-sm md:w-64 bg-gradient-to-br from-green-100 via-yellow-100 to-white p-6 z-10 shadow-2xl flex flex-col border-r-2 border-green-200">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
             Admin

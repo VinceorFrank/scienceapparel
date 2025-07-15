@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        fredoka: ['"Fredoka One"', "cursive"],
         fun: ['"Fredoka"', 'Quicksand', 'cursive', 'sans-serif'],
       },
       colors: {
@@ -23,13 +24,18 @@ export default {
           900: '#0c4a6e',
         },
         pastel: {
-          pink: '#FFB6C1',
-          purple: '#C3B1E1',
-          blue: '#A7EFFF',
-          yellow: '#FFFACD',
-          mint: '#B6FCD5',
-          peach: '#FFDAB9',
+          pink: '#FECFEF',
+          blue: '#A7F0BA',
+          yellow: '#FFF7AE',
+          green: '#CFFFB3',
         },
+      },
+      backgroundImage: {
+        'hero': "url('/img/hero-desktop.jpg')",
+        'mobileHero': "url('/img/hero-mobile.jpg')",
+      },
+      ringColor: {
+        'pastel-pink': '#FECFEF',
       },
     },
   },

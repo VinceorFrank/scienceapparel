@@ -248,7 +248,7 @@ const Cart = () => {
                       return (
                         <tr key={productId} className="border-b last:border-b-0 hover:bg-pastel-50 transition rounded-lg">
                           <td className="py-4 flex items-center gap-6">
-                            <div className="w-80 h-80 aspect-square bg-white rounded-2xl border shadow-lg flex items-center justify-center overflow-hidden">
+                            <div className="w-full max-w-sm sm:max-w-md md:max-w-lg aspect-square bg-white rounded-2xl border shadow-lg flex items-center justify-center overflow-hidden">
                               <img src={image} alt={name} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex flex-col">

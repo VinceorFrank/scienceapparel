@@ -14,11 +14,6 @@ const {
   getActiveOrders,
   updateProfile,
   changePassword,
-  getAddresses,
-  addAddress,
-  updateAddress,
-  deleteAddress,
-  setDefaultAddress,
   getPreferences,
   updatePreferences,
   getActivityLog
@@ -50,12 +45,12 @@ router.get('/preferences', requireAuth, getPreferences);
 router.put('/preferences', requireAuth, updatePreferences);
 router.get('/activity', requireAuth, getActivityLog);
 
-// Address Management Routes
-router.get('/addresses', requireAuth, getAddresses);
-router.post('/addresses', requireAuth, addAddress);
-router.put('/addresses/:addressId', requireAuth, updateAddress);
-router.delete('/addresses/:addressId', requireAuth, deleteAddress);
-router.put('/addresses/:addressId/default', requireAuth, setDefaultAddress);
+// Address Management Routes - Handled by modular routes above
+// router.get('/addresses', requireAuth, getAddresses);
+// router.post('/addresses', requireAuth, addAddress);
+// router.put('/addresses/:addressId', requireAuth, updateAddress);
+// router.delete('/addresses/:addressId', requireAuth, deleteAddress);
+// router.put('/addresses/:addressId/default', requireAuth, setDefaultAddress);
 
 // Direct login route (no redirect)
 router.post('/login', validateUserLogin, loginHandler);

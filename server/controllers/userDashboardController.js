@@ -892,17 +892,20 @@ exports.addAddress = async (req, res, next) => {
     const { 
       type, 
       isDefault, 
+      address, 
       street, 
       city, 
+      province, 
       state, 
+      postalCode, 
       zipCode, 
       country, 
       phone 
     } = req.body;
 
     // Validate required fields
-    if (!type || !street || !city || !zipCode || !country) {
-      return sendError(res, 400, 'Type, street, city, zip code, and country are required', null, 'MISSING_ADDRESS_FIELDS');
+    if (!type || !(address || street) || !city || !(postalCode || zipCode) || !country) {
+      return sendError(res, 400, 'Type, address, city, postal code, and country are required', null, 'MISSING_ADDRESS_FIELDS');
     }
 
     // Validate address type
@@ -928,10 +931,10 @@ exports.addAddress = async (req, res, next) => {
     const newAddress = {
       type,
       isDefault: isDefault || false,
-      street,
+      address: address || street,
       city,
-      state,
-      zipCode,
+      state: province || state,
+      postalCode: postalCode || zipCode,
       country,
       phone
     };
@@ -942,9 +945,10 @@ exports.addAddress = async (req, res, next) => {
     // Log address addition
     await ActivityLog.create({
       user: userId,
+      event: 'address_added',
       action: 'address_added',
       description: `Added new ${type} address`,
-      ipAddress: req.ip
+      ip: req.ip
     });
 
     logger.info('User address added successfully', {
@@ -975,17 +979,20 @@ exports.updateAddress = async (req, res, next) => {
     const { 
       type, 
       isDefault, 
+      address, 
       street, 
       city, 
+      province, 
       state, 
+      postalCode, 
       zipCode, 
       country, 
       phone 
     } = req.body;
 
     // Validate required fields
-    if (!street || !city || !zipCode || !country) {
-      return sendError(res, 400, 'Street, city, zip code, and country are required', null, 'MISSING_ADDRESS_FIELDS');
+    if (!(address || street) || !city || !(postalCode || zipCode) || !country) {
+      return sendError(res, 400, 'Address, city, postal code, and country are required', null, 'MISSING_ADDRESS_FIELDS');
     }
 
     const user = await User.findById(userId);
@@ -1013,10 +1020,10 @@ exports.updateAddress = async (req, res, next) => {
       ...user.addresses[addressIndex],
       type: type || user.addresses[addressIndex].type,
       isDefault: isDefault !== undefined ? isDefault : user.addresses[addressIndex].isDefault,
-      street,
+      address: address || street,
       city,
-      state,
-      zipCode,
+      state: province || state,
+      postalCode: postalCode || zipCode,
       country,
       phone
     };
@@ -1026,9 +1033,10 @@ exports.updateAddress = async (req, res, next) => {
     // Log address update
     await ActivityLog.create({
       user: userId,
+      event: 'address_updated',
       action: 'address_updated',
       description: `Updated ${user.addresses[addressIndex].type} address`,
-      ipAddress: req.ip
+      ip: req.ip
     });
 
     logger.info('User address updated successfully', {
@@ -1086,9 +1094,10 @@ exports.deleteAddress = async (req, res, next) => {
     // Log address deletion
     await ActivityLog.create({
       user: userId,
+      event: 'address_deleted',
       action: 'address_deleted',
       description: `Deleted ${addressType} address`,
-      ipAddress: req.ip
+      ip: req.ip
     });
 
     logger.info('User address deleted successfully', {

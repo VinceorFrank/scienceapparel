@@ -26,6 +26,7 @@ const Shipping = () => {
   const [ratesError, setRatesError] = useState(null);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const cart         = location.state?.cart;
@@ -57,12 +58,24 @@ const Shipping = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAddresses();
-      setAddresses(data.addresses || []);
+      const response = await getAddresses();
+      console.log('Fetched addresses response:', response);
+      
+      // Handle both response structures: {data: {addresses: [...]}} and {addresses: [...]}
+      const addresses = response.data?.addresses || response.addresses || [];
+      console.log('Extracted addresses:', addresses);
+      
+      setAddresses(addresses);
+      
       // Auto-select default shipping address if available
-      const defaultShipping = (data.addresses || []).find(a => a.type === 'shipping' && a.isDefault);
+      const defaultShipping = addresses.find(a => a.type === 'shipping' && a.isDefault);
       if (defaultShipping) setSelectedAddressId(defaultShipping._id);
+      
+      console.log('Total addresses:', addresses.length);
+      console.log('Shipping addresses:', addresses.filter(a => a.type === 'shipping').length);
+      console.log('Current addresses state:', addresses);
     } catch (err) {
+      console.error('Error fetching addresses:', err);
       setError(err.message || "Erreur lors du chargement des adresses");
     } finally {
       setLoading(false);
@@ -93,7 +106,7 @@ const Shipping = () => {
         {
           address: address.address,
           city: address.city,
-          province: address.province,        // server requires this
+          province: address.state || address.province,        // handle both field names
           postalCode: address.postalCode,
           country: "CA"
         }
@@ -115,7 +128,10 @@ const Shipping = () => {
     try {
       await addAddress(addressData);
       setShowAddressForm(false);
+      setSuccessMessage("Adresse ajoutée avec succès!");
       await fetchAddresses();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       setError(err.message || "Erreur lors de l'ajout de l'adresse");
     }
@@ -177,6 +193,9 @@ const Shipping = () => {
   // Find the selected address object
   const selectedAddress = addresses.find(a => a._id === selectedAddressId);
   console.log('Selected shipping address for calculator:', selectedAddress);
+  console.log('Current addresses state in render:', addresses);
+  console.log('Addresses length:', addresses.length);
+  console.log('Shipping addresses:', addresses.filter(a => a.type === 'shipping'));
 
   if (loading) {
     return (
@@ -198,11 +217,23 @@ const Shipping = () => {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Livraison</h1>
+      
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          {successMessage}
+        </div>
+      )}
+      
       {/* Address Selection */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">Adresse de livraison</h2>
-        {addresses.length === 0 && (
+        {addresses.length === 0 ? (
           <div className="text-gray-500 mb-4">Aucune adresse enregistrée.</div>
+        ) : (
+          <div className="text-green-600 mb-4">
+            {addresses.filter(a => a.type === 'shipping').length} adresse(s) enregistrée(s)
+          </div>
         )}
         <div className="space-y-3 mb-4">
           {addresses.filter(a => a.type === 'shipping').map(address => (
@@ -213,7 +244,7 @@ const Shipping = () => {
             >
               <div>
                 <div className="font-medium">{address.firstName} {address.lastName}</div>
-                <div className="text-sm text-gray-600">{address.address}, {address.city}, {address.postalCode}, {address.country}</div>
+                <div className="text-sm text-gray-600">{address.address}, {address.city}, {address.state || address.province}, {address.postalCode}, {address.country}</div>
                 {address.isDefault && <span className="text-xs text-blue-600">Adresse par défaut</span>}
               </div>
               <div className="flex space-x-2">

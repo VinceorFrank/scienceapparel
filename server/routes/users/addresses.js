@@ -31,7 +31,7 @@ router.get('/', requireAuth, async (req, res) => {
 router.post('/', requireAuth, validateAddress, async (req, res) => {
   try {
     const { 
-      type, firstName, lastName, address, city, state, postalCode, country, phone, company, isDefault 
+      type, firstName, lastName, address, city, province, state, postalCode, country, phone, company, isDefault 
     } = req.body;
 
     const user = await User.findById(req.user._id);
@@ -45,7 +45,7 @@ router.post('/', requireAuth, validateAddress, async (req, res) => {
       lastName,
       address,
       city,
-      state,
+      state: province || state, // Accept both province and state, prefer province
       postalCode,
       country,
       phone,
@@ -66,6 +66,7 @@ router.post('/', requireAuth, validateAddress, async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'add_address',
       action: 'add_address',
       description: `Added new ${type} address`
     });
@@ -82,7 +83,7 @@ router.post('/', requireAuth, validateAddress, async (req, res) => {
 router.put('/:id', requireAuth, validateAddress, async (req, res) => {
   try {
     const { 
-      type, firstName, lastName, address, city, state, postalCode, country, phone, company, isDefault 
+      type, firstName, lastName, address, city, province, state, postalCode, country, phone, company, isDefault 
     } = req.body;
 
     const user = await User.findById(req.user._id);
@@ -101,7 +102,7 @@ router.put('/:id', requireAuth, validateAddress, async (req, res) => {
       lastName,
       address,
       city,
-      state,
+      state: province || state, // Accept both province and state, prefer province
       postalCode,
       country,
       phone,
@@ -120,6 +121,7 @@ router.put('/:id', requireAuth, validateAddress, async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'update_address',
       action: 'update_address',
       description: `Updated ${type} address`
     });
@@ -158,6 +160,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'delete_address',
       action: 'delete_address',
       description: `Deleted ${deletedAddress.type} address`
     });
@@ -191,6 +194,7 @@ router.patch('/:id/default', requireAuth, async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'set_default_address',
       action: 'set_default_address',
       description: `Set ${user.addresses[addressIndex].type} address as default`
     });

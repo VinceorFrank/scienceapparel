@@ -98,6 +98,19 @@ const AdminLayout = () => {
           </NavLink>
           
           <NavLink 
+            to="/admin/pages" 
+            className={({ isActive }) =>
+              `text-lg font-semibold px-4 py-3 rounded-2xl transition-all duration-300 ${
+                isActive 
+                  ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-lg transform scale-105' 
+                  : 'text-blue-700 hover:bg-gradient-to-r hover:from-pink-200 hover:to-pink-300 hover:text-pink-700 hover:shadow-md'
+              }`
+            }
+          >
+            🖼️ Pages
+          </NavLink>
+          
+          <NavLink 
             to="/admin/support" 
             className={({ isActive }) =>
               `text-lg font-semibold px-4 py-3 rounded-2xl transition-all duration-300 ${

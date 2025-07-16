@@ -16,7 +16,7 @@ const PastelCard = ({
   const { t } = useLang();
   
   return (
-    <div className={`bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-2xl shadow-lg p-6 flex flex-col items-center transition-transform duration-300 ease-in-out hover:scale-105 border border-pink-100`}>
+    <div className={`bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-2xl shadow-lg p-6 flex flex-col items-center transition-transform duration-300 ease-in-out hover:scale-105 border border-pink-100 overflow-visible`}>
       {image && (
         <img
           src={image}

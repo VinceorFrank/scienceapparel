@@ -369,5 +369,16 @@
   "tax": "Tax",
   "paid": "Paid",
   "reorderItems": "Reorder Items",
-  "downloadInvoice": "Download Invoice"
+  "downloadInvoice": "Download Invoice",
+  "contactUs": "Contact Us",
+  "clothingAndAccessories": "Clothing & Accessories",
+  "accessories": "Accessories",
+  "allRightsReserved": "All rights reserved",
+  "pages_admin": {
+    "title": "Page Assets"
+  },
+  "pages_admin.title": "Page Assets",
+  "support": "Support",
+  "delete": "Delete",
+  "no_asset": "No image yet"
 } 

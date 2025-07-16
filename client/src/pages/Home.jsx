@@ -5,6 +5,7 @@ import { fetchProducts } from "../api/products";
 import { addCartItem, getCart } from "../api/cart";
 import { toast } from 'react-toastify';
 import { useLang } from '../utils/lang';
+import { usePageAssets } from '../hooks/usePageAssets';
 
 const getGuestCart = () => {
   try {
@@ -34,6 +35,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cartQuantities, setCartQuantities] = useState({});
+  const { data } = usePageAssets('home');
+  const hero = data?.find(a => a.slot === 'hero');
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -113,8 +116,19 @@ const Home = () => {
       <Header />
       {/* Hero Section */}
       <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8">
-        <section className="text-center max-w-6xl mx-auto py-8 sm:py-12 lg:py-16">
-          <div className="mb-8">
+        <section
+          className="relative flex items-center justify-center h-[60vh]"
+          style={{
+            backgroundImage: `url(${hero?.imageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: `rgba(255,255,255,${hero?.overlay ?? 0.2})` }}
+          />
+          <div className="relative z-10 w-full text-center max-w-6xl mx-auto py-8 sm:py-12 lg:py-16">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 leading-tight"
               style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
               {t('newTopics')}

@@ -368,6 +368,7 @@ app.use('/api/admin/csv-import', require('./routes/csvImport'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/monitoring', require('./routes/monitoring'));
 app.use('/api/security', require('./routes/security'));
+app.use('/api/pages', require('./routes/pageAssetRoutes'));
 
 // Analytics routes (specific permissions required)
 app.use('/api/stats', require('./routes/stats'));

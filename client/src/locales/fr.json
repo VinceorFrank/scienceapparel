@@ -369,5 +369,16 @@
   "tax": "Taxe",
   "paid": "Payé",
   "reorderItems": "Commander à nouveau",
-  "downloadInvoice": "Télécharger la facture"
+  "downloadInvoice": "Télécharger la facture",
+  "contactUs": "Contactez-nous",
+  "clothingAndAccessories": "Vêtements et accessoires",
+  "accessories": "Accessoires",
+  "allRightsReserved": "Tous droits réservés",
+  "pages_admin": {
+    "title": "Assets de Page"
+  },
+  "pages_admin.title": "Assets de Page",
+  "support": "Support",
+  "delete": "Supprimer",
+  "no_asset": "Aucune image encore"
 } 

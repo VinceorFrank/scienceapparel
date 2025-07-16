@@ -43,6 +43,8 @@ import ShippingAdmin from "./pages/Admin/ShippingAdmin";
 import SignupCustomer from "./pages/Customer/SignupCustomer";
 import Orders from "./pages/Orders";
 import { CartProvider } from './components/CartContext';
+import PagesAdmin from "./pages/Admin/PagesAdmin";
+import TestComponent from "./pages/Admin/TestComponent";
 
 
 const App = () => {
@@ -111,6 +113,8 @@ const App = () => {
       <Route path="customer-insights" element={<CustomerInsights />} />
       <Route path="troubleshoot" element={<MarkdownPage fileName='troubleshoot-admin-panel.md' title='Admin Panel Troubleshooting' />} />
       <Route path="shipping" element={<ShippingAdmin />} />
+      <Route path="pages" element={<PagesAdmin />} />
+      <Route path="test" element={<TestComponent />} />
     </Route>
   </Route>
         </Routes>

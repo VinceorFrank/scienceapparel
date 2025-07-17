@@ -6,7 +6,9 @@ import { addCartItem, getCart } from "../api/cart";
 import { toast } from 'react-toastify';
 import { useLang } from '../utils/lang';
 import { usePageAssets } from '../hooks/usePageAssets';
-import { useHeroToggle } from '../hooks/useHeroToggle';
+import { useBlockToggle } from '../hooks/useBlockToggle';
+import { useHeroSettings } from '../hooks/useHeroSettings';
+import { useMiniButtonSettings } from '../hooks/useMiniButtonSettings';
 
 const getGuestCart = () => {
   try {
@@ -37,7 +39,9 @@ const Home = () => {
   const [error, setError] = useState('');
   const [cartQuantities, setCartQuantities] = useState({});
   const { data, isLoading: assetsLoading } = usePageAssets('home');
-  const [heroEnabled] = useHeroToggle('home');
+  const { heroEnabled = true, miniEnabled = true, infoAEnabled = true, infoBEnabled = true } = useBlockToggle('home');
+  const { buttonPosition = 'bottom', buttonDestination = 'products' } = useHeroSettings('home');
+  const { buttonDestination: miniButtonDestination = 'products' } = useMiniButtonSettings('home');
   console.log('[DEBUG] Home component - usePageAssets data:', data);
   const hero = data?.find(a => a.slot === 'hero');
   const infoA = data?.find(a => a.slot === 'infoA');
@@ -71,6 +75,30 @@ const Home = () => {
     window.addEventListener('cartUpdated', updateCartQuantities);
     return () => window.removeEventListener('cartUpdated', updateCartQuantities);
   }, []);
+
+  // Helper function to get button destination URL
+  const getButtonDestination = () => {
+    switch (buttonDestination) {
+      case 'clothing-accessories':
+        return '/clothing-accessories';
+      case 'accessories':
+        return '/accessories';
+      default:
+        return '/products';
+    }
+  };
+
+  // Helper function to get mini button destination URL
+  const getMiniButtonDestination = () => {
+    switch (miniButtonDestination) {
+      case 'clothing-accessories':
+        return '/clothing-accessories';
+      case 'accessories':
+        return '/accessories';
+      default:
+        return '/products';
+    }
+  };
 
   const updateCartQuantities = async () => {
     const token = localStorage.getItem("token");
@@ -126,11 +154,26 @@ const Home = () => {
     }
   };
 
+  // Fallback to ensure component renders
+  if (!heroEnabled && !miniEnabled && !infoAEnabled && !infoBEnabled) {
+    return (
+      <div className="flex flex-col min-h-screen w-full overflow-hidden">
+        <Header />
+        <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center py-20">
+            <h1 className="text-2xl font-bold text-gray-700 mb-4">Welcome to our Store!</h1>
+            <p className="text-gray-600">All content blocks are currently hidden. Please enable them in the admin panel.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="flex flex-col min-h-screen w-full overflow-hidden"
       style={{
-        backgroundImage: background?.imageUrl ? `url(${background.imageUrl})` : undefined,
+                    backgroundImage: background?.imageUrl ? `url(${background?.imageUrl})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -139,7 +182,7 @@ const Home = () => {
       {background?.imageUrl && (
         <div 
           className="absolute inset-0"
-          style={{ backgroundColor: `rgba(255,255,255,${background.overlay ?? 0.1})` }}
+                      style={{ backgroundColor: `rgba(255,255,255,${background?.overlay ?? 0.1})` }}
         />
       )}
       <Header />
@@ -149,34 +192,62 @@ const Home = () => {
           <section
             className="relative flex items-center justify-center min-h-[70vh] sm:min-h-[60vh] rounded-3xl mx-4 sm:mx-6 lg:mx-8 overflow-hidden"
             style={{
-              backgroundImage: hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)',
+              backgroundImage: hero?.imageUrl ? `url(${hero?.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
             }}
           >
-            {console.log('[DEBUG] Hero section backgroundImage:', hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)')}
+                          {console.log('[DEBUG] Hero section backgroundImage:', hero?.imageUrl ? `url(${hero?.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)')}
             {hero?.imageUrl && (
               <div
                 className="absolute inset-0"
-                style={{ backgroundColor: `rgba(255,255,255,${hero.overlay ?? 0.2})` }}
+                style={{ backgroundColor: `rgba(255,255,255,${hero?.overlay ?? 0.2})` }}
               />
             )}
             <div className="relative z-10 w-full text-center max-w-6xl mx-auto py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
+              {/* Button at Top */}
+              {buttonPosition === 'top' && (
+                <div className="mb-8">
+                  <Link to={getButtonDestination()}>
+                    <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-base sm:text-lg">
+                      {t('shopNow')}
+                    </button>
+                  </Link>
+                </div>
+              )}
+
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-8 leading-tight sm:leading-normal"
                 style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
                 {t('newTopics')}
               </h1>
+
+              {/* Button at Middle */}
+              {buttonPosition === 'middle' && (
+                <div className="mb-8">
+                  <Link to={getButtonDestination()}>
+                    <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-base sm:text-lg">
+                      {t('shopNow')}
+                    </button>
+                  </Link>
+                </div>
+              )}
+
               <div className="w-20 sm:w-24 h-1 mx-auto mb-8 sm:mb-10 rounded-full"
                 style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+              
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-10 sm:mb-12 text-slate-700 max-w-2xl sm:max-w-3xl mx-auto leading-relaxed px-2">
                 {t('discoverProductsLudic')}
               </p>
-              <Link to="/products">
-                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-base sm:text-lg">
-                  {t('shopNow')}
-                </button>
-              </Link>
+
+              {/* Button at Bottom (default) */}
+              {buttonPosition === 'bottom' && (
+                <Link to={getButtonDestination()}>
+                  <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-base sm:text-lg">
+                    {t('shopNow')}
+                  </button>
+                </Link>
+              )}
             </div>
           </section>
 
@@ -188,12 +259,12 @@ const Home = () => {
       {/* Main content container */}
       <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Mini Banner Section */}
-        {mini?.imageUrl && (
+        {miniEnabled && (
           <section className="max-w-7xl mx-auto mb-8">
             <div 
               className="relative rounded-2xl overflow-hidden shadow-lg"
               style={{
-                backgroundImage: `url(${mini.imageUrl})`,
+                backgroundImage: mini?.imageUrl ? `url(${mini.imageUrl})` : 'linear-gradient(to right, #fce7f3, #a7f0ba)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 height: '200px'
@@ -201,7 +272,7 @@ const Home = () => {
             >
               <div 
                 className="absolute inset-0"
-                style={{ backgroundColor: `rgba(255,255,255,${mini.overlay ?? 0.2})` }}
+                style={{ backgroundColor: `rgba(255,255,255,${mini?.overlay ?? 0.2})` }}
               />
               <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
                 <div>
@@ -212,7 +283,7 @@ const Home = () => {
                   <p className="text-lg text-gray-700 mb-4">
                     Discover our latest collection with exclusive deals
                   </p>
-                  <Link to="/products">
+                  <Link to={getMiniButtonDestination()}>
                     <button className="px-6 py-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105">
                       Shop Now
                     </button>
@@ -224,11 +295,12 @@ const Home = () => {
         )}
 
         {/* First Info Block Section */}
-        <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
+        {infoAEnabled && (
+          <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
           <div 
             className="rounded-3xl shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100 relative overflow-hidden"
             style={{
-              backgroundImage: infoA?.imageUrl ? `url(${infoA.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
+              backgroundImage: infoA?.imageUrl ? `url(${infoA?.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
@@ -236,7 +308,7 @@ const Home = () => {
             {infoA?.imageUrl && (
               <div 
                 className="absolute inset-0"
-                style={{ backgroundColor: `rgba(255,255,255,${infoA.overlay ?? 0.2})` }}
+                style={{ backgroundColor: `rgba(255,255,255,${infoA?.overlay ?? 0.2})` }}
               />
             )}
             <div className="relative z-10 text-center">
@@ -261,6 +333,7 @@ const Home = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* First Featured Products Section */}
         <section className="max-w-7xl mx-auto py-8 lg:py-12">
@@ -329,11 +402,12 @@ const Home = () => {
         </section>
 
         {/* Second Info Block Section */}
-        <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
+        {infoBEnabled && (
+          <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
           <div 
             className="rounded-3xl shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100 relative overflow-hidden"
             style={{
-              backgroundImage: infoB?.imageUrl ? `url(${infoB.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
+              backgroundImage: infoB?.imageUrl ? `url(${infoB?.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
@@ -341,7 +415,7 @@ const Home = () => {
             {infoB?.imageUrl && (
               <div 
                 className="absolute inset-0"
-                style={{ backgroundColor: `rgba(255,255,255,${infoB.overlay ?? 0.2})` }}
+                style={{ backgroundColor: `rgba(255,255,255,${infoB?.overlay ?? 0.2})` }}
               />
             )}
             <div className="relative z-10 text-center">
@@ -366,6 +440,7 @@ const Home = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Second Featured Products Section */}
         <section className="max-w-7xl mx-auto py-8 lg:py-12">

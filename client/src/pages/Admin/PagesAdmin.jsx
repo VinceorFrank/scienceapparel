@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { upsertPageAsset, deletePageAsset } from '../../api/pageAssets';
 import PastelCard from '../../components/PastelCard';
 import { useLang } from '../../utils/lang';
-import { useHeroToggle } from '../../hooks/useHeroToggle';
+import { useBlockToggle } from '../../hooks/useBlockToggle';
+import { useHeroSettings } from '../../hooks/useHeroSettings';
+import { useMiniButtonSettings } from '../../hooks/useMiniButtonSettings';
 
 const slots = ['hero', 'infoA', 'infoB', 'background', 'mini'];
 const pages = ['home', 'about', 'cart', 'order-detail'];
@@ -44,7 +46,18 @@ const PagesAdmin = () => {
   const qc = useQueryClient();
   const [pageSlug, setPageSlug] = useState('home');
   const [showPreview, setShowPreview] = useState(true);
-  const [heroEnabled, toggleHero] = useHeroToggle(pageSlug);
+  const { 
+    heroEnabled, 
+    miniEnabled, 
+    infoAEnabled, 
+    infoBEnabled, 
+    toggleHero, 
+    toggleMini, 
+    toggleInfoA, 
+    toggleInfoB 
+  } = useBlockToggle(pageSlug);
+  const { buttonPosition, buttonDestination, updateButtonPosition, updateButtonDestination } = useHeroSettings(pageSlug);
+  const { buttonDestination: miniButtonDestination, updateButtonDestination: updateMiniButtonDestination } = useMiniButtonSettings(pageSlug);
 
   const { data = [], isLoading, error } = useQuery({
     queryKey: ['pageAssets', pageSlug],
@@ -248,6 +261,256 @@ const PagesAdmin = () => {
           </p>
         </div>
       </div>
+
+      {/* 🎛️ BLOCK VISIBILITY CONTROLS */}
+      <div className="bg-gradient-to-r from-green-100 to-blue-100 border-4 border-green-400 rounded-xl p-6 mb-8 shadow-xl">
+        <h3 className="text-3xl font-bold text-green-800 mb-6 text-center">🎛️ BLOCK VISIBILITY CONTROLS</h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Hero Block Toggle */}
+          <div className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
+            <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
+              🎯 <span className="ml-2">Hero Block</span>
+            </h4>
+            <button
+              onClick={() => toggleHero(!heroEnabled)}
+              className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                heroEnabled 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {heroEnabled ? 'Hide Hero' : 'Show Hero'}
+            </button>
+          </div>
+
+          {/* Mini Block Toggle */}
+          <div className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
+            <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
+              🖼️ <span className="ml-2">Mini Block</span>
+            </h4>
+            <button
+              onClick={() => toggleMini(!miniEnabled)}
+              className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                miniEnabled 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {miniEnabled ? 'Hide Mini' : 'Show Mini'}
+            </button>
+          </div>
+
+          {/* InfoA Block Toggle */}
+          <div className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
+            <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
+              ℹ️ <span className="ml-2">InfoA Block</span>
+            </h4>
+            <button
+              onClick={() => toggleInfoA(!infoAEnabled)}
+              className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                infoAEnabled 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {infoAEnabled ? 'Hide InfoA' : 'Show InfoA'}
+            </button>
+          </div>
+
+          {/* InfoB Block Toggle */}
+          <div className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
+            <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
+              📋 <span className="ml-2">InfoB Block</span>
+            </h4>
+            <button
+              onClick={() => toggleInfoB(!infoBEnabled)}
+              className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                infoBEnabled 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {infoBEnabled ? 'Hide InfoB' : 'Show InfoB'}
+            </button>
+          </div>
+        </div>
+        
+        {/* Current Status */}
+        <div className="mt-6 bg-white p-4 rounded-lg border-2 border-green-300">
+          <h4 className="font-bold text-lg text-green-700 mb-2">📊 Current Block Status</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className={`px-3 py-2 rounded ${heroEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              Hero: {heroEnabled ? 'Visible' : 'Hidden'}
+            </div>
+            <div className={`px-3 py-2 rounded ${miniEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              Mini: {miniEnabled ? 'Visible' : 'Hidden'}
+            </div>
+            <div className={`px-3 py-2 rounded ${infoAEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              InfoA: {infoAEnabled ? 'Visible' : 'Hidden'}
+            </div>
+            <div className={`px-3 py-2 rounded ${infoBEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              InfoB: {infoBEnabled ? 'Visible' : 'Hidden'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 🎛️ HERO SETTINGS CONTROLS */}
+      {heroEnabled && (
+        <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
+          <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">🎛️ HERO BUTTON SETTINGS</h3>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Button Position */}
+            <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
+              <h4 className="font-bold text-xl text-purple-700 mb-4 flex items-center">
+                📍 <span className="ml-2">Button Position</span>
+              </h4>
+              <div className="space-y-3">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonPosition"
+                    value="top"
+                    checked={buttonPosition === 'top'}
+                    onChange={(e) => updateButtonPosition(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Top - Above the title</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonPosition"
+                    value="middle"
+                    checked={buttonPosition === 'middle'}
+                    onChange={(e) => updateButtonPosition(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Middle - Between title and description</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonPosition"
+                    value="bottom"
+                    checked={buttonPosition === 'bottom'}
+                    onChange={(e) => updateButtonPosition(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Bottom - Below description (current)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Button Destination */}
+            <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
+              <h4 className="font-bold text-xl text-purple-700 mb-4 flex items-center">
+                🔗 <span className="ml-2">Button Destination</span>
+              </h4>
+              <div className="space-y-3">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonDestination"
+                    value="products"
+                    checked={buttonDestination === 'products'}
+                    onChange={(e) => updateButtonDestination(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Products Page</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonDestination"
+                    value="clothing-accessories"
+                    checked={buttonDestination === 'clothing-accessories'}
+                    onChange={(e) => updateButtonDestination(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Clothing & Accessories</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="buttonDestination"
+                    value="accessories"
+                    checked={buttonDestination === 'accessories'}
+                    onChange={(e) => updateButtonDestination(e.target.value)}
+                    className="mr-3 text-purple-600"
+                  />
+                  <span className="text-purple-700">Accessories Page</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          {/* Preview Info */}
+          <div className="mt-6 bg-white p-4 rounded-lg border-2 border-purple-300">
+            <h4 className="font-bold text-lg text-purple-700 mb-2">👁️ Live Preview</h4>
+            <p className="text-purple-600">
+              <strong>Current Settings:</strong> Button positioned at <strong>{buttonPosition}</strong> and linking to <strong>{buttonDestination}</strong> page.
+              Changes apply instantly - check the live page to see the results!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 🎛️ MINI BUTTON SETTINGS */}
+      {miniEnabled && (
+        <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-4 border-orange-400 rounded-xl p-6 mb-8 shadow-xl">
+          <h3 className="text-3xl font-bold text-orange-800 mb-6 text-center">🎛️ MINI BUTTON SETTINGS</h3>
+          <div className="bg-white p-6 rounded-lg border-2 border-orange-300 shadow-lg">
+            <h4 className="font-bold text-xl text-orange-700 mb-4 flex items-center">
+              🔗 <span className="ml-2">Mini Button Destination</span>
+            </h4>
+            <div className="space-y-3">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="miniButtonDestination"
+                  value="products"
+                  checked={miniButtonDestination === 'products'}
+                  onChange={(e) => updateMiniButtonDestination(e.target.value)}
+                  className="mr-3 text-orange-600"
+                />
+                <span className="text-orange-700">Products Page</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="miniButtonDestination"
+                  value="clothing-accessories"
+                  checked={miniButtonDestination === 'clothing-accessories'}
+                  onChange={(e) => updateMiniButtonDestination(e.target.value)}
+                  className="mr-3 text-orange-600"
+                />
+                <span className="text-orange-700">Clothing & Accessories</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="miniButtonDestination"
+                  value="accessories"
+                  checked={miniButtonDestination === 'accessories'}
+                  onChange={(e) => updateMiniButtonDestination(e.target.value)}
+                  className="mr-3 text-orange-600"
+                />
+                <span className="text-orange-700">Accessories Page</span>
+              </label>
+            </div>
+            
+            {/* Preview Info */}
+            <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <h5 className="font-bold text-orange-700 mb-1">👁️ Live Preview</h5>
+              <p className="text-orange-600 text-sm">
+                <strong>Current Setting:</strong> Mini button will link to <strong>{miniButtonDestination}</strong> page.
+                Changes apply instantly - check the live page to see the results!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Page Preview */}
       {showPreview && (

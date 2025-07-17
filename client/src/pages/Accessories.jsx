@@ -4,32 +4,23 @@ import { useLang } from "../utils/lang";
 import { getProducts } from "../api/products";
 import { addCartItem } from "../api/cart";
 
-const ClothingAccessories = () => {
+const Accessories = () => {
   const { t } = useLang();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         const data = await getProducts();
-        // Filter for clothing and accessories
-        const clothingAccessoriesProducts = data.filter(product => 
-          product.category && (
-            product.category.toLowerCase().includes('clothing') ||
-            product.category.toLowerCase().includes('vetement') ||
-            product.category.toLowerCase().includes('accessory') ||
-            product.category.toLowerCase().includes('accessoires') ||
-            product.category.toLowerCase().includes('shirt') ||
-            product.category.toLowerCase().includes('t-shirt') ||
-            product.category.toLowerCase().includes('hoodie') ||
-            product.category.toLowerCase().includes('sweater')
-          )
+        // Filter for accessories only
+        const accessoriesProducts = data.filter(product => 
+          product.category && product.category.toLowerCase().includes('accessory') ||
+          product.category && product.category.toLowerCase().includes('accessoires')
         );
-        setProducts(clothingAccessoriesProducts);
+        setProducts(accessoriesProducts);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -70,27 +61,6 @@ const ClothingAccessories = () => {
     setTimeout(() => setCartMessage(""), 3000);
   };
 
-  const filteredProducts = products.filter(product => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "clothing") {
-      return product.category && (
-        product.category.toLowerCase().includes('clothing') ||
-        product.category.toLowerCase().includes('vetement') ||
-        product.category.toLowerCase().includes('shirt') ||
-        product.category.toLowerCase().includes('t-shirt') ||
-        product.category.toLowerCase().includes('hoodie') ||
-        product.category.toLowerCase().includes('sweater')
-      );
-    }
-    if (activeFilter === "accessories") {
-      return product.category && (
-        product.category.toLowerCase().includes('accessory') ||
-        product.category.toLowerCase().includes('accessoires')
-      );
-    }
-    return true;
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-white flex items-center justify-center">
@@ -120,10 +90,10 @@ const ClothingAccessories = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-slate-700"
             style={{ fontFamily: 'Fredoka One, cursive' }}>
-            {t('clothingAndAccessories')}
+            {t('accessories')}
           </h1>
           <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-            {t('clothingAccessoriesDescription')}
+            {t('accessoriesDescription')}
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/products">
@@ -131,9 +101,9 @@ const ClothingAccessories = () => {
                 {t('viewAllProducts')}
               </button>
             </Link>
-            <Link to="/accessories">
+            <Link to="/clothing-accessories">
               <button className="px-8 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-full shadow-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300 transform hover:scale-105">
-                {t('accessoriesOnly')}
+                {t('clothingAndAccessories')}
               </button>
             </Link>
           </div>
@@ -147,48 +117,12 @@ const ClothingAccessories = () => {
         </div>
       )}
 
-      {/* Filter Buttons */}
-      <section className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex flex-wrap gap-4 justify-center mb-8">
-          <button
-            onClick={() => setActiveFilter("all")}
-            className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-              activeFilter === "all"
-                ? "bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-lg"
-                : "bg-white text-slate-600 border border-pink-200 hover:bg-pink-50"
-            }`}
-          >
-            {t('all')}
-          </button>
-          <button
-            onClick={() => setActiveFilter("clothing")}
-            className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-              activeFilter === "clothing"
-                ? "bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg"
-                : "bg-white text-slate-600 border border-blue-200 hover:bg-blue-50"
-            }`}
-          >
-            {t('clothing')}
-          </button>
-          <button
-            onClick={() => setActiveFilter("accessories")}
-            className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-              activeFilter === "accessories"
-                ? "bg-gradient-to-r from-purple-400 to-purple-500 text-white shadow-lg"
-                : "bg-white text-slate-600 border border-purple-200 hover:bg-purple-50"
-            }`}
-          >
-            {t('accessories')}
-          </button>
-        </div>
-      </section>
-
       {/* Products Grid */}
-      <section className="max-w-7xl mx-auto py-8 px-4">
-        {filteredProducts.length === 0 ? (
+      <section className="max-w-7xl mx-auto py-12 px-4">
+        {products.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-3xl font-bold text-slate-400 mb-4">👕</div>
-            <h2 className="text-2xl font-bold text-slate-600 mb-4">{t('noProductsFound')}</h2>
+            <div className="text-3xl font-bold text-slate-400 mb-4">🎒</div>
+            <h2 className="text-2xl font-bold text-slate-600 mb-4">{t('noAccessoriesFound')}</h2>
             <p className="text-slate-500 mb-8">{t('checkBackLater')}</p>
             <Link to="/products">
               <button className="px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-full shadow-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-300">
@@ -200,12 +134,10 @@ const ClothingAccessories = () => {
           <>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-slate-700"
               style={{ fontFamily: 'Fredoka One, cursive' }}>
-              {activeFilter === "all" && t('ourClothingAndAccessories')}
-              {activeFilter === "clothing" && t('ourClothing')}
-              {activeFilter === "accessories" && t('ourAccessories')}
+              {t('ourAccessories')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => {
+              {products.map((product) => {
                 const isOutOfStock = product.stock === 0;
                 return (
                   <div key={product._id} className="group bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 text-center border border-pink-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
@@ -256,10 +188,10 @@ const ClothingAccessories = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-700"
             style={{ fontFamily: 'Fredoka One, cursive' }}>
-            {t('expressYourStyle')}
+            {t('completeYourLook')}
           </h2>
           <p className="text-xl text-slate-600 mb-8">
-            {t('clothingAccessoriesCompleteLook')}
+            {t('accessoriesCompleteLook')}
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/products">
@@ -279,4 +211,4 @@ const ClothingAccessories = () => {
   );
 };
 
-export default ClothingAccessories; 
+export default Accessories; 

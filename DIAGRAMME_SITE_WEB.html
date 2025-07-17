@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramme du site web - Structure UX</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: 800px;
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .center-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .right-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .legend {
+            margin-bottom: 30px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .legend-dot.public { background: #28a745; }
+        .legend-dot.customer { background: #007bff; }
+        .legend-dot.admin { background: #dc3545; }
+        .legend-dot.test { background: #ffc107; }
+
+        .flowchart {
+            position: relative;
+            height: 600px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .node {
+            position: absolute;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .node.public {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .node.customer {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #007bff;
+        }
+
+        .node.admin {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .node.test {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffc107;
+        }
+
+        .node.central {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #5a67d8;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: #6c757d;
+            height: 2px;
+            transform-origin: left center;
+        }
+
+        .connection-line.vertical {
+            width: 2px;
+            height: auto;
+        }
+
+        .connection-line.horizontal {
+            width: auto;
+            height: 2px;
+        }
+
+        .partner-connections {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .partner-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .partner-line {
+            position: absolute;
+            background: #6c757d;
+            height: 2px;
+            width: 40px;
+            right: 80px;
+        }
+
+        .navigation-flow {
+            margin-bottom: 30px;
+        }
+
+        .flow-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .flow-item h4 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .flow-item p {
+            font-size: 0.85rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .user-journeys {
+            margin-bottom: 30px;
+        }
+
+        .journey-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .journey-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .journey-dot.blue { background: #007bff; }
+        .journey-dot.green { background: #28a745; }
+        .journey-dot.purple { background: #6f42c1; }
+        .journey-dot.grey { background: #6c757d; }
+
+        .key-features {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .feature-item {
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .feature-desc {
+            font-size: 0.85rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .flowchart {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 DIAGRAMME DU SITE WEB</h1>
+            <p>Architecture UX et flux de navigation de la plateforme e-commerce</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="legend">
+                    <h3 class="section-title">📋 Catégories de pages</h3>
+                    <div class="legend-item">
+                        <div class="legend-dot public"></div>
+                        <span>Pages publiques (15 pages)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot customer"></div>
+                        <span>Pages clients (5 connexion requise)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot admin"></div>
+                        <span>Pages admin (12 connexion admin requise)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot test"></div>
+                        <span>Pages de test (3 développement/test)</span>
+                    </div>
+                </div>
+
+                <div class="navigation-flow">
+                    <h3 class="section-title">🔄 Flux de navigation</h3>
+                    <div class="flow-item">
+                        <h4>Points d'entrée</h4>
+                        <p>Accueil, Produits, Liens directs produits</p>
+                    </div>
+                    <div class="flow-item">
+                        <h4>Découverte produits</h4>
+                        <p>Parcourir, rechercher, filtrage par catégorie</p>
+                    </div>
+                    <div class="flow-item">
+                        <h4>Expérience d'achat</h4>
+                        <p>Panier, paiement, utilisateurs invités/inscrits</p>
+                    </div>
+                    <div class="flow-item">
+                        <h4>Flux d'authentification</h4>
+                        <p>Inscription, connexion, gestion de compte</p>
+                    </div>
+                    <div class="flow-item">
+                        <h4>Gestion des commandes</h4>
+                        <p>Détails commande, suivi, paiements</p>
+                    </div>
+                    <div class="flow-item">
+                        <h4>Connexion / Inscription</h4>
+                        <p>Options d'authentification</p>
+                    </div>
+                </div>
+
+                <div class="user-journeys">
+                    <h3 class="section-title">👤 Parcours utilisateur clés</h3>
+                    <div class="journey-item">
+                        <div class="journey-dot blue"></div>
+                        <span>Nouveau client (De l'arrivée au premier achat)</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot green"></div>
+                        <span>Client existant (Gestion de compte et recommandes)</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot purple"></div>
+                        <span>Parcours admin (Vue complète administrateur)</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot grey"></div>
+                        <span>Support client (FAQ à résolution support)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Flowchart -->
+            <div class="center-panel">
+                <h3 class="section-title">🏗️ Diagramme de structure du site</h3>
+                <div class="flowchart">
+                    <!-- Central Home Node -->
+                    <div class="node central" style="top: 20px; left: 50%; transform: translateX(-50%);">
+                        🏡 ACCUEIL
+                    </div>
+
+                    <!-- Main Branch 1: Products -->
+                    <div class="node public" style="top: 120px; left: 20%;">
+                        🛒 Produits
+                    </div>
+                    <div class="connection-line" style="top: 80px; left: 50%; width: 2px; height: 40px; transform: translateX(-50%);"></div>
+                    <div class="connection-line" style="top: 140px; left: 20%; width: 30%; height: 2px; transform: translateX(-50%);"></div>
+
+                    <!-- Products Sub-branches -->
+                    <div class="node customer" style="top: 180px; left: 10%;">
+                        👨‍💼 Compte
+                    </div>
+                    <div class="node customer" style="top: 180px; left: 30%;">
+                        ✏️ Modifier profil
+                    </div>
+                    <div class="connection-line" style="top: 160px; left: 20%; width: 2px; height: 20px;"></div>
+
+                    <!-- Account Sub-branches -->
+                    <div class="node customer" style="top: 240px; left: 10%;">
+                        📋 Commandes
+                    </div>
+                    <div class="node customer" style="top: 240px; left: 30%;">
+                        📦 Détail commande
+                    </div>
+                    <div class="connection-line" style="top: 220px; left: 10%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 220px; left: 30%; width: 2px; height: 20px;"></div>
+
+                    <!-- Order Detail to Payment -->
+                    <div class="node customer" style="top: 300px; left: 30%;">
+                        💰 Paiement
+                    </div>
+                    <div class="connection-line" style="top: 280px; left: 30%; width: 2px; height: 20px;"></div>
+
+                    <!-- Main Branch 2: Clothing & Accessories -->
+                    <div class="node public" style="top: 120px; left: 50%;">
+                        👔 Vêtements & Accessoires
+                    </div>
+                    <div class="connection-line" style="top: 140px; left: 50%; width: 2px; height: 40px;"></div>
+
+                    <!-- Clothing Sub-branches -->
+                    <div class="node admin" style="top: 180px; left: 40%;">
+                        📊 Tableau de bord
+                    </div>
+                    <div class="node admin" style="top: 180px; left: 60%;">
+                        📋 Admin commandes
+                    </div>
+                    <div class="connection-line" style="top: 160px; left: 40%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 160px; left: 60%; width: 2px; height: 20px;"></div>
+
+                    <!-- Admin Sub-branches -->
+                    <div class="node admin" style="top: 240px; left: 40%;">
+                        🖼️ Admin pages
+                    </div>
+                    <div class="node admin" style="top: 240px; left: 60%;">
+                        📰 Admin newsletter
+                    </div>
+                    <div class="connection-line" style="top: 220px; left: 40%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 220px; left: 60%; width: 2px; height: 20px;"></div>
+
+                    <!-- More Admin Branches -->
+                    <div class="node admin" style="top: 300px; left: 40%;">
+                        🚛 Admin livraison
+                    </div>
+                    <div class="node admin" style="top: 300px; left: 60%;">
+                        📝 Journal activité
+                    </div>
+                    <div class="connection-line" style="top: 280px; left: 40%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 280px; left: 60%; width: 2px; height: 20px;"></div>
+
+                    <!-- Main Branch 3: Accessories -->
+                    <div class="node public" style="top: 120px; left: 80%;">
+                        🎩 Accessoires
+                    </div>
+                    <div class="connection-line" style="top: 140px; left: 80%; width: 2px; height: 40px;"></div>
+
+                    <!-- Accessories Sub-branches -->
+                    <div class="node admin" style="top: 180px; left: 70%;">
+                        📊 Tableau de bord
+                    </div>
+                    <div class="node admin" style="top: 180px; left: 90%;">
+                        📈 Gestion données
+                    </div>
+                    <div class="connection-line" style="top: 160px; left: 70%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 160px; left: 90%; width: 2px; height: 20px;"></div>
+
+                    <!-- More Admin Branches -->
+                    <div class="node admin" style="top: 240px; left: 70%;">
+                        📰 Newsletter
+                    </div>
+                    <div class="node admin" style="top: 240px; left: 90%;">
+                        🚛 Admin livraison
+                    </div>
+                    <div class="connection-line" style="top: 220px; left: 70%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 220px; left: 90%; width: 2px; height: 20px;"></div>
+
+                    <!-- Main Branch 4: Test -->
+                    <div class="node test" style="top: 360px; left: 50%;">
+                        🔬 Test
+                    </div>
+                    <div class="connection-line" style="top: 340px; left: 50%; width: 2px; height: 20px; transform: translateX(-50%);"></div>
+
+                    <!-- Test Sub-branches -->
+                    <div class="node test" style="top: 420px; left: 30%;">
+                        🔬 Composant test
+                    </div>
+                    <div class="node test" style="top: 420px; left: 50%;">
+                        🎨 Test Tailwind
+                    </div>
+                    <div class="node test" style="top: 420px; left: 70%;">
+                        📦 Test commande
+                    </div>
+                    <div class="connection-line" style="top: 400px; left: 30%; width: 2px; height: 20px;"></div>
+                    <div class="connection-line" style="top: 400px; left: 50%; width: 2px; height: 20px; transform: translateX(-50%);"></div>
+                    <div class="connection-line" style="top: 400px; left: 70%; width: 2px; height: 20px;"></div>
+
+                    <!-- Partner Connections -->
+                    <div class="partner-connections">
+                        <div class="partner-line" style="top: 120px;"></div>
+                        <div class="partner-node">A</div>
+                        <div class="partner-line" style="top: 200px;"></div>
+                        <div class="partner-node">B</div>
+                        <div class="partner-line" style="top: 280px;"></div>
+                        <div class="partner-node">C</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="key-features">
+                    <h3 class="section-title">🎯 Fonctionnalités clés</h3>
+                    <div class="feature-item">
+                        <div class="feature-title">🏡 Accueil</div>
+                        <div class="feature-desc">Sections héro, produits vedettes, inscription newsletter, basculement langue</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">🛒 Produits</div>
+                        <div class="feature-desc">Catalogue avec filtrage, recherche, navigation par catégorie, ajout au panier</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">👔 Vêtements & Accessoires</div>
+                        <div class="feature-desc">Page spécifique catégorie avec filtres Tout/Vêtements/Accessoires</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">🎩 Accessoires</div>
+                        <div class="feature-desc">Page accessoires uniquement avec vitrine produits et CTA</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">📦 Détail produit</div>
+                        <div class="feature-desc">Pages produits individuelles avec images, détails, avis, options d'achat</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">🛒 Panier</div>
+                        <div class="feature-desc">Panier d'achat avec gestion articles, ajustements quantité, paiement</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">👨‍💼 Compte</div>
+                        <div class="feature-desc">Tableau de bord client, gestion profil, préférences, historique commandes</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">⚙️ Panneau admin</div>
+                        <div class="feature-desc">Tableau de bord admin complet avec analytics, gestion produits, traitement commandes</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">📞 Pages d'information</div>
+                        <div class="feature-desc">Contact, FAQ, Livraison, Avis, Newsletter, Responsabilité, À propos</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-title">🔐 Connexion / Inscription</div>
+                        <div class="feature-desc">Système d'authentification avec flux connexion clients et admin</div>
+                    </div>
+                </div>
+
+                <div class="user-journeys" style="margin-top: 30px;">
+                    <h3 class="section-title">👤 Parcours utilisateur clés</h3>
+                    <div class="journey-item">
+                        <div class="journey-dot blue"></div>
+                        <span>De l'arrivée au premier achat</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot green"></div>
+                        <span>Gestion de compte et recommandes</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot purple"></div>
+                        <span>Parcours gestion admin</span>
+                    </div>
+                    <div class="journey-item">
+                        <div class="journey-dot grey"></div>
+                        <span>Parcours support client</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

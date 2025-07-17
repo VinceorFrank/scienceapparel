@@ -22,6 +22,8 @@ import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import TailwindTest from "./pages/TailwindTest";
 import OrderTest from "./pages/OrderTest";
+import ClothingAccessories from "./pages/ClothingAccessories";
+import Accessories from "./pages/Accessories";
 import RequireAdmin from "./components/RequireAdmin";
 import AdminLogin from "./pages/Admin/AdminLogin";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -87,6 +89,8 @@ const App = () => {
             <Route path="/newsletter" element={<Newsletter />} />
             <Route path="/responsibility" element={<Responsibility />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/clothing-accessories" element={<ClothingAccessories />} />
+            <Route path="/accessories" element={<Accessories />} />
             <Route path="/tailwind-test" element={<TailwindTest />} />
             <Route path="/order-test" element={<OrderTest />} />
             <Route path="/payment" element={<Payment />} />

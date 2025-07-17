@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce Site - UX Site Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .legend h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .site-map {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .page-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .page-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .page-card.public {
+            border-color: #28a745;
+        }
+
+        .page-card.customer {
+            border-color: #007bff;
+        }
+
+        .page-card.admin {
+            border-color: #dc3545;
+        }
+
+        .page-card.test {
+            border-color: #ffc107;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .page-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .page-icon.public { background: #28a745; }
+        .page-icon.customer { background: #007bff; }
+        .page-icon.admin { background: #dc3545; }
+        .page-icon.test { background: #ffc107; color: #212529; }
+
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .page-path {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .page-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .page-features {
+            list-style: none;
+        }
+
+        .page-features li {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .page-features li:before {
+            content: "•";
+            color: #007bff;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .navigation-flow {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .flow-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .flow-step {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .flow-step h4 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .flow-step p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .user-journeys {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .journey-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .journey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .journey-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .journey-card h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .journey-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .journey-steps li {
+            counter-increment: step-counter;
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .journey-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #1976d2;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .page-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .journey-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ Ecommerce Site UX Site Map</h1>
+            <p>Complete navigation structure and user flows</p>
+        </div>
+
+        <div class="legend">
+            <h3>📋 Page Categories</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #28a745;"></div>
+                    <span>Public Pages (No login required)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #007bff;"></div>
+                    <span>Customer Pages (Login required)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #dc3545;"></div>
+                    <span>Admin Pages (Admin login required)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffc107;"></div>
+                    <span>Test/Development Pages</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="site-map">
+            <!-- Public Pages -->
+            <div class="section">
+                <h2 class="section-title">🌐 Public Pages</h2>
+                <div class="page-grid">
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🏠</div>
+                            <div class="page-title">Home</div>
+                        </div>
+                        <div class="page-path">/</div>
+                        <div class="page-description">Main landing page with hero section, featured products, and promotional content.</div>
+                        <ul class="page-features">
+                            <li>Hero section with customizable content</li>
+                            <li>Featured products showcase</li>
+                            <li>Newsletter signup</li>
+                            <li>Language toggle (EN/FR)</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🛍️</div>
+                            <div class="page-title">Products</div>
+                        </div>
+                        <div class="page-path">/products</div>
+                        <div class="page-description">Product catalog with filtering, search, and category browsing.</div>
+                        <ul class="page-features">
+                            <li>Product grid with images</li>
+                            <li>Category filtering</li>
+                            <li>Search functionality</li>
+                            <li>Add to cart buttons</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">👕</div>
+                            <div class="page-title">Clothing & Accessories</div>
+                        </div>
+                        <div class="page-path">/clothing-accessories</div>
+                        <div class="page-description">Dedicated page for clothing and accessories with filter options.</div>
+                        <ul class="page-features">
+                            <li>Filter by All/Clothing/Accessories</li>
+                            <li>Product grid layout</li>
+                            <li>Add to cart functionality</li>
+                            <li>Navigation to other categories</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🎒</div>
+                            <div class="page-title">Accessories</div>
+                        </div>
+                        <div class="page-path">/accessories</div>
+                        <div class="page-description">Accessories-only page showing accessory products.</div>
+                        <ul class="page-features">
+                            <li>Accessories product filtering</li>
+                            <li>Product showcase</li>
+                            <li>Call-to-action sections</li>
+                            <li>Cross-navigation links</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">📦</div>
+                            <div class="page-title">Product Detail</div>
+                        </div>
+                        <div class="page-path">/product/:id</div>
+                        <div class="page-description">Individual product page with details, images, and purchase options.</div>
+                        <ul class="page-features">
+                            <li>Product images and details</li>
+                            <li>Quantity selector</li>
+                            <li>Add to cart functionality</li>
+                            <li>Customer reviews</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🛒</div>
+                            <div class="page-title">Cart</div>
+                        </div>
+                        <div class="page-path">/cart</div>
+                        <div class="page-description">Shopping cart with item management and checkout process.</div>
+                        <ul class="page-features">
+                            <li>Cart item display</li>
+                            <li>Quantity adjustments</li>
+                            <li>Price calculations</li>
+                            <li>Checkout button</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">📞</div>
+                            <div class="page-title">Contact</div>
+                        </div>
+                        <div class="page-path">/contact</div>
+                        <div class="page-description">Contact information and customer support page.</div>
+                        <ul class="page-features">
+                            <li>Contact form</li>
+                            <li>Business information</li>
+                            <li>Map placeholder</li>
+                            <li>FAQ links</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">❓</div>
+                            <div class="page-title">FAQ</div>
+                        </div>
+                        <div class="page-path">/faq</div>
+                        <div class="page-description">Frequently asked questions organized by categories.</div>
+                        <ul class="page-features">
+                            <li>Order & Payment FAQ</li>
+                            <li>Shipping & Delivery FAQ</li>
+                            <li>Products & Sizing FAQ</li>
+                            <li>Collapsible sections</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🚚</div>
+                            <div class="page-title">Shipping</div>
+                        </div>
+                        <div class="page-path">/shipping</div>
+                        <div class="page-description">Shipping information, rates, and delivery options.</div>
+                        <ul class="page-features">
+                            <li>Shipping rates calculator</li>
+                            <li>Delivery timeframes</li>
+                            <li>International shipping</li>
+                            <li>Tracking information</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">⭐</div>
+                            <div class="page-title">Reviews</div>
+                        </div>
+                        <div class="page-path">/reviews</div>
+                        <div class="page-description">Customer reviews and testimonials page.</div>
+                        <ul class="page-features">
+                            <li>Customer testimonials</li>
+                            <li>Star ratings</li>
+                            <li>Review submission</li>
+                            <li>Product-specific reviews</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">📰</div>
+                            <div class="page-title">Newsletter</div>
+                        </div>
+                        <div class="page-path">/newsletter</div>
+                        <div class="page-description">Newsletter subscription and management page.</div>
+                        <ul class="page-features">
+                            <li>Newsletter signup</li>
+                            <li>Subscription preferences</li>
+                            <li>Email frequency options</li>
+                            <li>Unsubscribe options</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🌱</div>
+                            <div class="page-title">Responsibility</div>
+                        </div>
+                        <div class="page-path">/responsibility</div>
+                        <div class="page-description">Social responsibility and sustainability information.</div>
+                        <ul class="page-features">
+                            <li>Environmental initiatives</li>
+                            <li>Fair trade practices</li>
+                            <li>Community engagement</li>
+                            <li>Sustainability goals</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">ℹ️</div>
+                            <div class="page-title">About</div>
+                        </div>
+                        <div class="page-path">/about</div>
+                        <div class="page-description">Company information, mission, and team details.</div>
+                        <ul class="page-features">
+                            <li>Company story</li>
+                            <li>Team information</li>
+                            <li>Mission and values</li>
+                            <li>Customer testimonials</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">🔍</div>
+                            <div class="page-title">Order Tracking</div>
+                        </div>
+                        <div class="page-path">/order-tracking</div>
+                        <div class="page-description">Track order status and delivery information.</div>
+                        <ul class="page-features">
+                            <li>Order status lookup</li>
+                            <li>Tracking number input</li>
+                            <li>Delivery updates</li>
+                            <li>Shipping timeline</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">👤</div>
+                            <div class="page-title">Login</div>
+                        </div>
+                        <div class="page-path">/login</div>
+                        <div class="page-description">Customer login page with authentication.</div>
+                        <ul class="page-features">
+                            <li>Email/password login</li>
+                            <li>Remember me option</li>
+                            <li>Forgot password link</li>
+                            <li>Sign up redirect</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card public">
+                        <div class="page-header">
+                            <div class="page-icon public">📝</div>
+                            <div class="page-title">Signup</div>
+                        </div>
+                        <div class="page-path">/signup</div>
+                        <div class="page-description">Customer registration page.</div>
+                        <ul class="page-features">
+                            <li>Account creation form</li>
+                            <li>Email verification</li>
+                            <li>Terms acceptance</li>
+                            <li>Login redirect</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Pages -->
+            <div class="section">
+                <h2 class="section-title">👤 Customer Pages (Login Required)</h2>
+                <div class="page-grid">
+                    <div class="page-card customer">
+                        <div class="page-header">
+                            <div class="page-icon customer">👤</div>
+                            <div class="page-title">Account</div>
+                        </div>
+                        <div class="page-path">/account</div>
+                        <div class="page-description">Customer account dashboard and profile management.</div>
+                        <ul class="page-features">
+                            <li>Profile information</li>
+                            <li>Account preferences</li>
+                            <li>Newsletter settings</li>
+                            <li>Notification preferences</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card customer">
+                        <div class="page-header">
+                            <div class="page-icon customer">✏️</div>
+                            <div class="page-title">Edit Profile</div>
+                        </div>
+                        <div class="page-path">/account/edit</div>
+                        <div class="page-description">Edit customer profile and account information.</div>
+                        <ul class="page-features">
+                            <li>Profile editing form</li>
+                            <li>Password change</li>
+                            <li>Email updates</li>
+                            <li>Save changes</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card customer">
+                        <div class="page-header">
+                            <div class="page-icon customer">📋</div>
+                            <div class="page-title">Orders</div>
+                        </div>
+                        <div class="page-path">/orders</div>
+                        <div class="page-description">Customer order history and management.</div>
+                        <ul class="page-features">
+                            <li>Order history list</li>
+                            <li>Order status tracking</li>
+                            <li>Reorder functionality</li>
+                            <li>Order details links</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card customer">
+                        <div class="page-header">
+                            <div class="page-icon customer">📦</div>
+                            <div class="page-title">Order Detail</div>
+                        </div>
+                        <div class="page-path">/order/:id</div>
+                        <div class="page-description">Detailed view of a specific order.</div>
+                        <ul class="page-features">
+                            <li>Order summary</li>
+                            <li>Item details</li>
+                            <li>Tracking information</li>
+                            <li>Download invoice</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card customer">
+                        <div class="page-header">
+                            <div class="page-icon customer">💳</div>
+                            <div class="page-title">Payment</div>
+                        </div>
+                        <div class="page-path">/payment/:orderId</div>
+                        <div class="page-description">Payment processing and checkout completion.</div>
+                        <ul class="page-features">
+                            <li>Payment form</li>
+                            <li>Order confirmation</li>
+                            <li>Payment success/failure</li>
+                            <li>Receipt generation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Pages -->
+            <div class="section">
+                <h2 class="section-title">🔧 Admin Pages (Admin Login Required)</h2>
+                <div class="page-grid">
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🔐</div>
+                            <div class="page-title">Admin Login</div>
+                        </div>
+                        <div class="page-path">/admin/login</div>
+                        <div class="page-description">Administrator authentication page.</div>
+                        <ul class="page-features">
+                            <li>Admin credentials</li>
+                            <li>Secure authentication</li>
+                            <li>Dashboard redirect</li>
+                            <li>Error handling</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📊</div>
+                            <div class="page-title">Admin Dashboard</div>
+                        </div>
+                        <div class="page-path">/admin/dashboard</div>
+                        <div class="page-description">Main admin dashboard with analytics and overview.</div>
+                        <ul class="page-features">
+                            <li>Sales analytics</li>
+                            <li>Order statistics</li>
+                            <li>User metrics</li>
+                            <li>Quick actions</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🛍️</div>
+                            <div class="page-title">Products Admin</div>
+                        </div>
+                        <div class="page-path">/admin/products</div>
+                        <div class="page-description">Product management and inventory control.</div>
+                        <ul class="page-features">
+                            <li>Product CRUD operations</li>
+                            <li>Inventory management</li>
+                            <li>Image uploads</li>
+                            <li>Category assignment</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📋</div>
+                            <div class="page-title">Orders Admin</div>
+                        </div>
+                        <div class="page-path">/admin/orders</div>
+                        <div class="page-description">Order management and processing.</div>
+                        <ul class="page-features">
+                            <li>Order status updates</li>
+                            <li>Order processing</li>
+                            <li>Customer communication</li>
+                            <li>Order analytics</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">👥</div>
+                            <div class="page-title">Users Admin</div>
+                        </div>
+                        <div class="page-path">/admin/users</div>
+                        <div class="page-description">User management and customer data.</div>
+                        <ul class="page-features">
+                            <li>User list management</li>
+                            <li>Customer profiles</li>
+                            <li>Account status</li>
+                            <li>User analytics</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🏷️</div>
+                            <div class="page-title">Categories Admin</div>
+                        </div>
+                        <div class="page-path">/admin/categories</div>
+                        <div class="page-description">Product category management.</div>
+                        <ul class="page-features">
+                            <li>Category CRUD</li>
+                            <li>Category hierarchy</li>
+                            <li>Product assignment</li>
+                            <li>Category analytics</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🖼️</div>
+                            <div class="page-title">Pages Admin</div>
+                        </div>
+                        <div class="page-path">/admin/pages</div>
+                        <div class="page-description">Page assets and content management.</div>
+                        <ul class="page-features">
+                            <li>Hero section management</li>
+                            <li>Image uploads</li>
+                            <li>Content blocks</li>
+                            <li>Page customization</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📊</div>
+                            <div class="page-title">Customer Insights</div>
+                        </div>
+                        <div class="page-path">/admin/customer-insights</div>
+                        <div class="page-description">Customer behavior analytics and insights.</div>
+                        <ul class="page-features">
+                            <li>Customer analytics</li>
+                            <li>Behavior patterns</li>
+                            <li>Purchase trends</li>
+                            <li>Recommendations</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📈</div>
+                            <div class="page-title">Data Management</div>
+                        </div>
+                        <div class="page-path">/admin/data-management</div>
+                        <div class="page-description">Data import/export and management tools.</div>
+                        <ul class="page-features">
+                            <li>CSV import/export</li>
+                            <li>Data backup</li>
+                            <li>Bulk operations</li>
+                            <li>Data validation</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📰</div>
+                            <div class="page-title">Newsletter Admin</div>
+                        </div>
+                        <div class="page-path">/admin/newsletter</div>
+                        <div class="page-description">Newsletter campaign management.</div>
+                        <ul class="page-features">
+                            <li>Campaign creation</li>
+                            <li>Subscriber management</li>
+                            <li>Email templates</li>
+                            <li>Analytics tracking</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🚚</div>
+                            <div class="page-title">Shipping Admin</div>
+                        </div>
+                        <div class="page-path">/admin/shipping</div>
+                        <div class="page-description">Shipping rates and delivery management.</div>
+                        <ul class="page-features">
+                            <li>Shipping rates</li>
+                            <li>Zone management</li>
+                            <li>Delivery options</li>
+                            <li>Tracking setup</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">📝</div>
+                            <div class="page-title">Activity Log</div>
+                        </div>
+                        <div class="page-path">/admin/activity-log</div>
+                        <div class="page-description">System activity and audit trail.</div>
+                        <ul class="page-features">
+                            <li>User activity tracking</li>
+                            <li>System events</li>
+                            <li>Audit trail</li>
+                            <li>Security monitoring</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card admin">
+                        <div class="page-header">
+                            <div class="page-icon admin">🛠️</div>
+                            <div class="page-title">Troubleshooting</div>
+                        </div>
+                        <div class="page-path">/admin/troubleshoot</div>
+                        <div class="page-description">Admin panel troubleshooting guide.</div>
+                        <ul class="page-features">
+                            <li>Diagnostic tools</li>
+                            <li>Error resolution</li>
+                            <li>System checks</li>
+                            <li>Support resources</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Pages -->
+            <div class="section">
+                <h2 class="section-title">🧪 Test/Development Pages</h2>
+                <div class="page-grid">
+                    <div class="page-card test">
+                        <div class="page-header">
+                            <div class="page-icon test">🧪</div>
+                            <div class="page-title">Test Component</div>
+                        </div>
+                        <div class="page-path">/admin/test</div>
+                        <div class="page-description">Development testing component for routing verification.</div>
+                        <ul class="page-features">
+                            <li>Routing verification</li>
+                            <li>Component testing</li>
+                            <li>Development tools</li>
+                            <li>Debug information</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card test">
+                        <div class="page-header">
+                            <div class="page-icon test">🎨</div>
+                            <div class="page-title">Tailwind Test</div>
+                        </div>
+                        <div class="page-path">/tailwind-test</div>
+                        <div class="page-description">Tailwind CSS styling and component testing.</div>
+                        <ul class="page-features">
+                            <li>Style testing</li>
+                            <li>Component preview</li>
+                            <li>Design validation</li>
+                            <li>CSS debugging</li>
+                        </ul>
+                    </div>
+
+                    <div class="page-card test">
+                        <div class="page-header">
+                            <div class="page-icon test">📦</div>
+                            <div class="page-title">Order Test</div>
+                        </div>
+                        <div class="page-path">/order-test</div>
+                        <div class="page-description">Order processing and payment testing.</div>
+                        <ul class="page-features">
+                            <li>Order flow testing</li>
+                            <li>Payment simulation</li>
+                            <li>Process validation</li>
+                            <li>Error testing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Flow -->
+            <div class="navigation-flow">
+                <h3 class="flow-title">🔄 Navigation Flow & User Experience</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h4>Entry Points</h4>
+                        <p>Users can enter the site through the Home page (/), Products page (/products), or direct product links (/product/:id). The header provides consistent navigation with hamburger menu, logo, search, cart, and language toggle.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h4>Product Discovery</h4>
+                        <p>Users can browse products through the main Products page, category-specific pages (Clothing & Accessories, Accessories), or use the search functionality. Product cards show images, prices, and add-to-cart buttons.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h4>Shopping Experience</h4>
+                        <p>Users can add products to cart from any product page, view their cart (/cart), adjust quantities, and proceed to checkout. Guest users can shop without registration, while logged-in users get additional features.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h4>Authentication Flow</h4>
+                        <p>Users can register (/signup) or login (/login) to access customer features. After authentication, they can access their account (/account), order history (/orders), and profile management (/account/edit).</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h4>Order Management</h4>
+                        <p>Logged-in customers can view order details (/order/:id), track orders (/order-tracking), and complete payments (/payment/:orderId). The system provides order confirmation and tracking information.</p>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <h4>Admin Access</h4>
+                        <p>Administrators access the admin panel through /admin/login. The admin dashboard (/admin/dashboard) provides access to all management functions including products, orders, users, and analytics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Journeys -->
+            <div class="user-journeys">
+                <h3 class="journey-title">👤 Key User Journeys</h3>
+                <div class="journey-grid">
+                    <div class="journey-card">
+                        <h4>🛍️ New Customer Journey</h4>
+                        <ol class="journey-steps">
+                            <li>Land on Home page</li>
+                            <li>Browse Products or Categories</li>
+                            <li>View Product Details</li>
+                            <li>Add Items to Cart</li>
+                            <li>Proceed to Checkout</li>
+                            <li>Create Account or Guest Checkout</li>
+                            <li>Complete Payment</li>
+                            <li>Receive Order Confirmation</li>
+                        </ol>
+                    </div>
+
+                    <div class="journey-card">
+                        <h4>👤 Returning Customer Journey</h4>
+                        <ol class="journey-steps">
+                            <li>Login to Account</li>
+                            <li>View Order History</li>
+                            <li>Browse New Products</li>
+                            <li>Reorder from History</li>
+                            <li>Update Profile Information</li>
+                            <li>Manage Newsletter Preferences</li>
+                            <li>Track Current Orders</li>
+                            <li>Contact Support if Needed</li>
+                        </ol>
+                    </div>
+
+                    <div class="journey-card">
+                        <h4>🔧 Admin Management Journey</h4>
+                        <ol class="journey-steps">
+                            <li>Login to Admin Panel</li>
+                            <li>Review Dashboard Analytics</li>
+                            <li>Process Pending Orders</li>
+                            <li>Manage Product Inventory</li>
+                            <li>Update Page Content</li>
+                            <li>Monitor Customer Insights</li>
+                            <li>Handle Support Requests</li>
+                            <li>Generate Reports</li>
+                        </ol>
+                    </div>
+
+                    <div class="journey-card">
+                        <h4>🔍 Customer Support Journey</h4>
+                        <ol class="journey-steps">
+                            <li>Visit FAQ Page</li>
+                            <li>Search for Specific Issues</li>
+                            <li>Check Shipping Information</li>
+                            <li>Use Order Tracking</li>
+                            <li>Contact Support Team</li>
+                            <li>Submit Support Request</li>
+                            <li>Receive Response</li>
+                            <li>Follow Up if Needed</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

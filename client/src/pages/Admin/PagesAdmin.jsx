@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { upsertPageAsset, deletePageAsset } from '../../api/pageAssets';
 import PastelCard from '../../components/PastelCard';
 import { useLang } from '../../utils/lang';
+import { useHeroToggle } from '../../hooks/useHeroToggle';
 
 const slots = ['hero', 'infoA', 'infoB', 'background', 'mini'];
 const pages = ['home', 'about', 'cart', 'order-detail'];
@@ -43,6 +44,7 @@ const PagesAdmin = () => {
   const qc = useQueryClient();
   const [pageSlug, setPageSlug] = useState('home');
   const [showPreview, setShowPreview] = useState(true);
+  const [heroEnabled, toggleHero] = useHeroToggle(pageSlug);
 
   const { data = [], isLoading, error } = useQuery({
     queryKey: ['pageAssets', pageSlug],
@@ -105,6 +107,16 @@ const PagesAdmin = () => {
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
           >
             Refresh Assets
+          </button>
+          <button
+            onClick={() => toggleHero(!heroEnabled)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              heroEnabled 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
+          >
+            {heroEnabled ? 'Hide Hero' : 'Show Hero'}
           </button>
         </div>
       </div>

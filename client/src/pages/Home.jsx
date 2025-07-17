@@ -6,6 +6,7 @@ import { addCartItem, getCart } from "../api/cart";
 import { toast } from 'react-toastify';
 import { useLang } from '../utils/lang';
 import { usePageAssets } from '../hooks/usePageAssets';
+import { useHeroToggle } from '../hooks/useHeroToggle';
 
 const getGuestCart = () => {
   try {
@@ -36,6 +37,7 @@ const Home = () => {
   const [error, setError] = useState('');
   const [cartQuantities, setCartQuantities] = useState({});
   const { data, isLoading: assetsLoading } = usePageAssets('home');
+  const [heroEnabled] = useHeroToggle('home');
   console.log('[DEBUG] Home component - usePageAssets data:', data);
   const hero = data?.find(a => a.slot === 'hero');
   const infoA = data?.find(a => a.slot === 'infoA');
@@ -142,41 +144,49 @@ const Home = () => {
       )}
       <Header />
       {/* Hero Section */}
-      <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
-        <section
-          className="relative flex items-center justify-center h-[60vh]"
-          style={{
-            backgroundImage: hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
-          {console.log('[DEBUG] Hero section backgroundImage:', hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)')}
-          {hero?.imageUrl && (
-            <div
-              className="absolute inset-0"
-              style={{ backgroundColor: `rgba(255,255,255,${hero.overlay ?? 0.2})` }}
-            />
-          )}
-          <div className="relative z-10 w-full text-center max-w-6xl mx-auto py-8 sm:py-12 lg:py-16">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 leading-tight"
-              style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
-              {t('newTopics')}
-            </h1>
-            <div className="w-24 h-1 mx-auto mb-6 rounded-full"
-              style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
-            <p className="text-lg sm:text-xl lg:text-2xl mb-8 text-slate-700 max-w-3xl mx-auto leading-relaxed">
-              {t('discoverProductsLudic')}
-            </p>
-            <Link to="/products">
-              <button className="px-8 py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-lg">
-                {t('shopNow')}
-              </button>
-            </Link>
-          </div>
-        </section>
+      {heroEnabled && (
+        <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
+          <section
+            className="relative flex items-center justify-center min-h-[70vh] sm:min-h-[60vh] rounded-3xl mx-4 sm:mx-6 lg:mx-8 overflow-hidden"
+            style={{
+              backgroundImage: hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            {console.log('[DEBUG] Hero section backgroundImage:', hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)')}
+            {hero?.imageUrl && (
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: `rgba(255,255,255,${hero.overlay ?? 0.2})` }}
+              />
+            )}
+            <div className="relative z-10 w-full text-center max-w-6xl mx-auto py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-8 leading-tight sm:leading-normal"
+                style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
+                {t('newTopics')}
+              </h1>
+              <div className="w-20 sm:w-24 h-1 mx-auto mb-8 sm:mb-10 rounded-full"
+                style={{ background: 'linear-gradient(90deg, #FECFEF 0%, #A7F0BA 100%)' }} />
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-10 sm:mb-12 text-slate-700 max-w-2xl sm:max-w-3xl mx-auto leading-relaxed px-2">
+                {t('discoverProductsLudic')}
+              </p>
+              <Link to="/products">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 hover:shadow-xl text-base sm:text-lg">
+                  {t('shopNow')}
+                </button>
+              </Link>
+            </div>
+          </section>
 
+          {/* Spacing between Hero and Info Block */}
+          <div className="h-8 sm:h-12 lg:h-16"></div>
+        </main>
+      )}
+
+      {/* Main content container */}
+      <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Mini Banner Section */}
         {mini?.imageUrl && (
           <section className="max-w-7xl mx-auto mb-8">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { upsertPageAsset, deletePageAsset } from '../../api/pageAssets';
 import PastelCard from '../../components/PastelCard';
@@ -45,7 +45,6 @@ const PagesAdmin = () => {
   const { t } = useLang();
   const qc = useQueryClient();
   const [pageSlug, setPageSlug] = useState('home');
-  const [showPreview, setShowPreview] = useState(true);
   const { 
     heroEnabled, 
     miniEnabled, 
@@ -58,6 +57,35 @@ const PagesAdmin = () => {
   } = useBlockToggle(pageSlug);
   const { buttonPosition, buttonDestination, updateButtonPosition, updateButtonDestination } = useHeroSettings(pageSlug);
   const { buttonDestination: miniButtonDestination, updateButtonDestination: updateMiniButtonDestination } = useMiniButtonSettings(pageSlug);
+
+  // Site-wide background control
+  const [siteBackground, setSiteBackground] = useState('beige');
+  const [customBackgroundColor, setCustomBackgroundColor] = useState('#fafaf0');
+
+  // Background options
+  const backgroundOptions = [
+    { value: 'beige', label: 'Beige Gradient (Default)', gradient: 'linear-gradient(135deg, #fefefe 0%, #fafaf0 25%, #fdfcf7 50%, #fefdfa 75%, #fffef8 100%)' },
+    { value: 'white', label: 'Pure White', gradient: 'white' },
+    { value: 'light-gray', label: 'Light Gray', gradient: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #f5f5f5 100%)' },
+    { value: 'blue', label: 'Light Blue', gradient: 'linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #f0f8ff 100%)' },
+    { value: 'green', label: 'Light Green', gradient: 'linear-gradient(135deg, #f0fff0 0%, #e6ffe6 50%, #f0fff0 100%)' },
+    { value: 'custom', label: 'Custom Color', gradient: 'custom' }
+  ];
+
+  // Apply background to body
+  useEffect(() => {
+    const body = document.body;
+    const selectedOption = backgroundOptions.find(option => option.value === siteBackground);
+    
+    if (selectedOption) {
+      if (selectedOption.value === 'custom') {
+        body.style.background = customBackgroundColor;
+      } else {
+        body.style.background = selectedOption.gradient;
+      }
+      body.style.backgroundAttachment = 'fixed';
+    }
+  }, [siteBackground, customBackgroundColor]);
 
   const { data = [], isLoading, error } = useQuery({
     queryKey: ['pageAssets', pageSlug],
@@ -104,32 +132,16 @@ const PagesAdmin = () => {
         <h1 className="text-3xl font-bold">{t('pages_admin.title', 'Page Assets')}</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => window.open(`/${pageSlug}`, '_blank')}
+            onClick={() => window.open('http://localhost:5173/', '_blank')}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
           >
             {t('viewLivePage')}
-          </button>
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            {showPreview ? t('hidePreview') : t('showPreview')}
           </button>
           <button
             onClick={() => qc.invalidateQueries({ queryKey: ['pageAssets', pageSlug] })}
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
           >
             {t('refreshAssets')}
-          </button>
-          <button
-            onClick={() => toggleHero(!heroEnabled)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              heroEnabled 
-                ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-          >
-            {heroEnabled ? t('hideHero') : t('showHero')}
           </button>
         </div>
       </div>
@@ -512,9 +524,175 @@ const PagesAdmin = () => {
         </div>
       )}
 
+      {/* 🌍 SITE-WIDE BACKGROUND CONTROL */}
+      <div className="bg-gradient-to-r from-indigo-100 to-purple-100 border-4 border-indigo-400 rounded-xl p-6 mb-8 shadow-xl">
+        <h3 className="text-3xl font-bold text-indigo-800 mb-6 text-center">🌍 SITE-WIDE BACKGROUND CONTROL</h3>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Background Selection */}
+          <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
+            <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
+              🎨 <span className="ml-2">Background Style</span>
+            </h4>
+            <div className="space-y-3">
+              {backgroundOptions.map((option) => (
+                <label key={option.value} className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="siteBackground"
+                    value={option.value}
+                    checked={siteBackground === option.value}
+                    onChange={(e) => setSiteBackground(e.target.value)}
+                    className="mr-3 text-indigo-600"
+                  />
+                  <span className="text-indigo-700">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Color Picker */}
+          {siteBackground === 'custom' && (
+            <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
+              <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
+                🎨 <span className="ml-2">Custom Color</span>
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-indigo-700 mb-2">
+                    Background Color
+                  </label>
+                  <input
+                    type="color"
+                    value={customBackgroundColor}
+                    onChange={(e) => setCustomBackgroundColor(e.target.value)}
+                    className="w-full h-12 rounded-lg border-2 border-indigo-300 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-indigo-700 mb-2">
+                    Color Code
+                  </label>
+                  <input
+                    type="text"
+                    value={customBackgroundColor}
+                    onChange={(e) => setCustomBackgroundColor(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-indigo-300 rounded-lg text-indigo-700"
+                    placeholder="#fafaf0"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Color Reference Section */}
+          <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
+            <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
+              🎨 <span className="ml-2">Color Reference</span>
+            </h4>
+            
+            {/* Popular Colors Grid */}
+            <div className="mb-4">
+              <h5 className="font-semibold text-indigo-600 mb-3">Popular Background Colors:</h5>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { name: 'Pure White', hex: '#FFFFFF', color: '#FFFFFF' },
+                  { name: 'Off White', hex: '#FAFAFA', color: '#FAFAFA' },
+                  { name: 'Light Gray', hex: '#F5F5F5', color: '#F5F5F5' },
+                  { name: 'Warm Beige', hex: '#FAFAF0', color: '#FAFAF0' },
+                  { name: 'Cream', hex: '#FDFCF7', color: '#FDFCF7' },
+                  { name: 'Light Blue', hex: '#F0F8FF', color: '#F0F8FF' },
+                  { name: 'Light Green', hex: '#F0FFF0', color: '#F0FFF0' },
+                  { name: 'Light Pink', hex: '#FFF0F5', color: '#FFF0F5' },
+                  { name: 'Light Yellow', hex: '#FFFFF0', color: '#FFFFF0' }
+                ].map((colorOption) => (
+                  <button
+                    key={colorOption.hex}
+                    onClick={() => {
+                      setSiteBackground('custom');
+                      setCustomBackgroundColor(colorOption.hex);
+                    }}
+                    className="p-3 rounded-lg border-2 border-gray-200 hover:border-indigo-400 transition-colors text-left"
+                    style={{ backgroundColor: colorOption.color }}
+                  >
+                    <div className="text-xs font-medium" style={{ 
+                      color: colorOption.hex === '#FFFFFF' ? '#000' : '#333' 
+                    }}>
+                      {colorOption.name}
+                    </div>
+                    <div className="text-xs font-mono" style={{ 
+                      color: colorOption.hex === '#FFFFFF' ? '#000' : '#333' 
+                    }}>
+                      {colorOption.hex}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* W3Schools Reference Link */}
+            <div className="border-t-2 border-indigo-200 pt-4">
+              <h5 className="font-semibold text-indigo-600 mb-2">Need More Colors?</h5>
+              <a 
+                href="https://www.w3schools.com/colors/colors_picker.asp" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                <span className="mr-2">🎨</span>
+                W3Schools Color Picker
+                <span className="ml-2">↗</span>
+              </a>
+              <p className="text-xs text-indigo-500 mt-2">
+                Opens in new tab - find any color with hex codes
+              </p>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
+            <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
+              👁️ <span className="ml-2">Live Preview</span>
+            </h4>
+            <div className="space-y-3">
+              <p className="text-indigo-600 text-sm">
+                <strong>Current Background:</strong> {backgroundOptions.find(opt => opt.value === siteBackground)?.label}
+              </p>
+              <div className="h-24 rounded-lg border-2 border-indigo-300 overflow-hidden">
+                <div 
+                  className="w-full h-full"
+                  style={{
+                    background: siteBackground === 'custom' 
+                      ? customBackgroundColor 
+                      : backgroundOptions.find(opt => opt.value === siteBackground)?.gradient
+                  }}
+                >
+                  <div className="p-3 text-center">
+                    <p className="text-sm font-medium">Background Preview</p>
+                    <p className="text-xs opacity-75">This shows how the background will look</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-indigo-500 text-xs">
+                💡 <strong>Tip:</strong> This background appears on wide screens and around page content
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Instructions */}
+        <div className="mt-6 bg-white p-4 rounded-lg border-2 border-indigo-300">
+          <h4 className="font-bold text-lg text-indigo-700 mb-2">📋 How This Works</h4>
+          <div className="text-indigo-600 text-sm space-y-2">
+            <p>• <strong>Site-wide Background:</strong> This controls the background that appears on all pages</p>
+            <p>• <strong>Wide Screens:</strong> Most visible when browser window is very wide</p>
+            <p>• <strong>Around Content:</strong> Shows in margins and areas not covered by page content</p>
+            <p>• <strong>Instant Preview:</strong> Changes apply immediately - try resizing your browser window!</p>
+          </div>
+        </div>
+      </div>
+
       {/* Page Preview */}
-      {showPreview && (
-        <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
+      <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
           <h3 className="text-xl font-semibold mb-4">{t('pagePreview')}: {pageSlug}</h3>
           <div className="grid md:grid-cols-2 gap-6">
             {/* Hero Section Preview */}
@@ -695,7 +873,6 @@ const PagesAdmin = () => {
             </div>
           </div>
         </div>
-      )}
 
       {/* Page selector */}
       <select

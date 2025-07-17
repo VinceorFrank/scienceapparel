@@ -10,8 +10,16 @@ const multer  = require('multer');
 const path = require('path');
 
 // Multer config: restrict file type and size
+const storage = multer.diskStorage({
+  destination: 'uploads/images/',
+  filename: (req, file, cb) => {
+    // Preserve original filename with extension
+    cb(null, file.originalname);
+  }
+});
+
 const upload = multer({
-  dest: 'uploads/',
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
   fileFilter: (req, file, cb) => {
     const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];

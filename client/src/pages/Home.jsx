@@ -35,8 +35,21 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cartQuantities, setCartQuantities] = useState({});
-  const { data } = usePageAssets('home');
+  const { data, isLoading: assetsLoading } = usePageAssets('home');
+  console.log('[DEBUG] Home component - usePageAssets data:', data);
   const hero = data?.find(a => a.slot === 'hero');
+  const infoA = data?.find(a => a.slot === 'infoA');
+  const infoB = data?.find(a => a.slot === 'infoB');
+  const background = data?.find(a => a.slot === 'background');
+  const mini = data?.find(a => a.slot === 'mini');
+  
+  console.log('[DEBUG] Home component - found assets:', {
+    hero: hero?.imageUrl,
+    infoA: infoA?.imageUrl,
+    infoB: infoB?.imageUrl,
+    background: background?.imageUrl,
+    mini: mini?.imageUrl
+  });
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -112,22 +125,40 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full overflow-hidden">
+    <div 
+      className="flex flex-col min-h-screen w-full overflow-hidden"
+      style={{
+        backgroundImage: background?.imageUrl ? `url(${background.imageUrl})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {background?.imageUrl && (
+        <div 
+          className="absolute inset-0"
+          style={{ backgroundColor: `rgba(255,255,255,${background.overlay ?? 0.1})` }}
+        />
+      )}
       <Header />
       {/* Hero Section */}
-      <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8 relative z-10">
         <section
           className="relative flex items-center justify-center h-[60vh]"
           style={{
-            backgroundImage: `url(${hero?.imageUrl})`,
+            backgroundImage: hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)',
             backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
           }}
         >
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: `rgba(255,255,255,${hero?.overlay ?? 0.2})` }}
-          />
+          {console.log('[DEBUG] Hero section backgroundImage:', hero?.imageUrl ? `url(${hero.imageUrl})` : 'linear-gradient(to bottom, #fce7f3, #a7f0ba)')}
+          {hero?.imageUrl && (
+            <div
+              className="absolute inset-0"
+              style={{ backgroundColor: `rgba(255,255,255,${hero.overlay ?? 0.2})` }}
+            />
+          )}
           <div className="relative z-10 w-full text-center max-w-6xl mx-auto py-8 sm:py-12 lg:py-16">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 leading-tight"
               style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
@@ -146,25 +177,76 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Mini Banner Section */}
+        {mini?.imageUrl && (
+          <section className="max-w-7xl mx-auto mb-8">
+            <div 
+              className="relative rounded-2xl overflow-hidden shadow-lg"
+              style={{
+                backgroundImage: `url(${mini.imageUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                height: '200px'
+              }}
+            >
+              <div 
+                className="absolute inset-0"
+                style={{ backgroundColor: `rgba(255,255,255,${mini.overlay ?? 0.2})` }}
+              />
+              <div className="relative z-10 h-full flex items-center justify-center text-center px-6">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}>
+                    Special Offer!
+                  </h2>
+                  <p className="text-lg text-gray-700 mb-4">
+                    Discover our latest collection with exclusive deals
+                  </p>
+                  <Link to="/products">
+                    <button className="px-6 py-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold rounded-full shadow-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105">
+                      Shop Now
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* First Info Block Section */}
         <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
-          <div className="rounded-3xl bg-gradient-to-r from-pink-100 via-blue-100 to-white shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-blue-400 text-center"
-              style={{ fontFamily: 'Fredoka One, cursive' }}>
-              {t('whyShopWithUs')}
-            </h2>
-            <p className="text-lg lg:text-xl text-slate-600 mb-6 text-center max-w-2xl">
-              {t('funOriginalTshirts')}
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center mt-4">
-              <div className="bg-pink-200 text-pink-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-pink-300 transition-colors">
-                {t('fastShipping')}
-              </div>
-              <div className="bg-blue-200 text-blue-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-300 transition-colors">
-                {t('uniqueDesigns')}
-              </div>
-              <div className="bg-white text-blue-400 border border-blue-100 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-50 transition-colors">
-                {t('greatQuality')}
+          <div 
+            className="rounded-3xl shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100 relative overflow-hidden"
+            style={{
+              backgroundImage: infoA?.imageUrl ? `url(${infoA.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            {infoA?.imageUrl && (
+              <div 
+                className="absolute inset-0"
+                style={{ backgroundColor: `rgba(255,255,255,${infoA.overlay ?? 0.2})` }}
+              />
+            )}
+            <div className="relative z-10 text-center">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-blue-400 text-center"
+                style={{ fontFamily: 'Fredoka One, cursive' }}>
+                {t('whyShopWithUs')}
+              </h2>
+              <p className="text-lg lg:text-xl text-slate-600 mb-6 text-center max-w-2xl">
+                {t('funOriginalTshirts')}
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center mt-4">
+                <div className="bg-pink-200 text-pink-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-pink-300 transition-colors">
+                  {t('fastShipping')}
+                </div>
+                <div className="bg-blue-200 text-blue-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-300 transition-colors">
+                  {t('uniqueDesigns')}
+                </div>
+                <div className="bg-white text-blue-400 border border-blue-100 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-50 transition-colors">
+                  {t('greatQuality')}
+                </div>
               </div>
             </div>
           </div>
@@ -238,23 +320,38 @@ const Home = () => {
 
         {/* Second Info Block Section */}
         <section className="max-w-4xl mx-auto mb-12 lg:mb-16">
-          <div className="rounded-3xl bg-gradient-to-r from-pink-100 via-blue-100 to-white shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-blue-400 text-center"
-              style={{ fontFamily: 'Fredoka One, cursive' }}>
-              {t('whyShopWithUs')}
-            </h2>
-            <p className="text-lg lg:text-xl text-slate-600 mb-6 text-center max-w-2xl">
-              {t('funOriginalTshirts')}
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center mt-4">
-              <div className="bg-pink-200 text-pink-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-pink-300 transition-colors">
-                {t('fastShipping')}
-              </div>
-              <div className="bg-blue-200 text-blue-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-300 transition-colors">
-                {t('uniqueDesigns')}
-              </div>
-              <div className="bg-white text-blue-400 border border-blue-100 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-50 transition-colors">
-                {t('greatQuality')}
+          <div 
+            className="rounded-3xl shadow-xl p-8 lg:p-12 flex flex-col items-center border border-blue-100 relative overflow-hidden"
+            style={{
+              backgroundImage: infoB?.imageUrl ? `url(${infoB.imageUrl})` : 'linear-gradient(to right, #fce7f3, #dbeafe, #ffffff)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            {infoB?.imageUrl && (
+              <div 
+                className="absolute inset-0"
+                style={{ backgroundColor: `rgba(255,255,255,${infoB.overlay ?? 0.2})` }}
+              />
+            )}
+            <div className="relative z-10 text-center">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-blue-400 text-center"
+                style={{ fontFamily: 'Fredoka One, cursive' }}>
+                {t('whyShopWithUs')}
+              </h2>
+              <p className="text-lg lg:text-xl text-slate-600 mb-6 text-center max-w-2xl">
+                {t('funOriginalTshirts')}
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center mt-4">
+                <div className="bg-pink-200 text-pink-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-pink-300 transition-colors">
+                  {t('fastShipping')}
+                </div>
+                <div className="bg-blue-200 text-blue-700 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-300 transition-colors">
+                  {t('uniqueDesigns')}
+                </div>
+                <div className="bg-white text-blue-400 border border-blue-100 rounded-full px-6 py-3 text-sm font-semibold shadow-md hover:bg-blue-50 transition-colors">
+                  {t('greatQuality')}
+                </div>
               </div>
             </div>
           </div>

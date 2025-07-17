@@ -17,6 +17,7 @@ require('./models/ShippingSettings');
 require('./models/Support');
 require('./models/NewsletterCampaign');
 require('./models/NewsletterSubscriber');
+require('./models/PageAsset');
 
 // Enhanced Error Handling
 const { 

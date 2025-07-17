@@ -5,10 +5,13 @@ const mongoose = require('mongoose');
 exports.getAssetsBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
+    console.log('[DEBUG] GET /api/pages/', slug);
     if (!slug) return res.status(400).json({ message: 'Missing page slug' });
     const assets = await PageAsset.find({ pageSlug: slug });
+    console.log('[DEBUG] Found assets:', assets.length, 'for slug:', slug);
     res.json(assets);
   } catch (err) {
+    console.error('[DEBUG] Error in getAssetsBySlug:', err.message);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
@@ -17,6 +20,7 @@ exports.getAssetsBySlug = async (req, res) => {
 exports.upsertAsset = async (req, res) => {
   try {
     const { pageSlug, slot, overlay, alt = '', productIds = [] } = req.body;
+    console.log('[DEBUG] upsertAsset called with:', { pageSlug, slot, overlay, hasFile: !!req.file });
     if (!pageSlug || !slot) return res.status(400).json({ message: 'Missing pageSlug or slot' });
     
     // Build a dynamic update object
@@ -58,7 +62,8 @@ exports.upsertAsset = async (req, res) => {
 
     // Only add imageUrl if file is uploaded
     if (req.file) {
-      update.imageUrl = `/uploads/${req.file.filename}`;
+      update.imageUrl = `/uploads/images/${req.file.filename}`;
+      console.log('[DEBUG] File uploaded, imageUrl set to:', update.imageUrl);
     }
 
     const asset = await PageAsset.findOneAndUpdate(

@@ -15,29 +15,29 @@ const slotDimensions = {
   hero: {
     recommended: '1920×600px',
     aspectRatio: '16:5',
-    description: 'Main banner image at the top of the page'
+    description: 'heroDescription'
   },
   infoA: {
     recommended: '800×600px',
     aspectRatio: '4:3',
-    description: 'First informational section image'
+    description: 'infoADescription'
   },
   infoB: {
     recommended: '800×600px',
     aspectRatio: '4:3',
-    description: 'Second informational section image'
+    description: 'infoBDescription'
   },
   background: {
     recommended: '1920×1080px',
     aspectRatio: '16:9',
-    description: 'Main background image for the page'
+    description: 'backgroundDescription'
   },
   mini: {
     recommended: '800×200px',
     min: '600×150px',
     max: '1200×300px',
     aspectRatio: '4:1',
-    description: 'Mini-high slot for narrow banners'
+    description: 'miniDescription'
   }
 };
 
@@ -64,7 +64,7 @@ const PagesAdmin = () => {
     queryFn: async () => {
       const response = await fetch(`/api/pages/${pageSlug}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch page assets');
+        throw new Error(t('failedToFetchAssets'));
       }
       const result = await response.json();
       return Array.isArray(result) ? result : [];
@@ -92,8 +92,8 @@ const PagesAdmin = () => {
     upsert.mutate(fd);
   };
 
-  if (isLoading) return <div className="p-6"><p>Loading…</p></div>;
-  if (error) return <div className="p-6"><p>Error: {error.message}</p></div>;
+  if (isLoading) return <div className="p-6"><p>{t('loading')}</p></div>;
+  if (error) return <div className="p-6"><p>{t('error')}: {error.message}</p></div>;
 
   const assets = Array.isArray(data) ? data : [];
 
@@ -107,19 +107,19 @@ const PagesAdmin = () => {
             onClick={() => window.open(`/${pageSlug}`, '_blank')}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
           >
-            View Live Page
+            {t('viewLivePage')}
           </button>
           <button
             onClick={() => setShowPreview(!showPreview)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            {showPreview ? 'Hide Preview' : 'Show Preview'}
+            {showPreview ? t('hidePreview') : t('showPreview')}
           </button>
           <button
             onClick={() => qc.invalidateQueries({ queryKey: ['pageAssets', pageSlug] })}
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
           >
-            Refresh Assets
+            {t('refreshAssets')}
           </button>
           <button
             onClick={() => toggleHero(!heroEnabled)}
@@ -129,62 +129,62 @@ const PagesAdmin = () => {
                 : 'bg-green-500 hover:bg-green-600 text-white'
             }`}
           >
-            {heroEnabled ? 'Hide Hero' : 'Show Hero'}
+            {heroEnabled ? t('hideHero') : t('showHero')}
           </button>
         </div>
       </div>
 
       {/* 📋 IMAGE SIZE REFERENCE - RIGHT BELOW HEADER */}
       <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border-4 border-yellow-400 rounded-xl p-6 mb-8 shadow-xl">
-        <h3 className="text-3xl font-bold text-yellow-800 mb-6 text-center">📋 IMAGE SIZE REFERENCE GUIDE</h3>
+        <h3 className="text-3xl font-bold text-yellow-800 mb-6 text-center">{t('imageSizeReference')}</h3>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-lg border-2 border-yellow-300 shadow-lg">
-            <h4 className="font-bold text-xl text-yellow-700 mb-4 flex items-center">
-              🌅 <span className="ml-2">Page Backgrounds</span>
-            </h4>
+                          <h4 className="font-bold text-xl text-yellow-700 mb-4 flex items-center">
+                🌅 <span className="ml-2">{t('pageBackgrounds')}</span>
+              </h4>
             <ul className="text-lg text-yellow-600 space-y-3">
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span><strong>Most pages:</strong> 1920 × 1080 px (16:9 ratio)</span>
+                <span><strong>{t('mostPages')}:</strong> 1920 × 1080 px (16:9 ratio)</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span><strong>About/Cart/Order Detail:</strong> 1920 × 1200 px (16:10 ratio)</span>
+                <span><strong>{t('aboutCartOrderDetail')}:</strong> 1920 × 1200 px (16:10 ratio)</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span>Save as WebP/JPG/PNG, compress under 500 KB</span>
+                <span>{t('saveAsWebP')}</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span>Apply 10-30% pastel overlay for text readability</span>
+                <span>{t('applyOverlay')}</span>
               </li>
             </ul>
           </div>
           <div className="bg-white p-6 rounded-lg border-2 border-yellow-300 shadow-lg">
-            <h4 className="font-bold text-xl text-yellow-700 mb-4 flex items-center">
-              📸 <span className="ml-2">Content Images</span>
-            </h4>
+                          <h4 className="font-bold text-xl text-yellow-700 mb-4 flex items-center">
+                📸 <span className="ml-2">{t('contentImages')}</span>
+              </h4>
             <ul className="text-lg text-yellow-600 space-y-3">
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span><strong>Hero images:</strong> 1920 × 600 px (16:5 ratio)</span>
+                <span><strong>{t('heroImages')}:</strong> 1920 × 600 px (16:5 ratio)</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span><strong>Info sections:</strong> 800 × 600 px (4:3 ratio)</span>
+                <span><strong>{t('infoSections')}:</strong> 800 × 600 px (4:3 ratio)</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span><strong>Mini-high slot:</strong> 800 × 200 px (4:1 ratio)</span>
+                <span><strong>{t('miniHighSlot')}:</strong> 800 × 200 px (4:1 ratio)</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span>Use high-quality images with good contrast</span>
+                <span>{t('useHighQuality')}</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">•</span>
-                <span>Keep file sizes under 300 KB for fast loading</span>
+                <span>{t('keepFileSizes')}</span>
               </li>
             </ul>
           </div>
@@ -193,7 +193,7 @@ const PagesAdmin = () => {
 
       {/* 📖 ASSET TYPE EXPLANATIONS */}
       <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-400 rounded-xl p-6 mb-8 shadow-xl">
-        <h3 className="text-3xl font-bold text-blue-800 mb-6 text-center">📖 WHAT ARE THESE ASSET TYPES?</h3>
+        <h3 className="text-3xl font-bold text-blue-800 mb-6 text-center">{t('assetTypeExplanations')}</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-lg border-2 border-blue-300 shadow-lg">
             <h4 className="font-bold text-xl text-blue-700 mb-4 flex items-center">
@@ -296,7 +296,7 @@ const PagesAdmin = () => {
                   : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
-              {miniEnabled ? 'Hide Mini' : 'Show Mini'}
+              {miniEnabled ? t('hideMini') : t('showMini')}
             </button>
           </div>
 
@@ -313,7 +313,7 @@ const PagesAdmin = () => {
                   : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
-              {infoAEnabled ? 'Hide InfoA' : 'Show InfoA'}
+              {infoAEnabled ? t('hideInfoA') : t('showInfoA')}
             </button>
           </div>
 
@@ -330,7 +330,7 @@ const PagesAdmin = () => {
                   : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
-              {infoBEnabled ? 'Hide InfoB' : 'Show InfoB'}
+              {infoBEnabled ? t('hideInfoB') : t('showInfoB')}
             </button>
           </div>
         </div>
@@ -340,16 +340,16 @@ const PagesAdmin = () => {
           <h4 className="font-bold text-lg text-green-700 mb-2">📊 Current Block Status</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className={`px-3 py-2 rounded ${heroEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              Hero: {heroEnabled ? 'Visible' : 'Hidden'}
+              Hero: {heroEnabled ? t('visible') : t('hidden')}
             </div>
             <div className={`px-3 py-2 rounded ${miniEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              Mini: {miniEnabled ? 'Visible' : 'Hidden'}
+              Mini: {miniEnabled ? t('visible') : t('hidden')}
             </div>
             <div className={`px-3 py-2 rounded ${infoAEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              InfoA: {infoAEnabled ? 'Visible' : 'Hidden'}
+              InfoA: {infoAEnabled ? t('visible') : t('hidden')}
             </div>
             <div className={`px-3 py-2 rounded ${infoBEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              InfoB: {infoBEnabled ? 'Visible' : 'Hidden'}
+              InfoB: {infoBEnabled ? t('visible') : t('hidden')}
             </div>
           </div>
         </div>
@@ -358,12 +358,12 @@ const PagesAdmin = () => {
       {/* 🎛️ HERO SETTINGS CONTROLS */}
       {heroEnabled && (
         <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
-          <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">🎛️ HERO BUTTON SETTINGS</h3>
+          <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">{t('heroButtonSettings')}</h3>
           <div className="grid md:grid-cols-2 gap-8">
             {/* Button Position */}
             <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
               <h4 className="font-bold text-xl text-purple-700 mb-4 flex items-center">
-                📍 <span className="ml-2">Button Position</span>
+                📍 <span className="ml-2">{t('buttonPosition')}</span>
               </h4>
               <div className="space-y-3">
                 <label className="flex items-center cursor-pointer">
@@ -375,7 +375,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonPosition(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Top - Above the title</span>
+                  <span className="text-purple-700">{t('top')} - Above the title</span>
                 </label>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -386,7 +386,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonPosition(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Middle - Between title and description</span>
+                  <span className="text-purple-700">{t('middle')} - Between title and description</span>
                 </label>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -397,7 +397,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonPosition(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Bottom - Below description (current)</span>
+                  <span className="text-purple-700">{t('bottom')} - Below description (current)</span>
                 </label>
               </div>
             </div>
@@ -405,7 +405,7 @@ const PagesAdmin = () => {
             {/* Button Destination */}
             <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
               <h4 className="font-bold text-xl text-purple-700 mb-4 flex items-center">
-                🔗 <span className="ml-2">Button Destination</span>
+                🔗 <span className="ml-2">{t('buttonDestination')}</span>
               </h4>
               <div className="space-y-3">
                 <label className="flex items-center cursor-pointer">
@@ -417,7 +417,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonDestination(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Products Page</span>
+                  <span className="text-purple-700">{t('products')} Page</span>
                 </label>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -428,7 +428,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonDestination(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Clothing & Accessories</span>
+                  <span className="text-purple-700">{t('clothingAccessories')}</span>
                 </label>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -439,7 +439,7 @@ const PagesAdmin = () => {
                     onChange={(e) => updateButtonDestination(e.target.value)}
                     className="mr-3 text-purple-600"
                   />
-                  <span className="text-purple-700">Accessories Page</span>
+                  <span className="text-purple-700">{t('accessories')} Page</span>
                 </label>
               </div>
             </div>
@@ -447,11 +447,11 @@ const PagesAdmin = () => {
           
           {/* Preview Info */}
           <div className="mt-6 bg-white p-4 rounded-lg border-2 border-purple-300">
-            <h4 className="font-bold text-lg text-purple-700 mb-2">👁️ Live Preview</h4>
-            <p className="text-purple-600">
-              <strong>Current Settings:</strong> Button positioned at <strong>{buttonPosition}</strong> and linking to <strong>{buttonDestination}</strong> page.
-              Changes apply instantly - check the live page to see the results!
-            </p>
+            <h4 className="font-bold text-lg text-purple-700 mb-2">{t('livePreview')}</h4>
+                          <p className="text-purple-600">
+                <strong>{t('currentSettings')}:</strong> {t('buttonPositionedAt')} <strong>{buttonPosition}</strong> {t('andLinkingTo')} <strong>{buttonDestination}</strong> {t('page')}.
+                {t('changesApplyInstantly')}
+              </p>
           </div>
         </div>
       )}
@@ -459,10 +459,10 @@ const PagesAdmin = () => {
       {/* 🎛️ MINI BUTTON SETTINGS */}
       {miniEnabled && (
         <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-4 border-orange-400 rounded-xl p-6 mb-8 shadow-xl">
-          <h3 className="text-3xl font-bold text-orange-800 mb-6 text-center">🎛️ MINI BUTTON SETTINGS</h3>
+          <h3 className="text-3xl font-bold text-orange-800 mb-6 text-center">{t('miniButtonSettings')}</h3>
           <div className="bg-white p-6 rounded-lg border-2 border-orange-300 shadow-lg">
             <h4 className="font-bold text-xl text-orange-700 mb-4 flex items-center">
-              🔗 <span className="ml-2">Mini Button Destination</span>
+              🔗 <span className="ml-2">{t('miniButtonDestination')}</span>
             </h4>
             <div className="space-y-3">
               <label className="flex items-center cursor-pointer">
@@ -474,7 +474,7 @@ const PagesAdmin = () => {
                   onChange={(e) => updateMiniButtonDestination(e.target.value)}
                   className="mr-3 text-orange-600"
                 />
-                <span className="text-orange-700">Products Page</span>
+                <span className="text-orange-700">{t('products')} Page</span>
               </label>
               <label className="flex items-center cursor-pointer">
                 <input
@@ -485,7 +485,7 @@ const PagesAdmin = () => {
                   onChange={(e) => updateMiniButtonDestination(e.target.value)}
                   className="mr-3 text-orange-600"
                 />
-                <span className="text-orange-700">Clothing & Accessories</span>
+                <span className="text-orange-700">{t('clothingAccessories')}</span>
               </label>
               <label className="flex items-center cursor-pointer">
                 <input
@@ -496,16 +496,16 @@ const PagesAdmin = () => {
                   onChange={(e) => updateMiniButtonDestination(e.target.value)}
                   className="mr-3 text-orange-600"
                 />
-                <span className="text-orange-700">Accessories Page</span>
+                <span className="text-orange-700">{t('accessories')} Page</span>
               </label>
             </div>
             
             {/* Preview Info */}
             <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-              <h5 className="font-bold text-orange-700 mb-1">👁️ Live Preview</h5>
+              <h5 className="font-bold text-orange-700 mb-1">{t('livePreview')}</h5>
               <p className="text-orange-600 text-sm">
-                <strong>Current Setting:</strong> Mini button will link to <strong>{miniButtonDestination}</strong> page.
-                Changes apply instantly - check the live page to see the results!
+                <strong>{t('currentSetting')}:</strong> {t('miniButtonWillLinkTo')} <strong>{miniButtonDestination}</strong> {t('page')}.
+                {t('changesApplyInstantly')}
               </p>
             </div>
           </div>
@@ -515,7 +515,7 @@ const PagesAdmin = () => {
       {/* Page Preview */}
       {showPreview && (
         <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4">Page Preview: {pageSlug}</h3>
+          <h3 className="text-xl font-semibold mb-4">{t('pagePreview')}: {pageSlug}</h3>
           <div className="grid md:grid-cols-2 gap-6">
             {/* Hero Section Preview */}
             <div className="relative h-48 rounded-lg overflow-hidden">
@@ -535,17 +535,17 @@ const PagesAdmin = () => {
                           style={{ backgroundColor: `rgba(255,255,255,${heroAsset.overlay ?? 0.2})` }}
                         />
                         <div className="relative z-10 p-4 text-center">
-                          <h4 className="font-semibold mb-2 text-gray-800">Hero Section</h4>
-                          <p className="text-lg font-bold text-gray-900">Sample Title</p>
-                          <p className="text-sm text-gray-700">Sample subtitle text</p>
+                          <h4 className="font-semibold mb-2 text-gray-800">{t('heroSection')}</h4>
+                          <p className="text-lg font-bold text-gray-900">{t('sampleTitle')}</p>
+                          <p className="text-sm text-gray-700">{t('sampleSubtitle')}</p>
                         </div>
                       </div>
                     ) : (
                       <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center items-center">
-                        <h4 className="font-semibold mb-2">Hero Section</h4>
-                        <p className="text-lg font-bold">Sample Title</p>
-                        <p className="text-sm text-gray-600">Sample subtitle text</p>
-                        <p className="text-xs text-gray-500 mt-2">No hero image set</p>
+                        <h4 className="font-semibold mb-2">{t('heroSection')}</h4>
+                        <p className="text-lg font-bold">{t('sampleTitle')}</p>
+                        <p className="text-sm text-gray-600">{t('sampleSubtitle')}</p>
+                        <p className="text-xs text-gray-500 mt-2">{t('noHeroImageSet')}</p>
                       </div>
                     )}
                   </>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure complète du Site Web - Version Améliorée</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .diagram {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 0;
+            height: calc(100vh - 120px);
+            flex: 1;
+        }
+
+        .section {
+            padding: 15px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .section-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .node {
+            background: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .node-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .node-subtitle {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: #666;
+            height: 2px;
+            transform-origin: left center;
+        }
+
+        .connection-line::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #666;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        /* Public Pages - Blue */
+        .public {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-right: 3px solid #2196f3;
+            border-bottom: 3px solid #2196f3;
+        }
+
+        .public .section-title {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+
+        .public .node {
+            border-color: #2196f3;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .public .node:hover {
+            border-color: #1976d2;
+            background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+        }
+
+        /* Client Pages - Green */
+        .client {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border-left: 3px solid #4caf50;
+            border-bottom: 3px solid #4caf50;
+        }
+
+        .client .section-title {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .client .node {
+            border-color: #4caf50;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%);
+        }
+
+        .client .node:hover {
+            border-color: #388e3c;
+            background: linear-gradient(135deg, #ffffff 0%, #e8f5e8 100%);
+        }
+
+        /* Admin Pages - Red */
+        .admin {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-right: 3px solid #f44336;
+            border-top: 3px solid #f44336;
+        }
+
+        .admin .section-title {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .admin .node {
+            border-color: #f44336;
+            background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+        }
+
+        .admin .node:hover {
+            border-color: #d32f2f;
+            background: linear-gradient(135deg, #ffffff 0%, #ffebee 100%);
+        }
+
+        /* Test Pages - Grey */
+        .test {
+            background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+            border-left: 3px solid #9e9e9e;
+            border-top: 3px solid #9e9e9e;
+        }
+
+        .test .section-title {
+            background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+        }
+
+        .test .node {
+            border-color: #9e9e9e;
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .test .node:hover {
+            border-color: #757575;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+        }
+
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .hierarchy-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hierarchy-line {
+            width: 15px;
+            height: 2px;
+            background: #666;
+            position: relative;
+        }
+
+        .hierarchy-line::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -3px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid #666;
+            border-top: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-top: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .dashboard-item {
+            background: rgba(255,255,255,0.8);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            text-align: center;
+            border: 1px solid rgba(244,67,54,0.3);
+            white-space: nowrap;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: auto;
+            }
+            
+            .diagram {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                height: auto;
+            }
+            
+            .section {
+                border: none !important;
+                border-bottom: 3px solid !important;
+                height: auto !important;
+                overflow-y: visible !important;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Structure complète du Site Web</h1>
+            <p>Version améliorée avec hiérarchie et navigation optimisées</p>
+        </div>
+
+        <div class="diagram">
+            <!-- Pages Publiques -->
+            <div class="section public">
+                <div class="section-title">Pages Publiques</div>
+                <div class="section-content">
+                    <div class="node">
+                        <div class="node-title">Accueil</div>
+                        <div class="node-subtitle">Page principale avec sections personnalisables</div>
+                    </div>
+                    
+                    <div class="hierarchy">
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">À propos</div>
+                                <div class="node-subtitle">Informations sur l'entreprise</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Vêtements & Accessoires</div>
+                                <div class="node-subtitle">Collection complète</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">FAQ</div>
+                                <div class="node-subtitle">Questions fréquentes</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Produits</div>
+                                <div class="node-subtitle">Catalogue complet</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Accessoires</div>
+                                <div class="node-subtitle">Accessoires uniquement</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Contactez-nous</div>
+                                <div class="node-subtitle">Formulaire de contact</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pages Client -->
+            <div class="section client">
+                <div class="section-title">Pages Client</div>
+                <div class="section-content">
+                    <div class="node">
+                        <div class="node-title">Connexion</div>
+                        <div class="node-subtitle">Authentification client</div>
+                    </div>
+                    
+                    <div class="hierarchy">
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Mon Compte</div>
+                                <div class="node-subtitle">Gestion du profil</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy">
+                            <div class="hierarchy-item">
+                                <div class="hierarchy-line"></div>
+                                <div class="node">
+                                    <div class="node-title">Voir mes commandes</div>
+                                    <div class="node-subtitle">Historique des achats</div>
+                                </div>
+                            </div>
+                            
+                            <div class="hierarchy">
+                                <div class="hierarchy-item">
+                                    <div class="hierarchy-line"></div>
+                                    <div class="node">
+                                        <div class="node-title">Voir détails</div>
+                                        <div class="node-subtitle">Détails de commande</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="hierarchy-item">
+                                    <div class="hierarchy-line"></div>
+                                    <div class="node">
+                                        <div class="node-title">Suivre ma commande</div>
+                                        <div class="node-subtitle">Suivi en temps réel</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="hierarchy-item">
+                                <div class="hierarchy-line"></div>
+                                <div class="node">
+                                    <div class="node-title">Responsabilité sociale</div>
+                                    <div class="node-subtitle">Engagement environnemental</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pages Admin -->
+            <div class="section admin">
+                <div class="section-title">Pages Admin</div>
+                <div class="section-content">
+                    <div class="node">
+                        <div class="node-title">Connexion Admin</div>
+                        <div class="node-subtitle">Authentification administrateur</div>
+                    </div>
+                    
+                    <div class="hierarchy">
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Tableau de bord Admin</div>
+                                <div class="node-subtitle">Centre de contrôle principal</div>
+                                
+                                                                 <div class="dashboard-grid">
+                                     <div class="dashboard-item">Produits</div>
+                                     <div class="dashboard-item">Catégories</div>
+                                     <div class="dashboard-item">Expédition</div>
+                                     <div class="dashboard-item">Journal d'activité</div>
+                                     <div class="dashboard-item">Pages</div>
+                                     <div class="dashboard-item">Newsletter</div>
+                                     <div class="dashboard-item">Aperçus clients</div>
+                                     <div class="dashboard-item">Utilisateurs</div>
+                                     <div class="dashboard-item">Support</div>
+                                     <div class="dashboard-item">Gestion des données</div>
+                                     <div class="dashboard-item">Dépannage</div>
+                                 </div>
+                                 <p style="font-size: 0.7rem; color: #666; margin-top: 4px; text-align: center;">
+                                     📊 Sections du tableau de bord
+                                 </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pages Test -->
+            <div class="section test">
+                <div class="section-title">Pages Test</div>
+                <div class="section-content">
+                    <div class="node">
+                        <div class="node-title">Composant test</div>
+                        <div class="node-subtitle">Tests de développement</div>
+                    </div>
+                    
+                    <div class="hierarchy">
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Test</div>
+                                <div class="node-subtitle">Tests généraux</div>
+                            </div>
+                        </div>
+                        
+                        <div class="hierarchy-item">
+                            <div class="hierarchy-line"></div>
+                            <div class="node">
+                                <div class="node-title">Test commande</div>
+                                <div class="node-subtitle">Tests de commande</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🔄 <strong>Structure mise à jour</strong> - Hiérarchie optimisée avec navigation logique et traductions corrigées</p>
+            <p>📱 <strong>Responsive</strong> - Compatible mobile, tablette et desktop</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -65,7 +65,7 @@ const Home = () => {
         const data = await fetchProducts();
         setProducts((data.items || data.data || []).slice(0, 6));
       } catch (err) {
-        setError('Failed to load products');
+        setError(t('failedToLoadProducts'));
       } finally {
         setLoading(false);
       }
@@ -144,7 +144,7 @@ const Home = () => {
         window.dispatchEvent(new Event('cartUpdated'));
         await updateCartQuantities();
       } catch {
-        toast.error('Failed to add to cart.', { position: "top-center", autoClose: 2000 });
+        toast.error(t('failedToAddToCart'), { position: "top-center", autoClose: 2000 });
       }
     } else {
       addToGuestCart(product);

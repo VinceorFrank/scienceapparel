@@ -7,11 +7,20 @@ import { useBlockToggle } from '../../hooks/useBlockToggle';
 import { useHeroSettings } from '../../hooks/useHeroSettings';
 import { useMiniButtonSettings } from '../../hooks/useMiniButtonSettings';
 
-const slots = ['hero', 'infoA', 'infoB', 'background', 'mini'];
-const pages = ['home', 'about', 'cart', 'order-detail'];
+// Define slots based on page type
+const getSlotsForPage = (pageSlug) => {
+  if (pageSlug === 'home') {
+    return ['hero', 'infoA', 'infoB', 'background', 'mini'];
+  } else if (pageSlug === 'about') {
+    return ['mainContent', 'mainImage', 'secondaryContent', 'secondaryImage', 'background'];
+  }
+  return [];
+};
+const pages = ['home', 'about'];
 
 // Slot dimensions configuration
 const slotDimensions = {
+  // Home page slots
   hero: {
     recommended: '1920×600px',
     aspectRatio: '16:5',
@@ -38,6 +47,28 @@ const slotDimensions = {
     max: '1200×300px',
     aspectRatio: '4:1',
     description: 'miniDescription'
+  },
+  
+  // About page slots
+  mainContent: {
+    recommended: 'Text Content',
+    aspectRatio: 'N/A',
+    description: 'mainContentDescription'
+  },
+  mainImage: {
+    recommended: '800×600px',
+    aspectRatio: '4:3',
+    description: 'mainImageDescription'
+  },
+  secondaryContent: {
+    recommended: 'Text Content',
+    aspectRatio: 'N/A',
+    description: 'secondaryContentDescription'
+  },
+  secondaryImage: {
+    recommended: '800×600px',
+    aspectRatio: '4:3',
+    description: 'secondaryImageDescription'
   }
 };
 
@@ -57,6 +88,14 @@ const PagesAdmin = () => {
   } = useBlockToggle(pageSlug);
   const { buttonPosition, buttonDestination, updateButtonPosition, updateButtonDestination } = useHeroSettings(pageSlug);
   const { buttonDestination: miniButtonDestination, updateButtonDestination: updateMiniButtonDestination } = useMiniButtonSettings(pageSlug);
+
+  // About page specific state
+  const [aboutSections, setAboutSections] = useState({
+    mainContent: { enabled: true, content: '' },
+    mainImage: { enabled: true },
+    secondaryContent: { enabled: true, content: '' },
+    secondaryImage: { enabled: true }
+  });
 
   // Site-wide background control
   const [siteBackground, setSiteBackground] = useState('beige');
@@ -124,6 +163,7 @@ const PagesAdmin = () => {
   if (error) return <div className="p-6"><p>{t('error')}: {error.message}</p></div>;
 
   const assets = Array.isArray(data) ? data : [];
+  const currentSlots = getSlotsForPage(pageSlug);
 
   return (
     <div className="p-6 space-y-6">
@@ -367,8 +407,8 @@ const PagesAdmin = () => {
         </div>
       </div>
 
-      {/* 🎛️ HERO SETTINGS CONTROLS */}
-      {heroEnabled && (
+      {/* 🎛️ HERO SETTINGS CONTROLS - HOME PAGE ONLY */}
+      {pageSlug === 'home' && heroEnabled && (
         <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
           <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">{t('heroButtonSettings')}</h3>
           <div className="grid md:grid-cols-2 gap-8">
@@ -468,8 +508,8 @@ const PagesAdmin = () => {
         </div>
       )}
 
-      {/* 🎛️ MINI BUTTON SETTINGS */}
-      {miniEnabled && (
+      {/* 🎛️ MINI BUTTON SETTINGS - HOME PAGE ONLY */}
+      {pageSlug === 'home' && miniEnabled && (
         <div className="bg-gradient-to-r from-orange-100 to-yellow-100 border-4 border-orange-400 rounded-xl p-6 mb-8 shadow-xl">
           <h3 className="text-3xl font-bold text-orange-800 mb-6 text-center">{t('miniButtonSettings')}</h3>
           <div className="bg-white p-6 rounded-lg border-2 border-orange-300 shadow-lg">
@@ -519,6 +559,133 @@ const PagesAdmin = () => {
                 <strong>{t('currentSetting')}:</strong> {t('miniButtonWillLinkTo')} <strong>{miniButtonDestination}</strong> {t('page')}.
                 {t('changesApplyInstantly')}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📝 ABOUT PAGE CONTENT MANAGEMENT */}
+      {pageSlug === 'about' && (
+        <div className="bg-gradient-to-r from-teal-100 to-blue-100 border-4 border-teal-400 rounded-xl p-6 mb-8 shadow-xl">
+          <h3 className="text-3xl font-bold text-teal-800 mb-6 text-center">📝 ABOUT PAGE CONTENT MANAGEMENT</h3>
+          
+          {/* Main Content Section */}
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-white p-6 rounded-lg border-2 border-teal-300 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-xl text-teal-700 flex items-center">
+                  📝 <span className="ml-2">Main Content</span>
+                </h4>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aboutSections.mainContent.enabled}
+                    onChange={(e) => setAboutSections(prev => ({
+                      ...prev,
+                      mainContent: { ...prev.mainContent, enabled: e.target.checked }
+                    }))}
+                    className="mr-2 text-teal-600"
+                  />
+                  <span className="text-teal-700 text-sm">Show Section</span>
+                </label>
+              </div>
+              {aboutSections.mainContent.enabled && (
+                <textarea
+                  value={aboutSections.mainContent.content}
+                  onChange={(e) => setAboutSections(prev => ({
+                    ...prev,
+                    mainContent: { ...prev.mainContent, content: e.target.value }
+                  }))}
+                  placeholder="Enter your main about page content here..."
+                  className="w-full h-32 p-3 border-2 border-teal-300 rounded-lg resize-none focus:border-teal-500 focus:outline-none"
+                />
+              )}
+            </div>
+
+            <div className="bg-white p-6 rounded-lg border-2 border-teal-300 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-xl text-teal-700 flex items-center">
+                  🖼️ <span className="ml-2">Main Image</span>
+                </h4>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aboutSections.mainImage.enabled}
+                    onChange={(e) => setAboutSections(prev => ({
+                      ...prev,
+                      mainImage: { ...prev.mainImage, enabled: e.target.checked }
+                    }))}
+                    className="mr-2 text-teal-600"
+                  />
+                  <span className="text-teal-700 text-sm">Show Section</span>
+                </label>
+              </div>
+              {aboutSections.mainImage.enabled && (
+                <div className="text-center p-4 border-2 border-dashed border-teal-300 rounded-lg">
+                  <p className="text-teal-600 mb-2">Main Image Upload</p>
+                  <p className="text-sm text-teal-500">800×600px recommended (4:3 ratio)</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Secondary Content Section */}
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white p-6 rounded-lg border-2 border-teal-300 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-xl text-teal-700 flex items-center">
+                  📝 <span className="ml-2">Secondary Content</span>
+                </h4>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aboutSections.secondaryContent.enabled}
+                    onChange={(e) => setAboutSections(prev => ({
+                      ...prev,
+                      secondaryContent: { ...prev.secondaryContent, enabled: e.target.checked }
+                    }))}
+                    className="mr-2 text-teal-600"
+                  />
+                  <span className="text-teal-700 text-sm">Show Section</span>
+                </label>
+              </div>
+              {aboutSections.secondaryContent.enabled && (
+                <textarea
+                  value={aboutSections.secondaryContent.content}
+                  onChange={(e) => setAboutSections(prev => ({
+                    ...prev,
+                    secondaryContent: { ...prev.secondaryContent, content: e.target.value }
+                  }))}
+                  placeholder="Enter your secondary about page content here..."
+                  className="w-full h-32 p-3 border-2 border-teal-300 rounded-lg resize-none focus:border-teal-500 focus:outline-none"
+                />
+              )}
+            </div>
+
+            <div className="bg-white p-6 rounded-lg border-2 border-teal-300 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-xl text-teal-700 flex items-center">
+                  🖼️ <span className="ml-2">Secondary Image</span>
+                </h4>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aboutSections.secondaryImage.enabled}
+                    onChange={(e) => setAboutSections(prev => ({
+                      ...prev,
+                      secondaryImage: { ...prev.secondaryImage, enabled: e.target.checked }
+                    }))}
+                    className="mr-2 text-teal-600"
+                  />
+                  <span className="text-teal-700 text-sm">Show Section</span>
+                </label>
+              </div>
+              {aboutSections.secondaryImage.enabled && (
+                <div className="text-center p-4 border-2 border-dashed border-teal-300 rounded-lg">
+                  <p className="text-teal-600 mb-2">Secondary Image Upload</p>
+                  <p className="text-sm text-teal-500">800×600px recommended (4:3 ratio)</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -693,186 +860,289 @@ const PagesAdmin = () => {
 
       {/* Page Preview */}
       <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4">{t('pagePreview')}: {pageSlug}</h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Hero Section Preview */}
-            <div className="relative h-48 rounded-lg overflow-hidden">
-              {(() => {
-                const heroAsset = assets.find(a => a.slot === 'hero');
-                return (
-                  <>
-                    {heroAsset?.imageUrl ? (
-                      <div 
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${heroAsset.imageUrl})`,
-                        }}
-                      >
+        <h3 className="text-xl font-semibold mb-4">{t('pagePreview')}: {pageSlug}</h3>
+        
+        {pageSlug === 'home' ? (
+          // Home page preview
+          <>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Hero Section Preview */}
+              <div className="relative h-48 rounded-lg overflow-hidden">
+                {(() => {
+                  const heroAsset = assets.find(a => a.slot === 'hero');
+                  return (
+                    <>
+                      {heroAsset?.imageUrl ? (
                         <div 
-                          className="absolute inset-0"
-                          style={{ backgroundColor: `rgba(255,255,255,${heroAsset.overlay ?? 0.2})` }}
-                        />
-                        <div className="relative z-10 p-4 text-center">
-                          <h4 className="font-semibold mb-2 text-gray-800">{t('heroSection')}</h4>
-                          <p className="text-lg font-bold text-gray-900">{t('sampleTitle')}</p>
-                          <p className="text-sm text-gray-700">{t('sampleSubtitle')}</p>
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${heroAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${heroAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-4 text-center">
+                            <h4 className="font-semibold mb-2 text-gray-800">{t('heroSection')}</h4>
+                            <p className="text-lg font-bold text-gray-900">{t('sampleTitle')}</p>
+                            <p className="text-sm text-gray-700">{t('sampleSubtitle')}</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center items-center">
-                        <h4 className="font-semibold mb-2">{t('heroSection')}</h4>
-                        <p className="text-lg font-bold">{t('sampleTitle')}</p>
-                        <p className="text-sm text-gray-600">{t('sampleSubtitle')}</p>
-                        <p className="text-xs text-gray-500 mt-2">{t('noHeroImageSet')}</p>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center items-center">
+                          <h4 className="font-semibold mb-2">{t('heroSection')}</h4>
+                          <p className="text-lg font-bold">{t('sampleTitle')}</p>
+                          <p className="text-sm text-gray-600">{t('sampleSubtitle')}</p>
+                          <p className="text-xs text-gray-500 mt-2">{t('noHeroImageSet')}</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Background Preview */}
+              <div className="relative h-48 rounded-lg overflow-hidden">
+                {(() => {
+                  const bgAsset = assets.find(a => a.slot === 'background');
+                  return (
+                    <>
+                      {bgAsset?.imageUrl ? (
+                        <div 
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${bgAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${bgAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-4">
+                            <h4 className="font-semibold mb-2 text-gray-800">Page Background</h4>
+                            <p className="text-sm text-gray-900">Sample Content</p>
+                            <p className="text-xs text-gray-700">This is how content will appear over the background</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center">
+                          <h4 className="font-semibold mb-2">Page Background</h4>
+                          <p className="text-sm">Sample Content</p>
+                          <p className="text-xs text-gray-600">This is how content will appear over the background</p>
+                          <p className="text-xs text-gray-500 mt-2">No background image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
-            {/* Background Preview */}
-            <div className="relative h-48 rounded-lg overflow-hidden">
-              {(() => {
-                const bgAsset = assets.find(a => a.slot === 'background');
-                return (
-                  <>
-                    {bgAsset?.imageUrl ? (
-                      <div 
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${bgAsset.imageUrl})`,
-                        }}
-                      >
+            {/* Info Sections Preview */}
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              {/* InfoA Preview */}
+              <div className="relative h-32 rounded-lg overflow-hidden">
+                {(() => {
+                  const infoAAsset = assets.find(a => a.slot === 'infoA');
+                  return (
+                    <>
+                      {infoAAsset?.imageUrl ? (
                         <div 
-                          className="absolute inset-0"
-                          style={{ backgroundColor: `rgba(255,255,255,${bgAsset.overlay ?? 0.2})` }}
-                        />
-                        <div className="relative z-10 p-4">
-                          <h4 className="font-semibold mb-2 text-gray-800">Page Background</h4>
-                          <p className="text-sm text-gray-900">Sample Content</p>
-                          <p className="text-xs text-gray-700">This is how content will appear over the background</p>
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${infoAAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${infoAAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-3">
+                            <h4 className="font-semibold text-sm text-gray-800">InfoA Section</h4>
+                            <p className="text-xs text-gray-700">Sample content</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center">
-                        <h4 className="font-semibold mb-2">Page Background</h4>
-                        <p className="text-sm">Sample Content</p>
-                        <p className="text-xs text-gray-600">This is how content will appear over the background</p>
-                        <p className="text-xs text-gray-500 mt-2">No background image set</p>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
+                          <h4 className="font-semibold text-sm">InfoA Section</h4>
+                          <p className="text-xs text-gray-500">No image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
 
-          {/* Info Sections Preview */}
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            {/* InfoA Preview */}
-            <div className="relative h-32 rounded-lg overflow-hidden">
-              {(() => {
-                const infoAAsset = assets.find(a => a.slot === 'infoA');
-                return (
-                  <>
-                    {infoAAsset?.imageUrl ? (
-                      <div 
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${infoAAsset.imageUrl})`,
-                        }}
-                      >
+              {/* InfoB Preview */}
+              <div className="relative h-32 rounded-lg overflow-hidden">
+                {(() => {
+                  const infoBAsset = assets.find(a => a.slot === 'infoB');
+                  return (
+                    <>
+                      {infoBAsset?.imageUrl ? (
                         <div 
-                          className="absolute inset-0"
-                          style={{ backgroundColor: `rgba(255,255,255,${infoAAsset.overlay ?? 0.2})` }}
-                        />
-                        <div className="relative z-10 p-3">
-                          <h4 className="font-semibold text-sm text-gray-800">InfoA Section</h4>
-                          <p className="text-xs text-gray-700">Sample content</p>
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${infoBAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${infoBAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-3">
+                            <h4 className="font-semibold text-sm text-gray-800">InfoB Section</h4>
+                            <p className="text-xs text-gray-700">Sample content</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
-                        <h4 className="font-semibold text-sm">InfoA Section</h4>
-                        <p className="text-xs text-gray-500">No image set</p>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
+                          <h4 className="font-semibold text-sm">InfoB Section</h4>
+                          <p className="text-xs text-gray-500">No image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
-            {/* InfoB Preview */}
-            <div className="relative h-32 rounded-lg overflow-hidden">
-              {(() => {
-                const infoBAsset = assets.find(a => a.slot === 'infoB');
-                return (
-                  <>
-                    {infoBAsset?.imageUrl ? (
-                      <div 
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${infoBAsset.imageUrl})`,
-                        }}
-                      >
+            {/* Mini Section Preview */}
+            <div className="mt-6">
+              <div className="relative h-24 rounded-lg overflow-hidden">
+                {(() => {
+                  const miniAsset = assets.find(a => a.slot === 'mini');
+                  return (
+                    <>
+                      {miniAsset?.imageUrl ? (
                         <div 
-                          className="absolute inset-0"
-                          style={{ backgroundColor: `rgba(255,255,255,${infoBAsset.overlay ?? 0.2})` }}
-                        />
-                        <div className="relative z-10 p-3">
-                          <h4 className="font-semibold text-sm text-gray-800">InfoB Section</h4>
-                          <p className="text-xs text-gray-700">Sample content</p>
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${miniAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${miniAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-3">
+                            <h4 className="font-semibold text-sm text-gray-800">Mini Section</h4>
+                            <p className="text-xs text-gray-700">Promotional banner</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
-                        <h4 className="font-semibold text-sm">InfoB Section</h4>
-                        <p className="text-xs text-gray-500">No image set</p>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
+                          <h4 className="font-semibold text-sm">Mini Section</h4>
+                          <p className="text-xs text-gray-500">No image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
-          </div>
+          </>
+        ) : (
+          // About page preview
+          <>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Main Content Preview */}
+              <div className="relative h-48 rounded-lg overflow-hidden bg-gray-50 p-4">
+                <h4 className="font-semibold mb-2 text-gray-800">Main Content</h4>
+                {aboutSections.mainContent.enabled ? (
+                  <div className="text-sm text-gray-700">
+                    {aboutSections.mainContent.content || 'No content entered yet'}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">Section hidden</p>
+                )}
+              </div>
 
-          {/* Mini Section Preview */}
-          <div className="mt-6">
-            <div className="relative h-24 rounded-lg overflow-hidden">
-              {(() => {
-                const miniAsset = assets.find(a => a.slot === 'mini');
-                console.log('[DEBUG] rendering mini preview asset:', miniAsset);
-                return (
-                  <>
-                    {miniAsset?.imageUrl ? (
-                      <div 
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url(${miniAsset.imageUrl})`,
-                        }}
-                      >
+              {/* Main Image Preview */}
+              <div className="relative h-48 rounded-lg overflow-hidden">
+                {(() => {
+                  const mainImageAsset = assets.find(a => a.slot === 'mainImage');
+                  return (
+                    <>
+                      {mainImageAsset?.imageUrl ? (
                         <div 
-                          className="absolute inset-0"
-                          style={{ backgroundColor: `rgba(255,255,255,${miniAsset.overlay ?? 0.2})` }}
-                        />
-                        <div className="relative z-10 p-3">
-                          <h4 className="font-semibold text-sm text-gray-800">Mini Section</h4>
-                          <p className="text-xs text-gray-700">Promotional banner</p>
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${mainImageAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${mainImageAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-3">
+                            <h4 className="font-semibold text-sm text-gray-800">Main Image</h4>
+                            <p className="text-xs text-gray-700">About page image</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
-                        <h4 className="font-semibold text-sm">Mini Section</h4>
-                        <p className="text-xs text-gray-500">No image set</p>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
+                          <h4 className="font-semibold text-sm">Main Image</h4>
+                          <p className="text-xs text-gray-500">No image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Secondary Content Section */}
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              {/* Secondary Content Preview */}
+              <div className="relative h-32 rounded-lg overflow-hidden bg-gray-50 p-3">
+                <h4 className="font-semibold text-sm text-gray-800">Secondary Content</h4>
+                {aboutSections.secondaryContent.enabled ? (
+                  <div className="text-xs text-gray-700">
+                    {aboutSections.secondaryContent.content || 'No content entered yet'}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">Section hidden</p>
+                )}
+              </div>
+
+              {/* Secondary Image Preview */}
+              <div className="relative h-32 rounded-lg overflow-hidden">
+                {(() => {
+                  const secondaryImageAsset = assets.find(a => a.slot === 'secondaryImage');
+                  return (
+                    <>
+                      {secondaryImageAsset?.imageUrl ? (
+                        <div 
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${secondaryImageAsset.imageUrl})`,
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0"
+                            style={{ backgroundColor: `rgba(255,255,255,${secondaryImageAsset.overlay ?? 0.2})` }}
+                          />
+                          <div className="relative z-10 p-3">
+                            <h4 className="font-semibold text-sm text-gray-800">Secondary Image</h4>
+                            <p className="text-xs text-gray-700">Team photo or additional image</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 p-3 flex flex-col justify-center">
+                          <h4 className="font-semibold text-sm">Secondary Image</h4>
+                          <p className="text-xs text-gray-500">No image set</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Page selector */}
       <select
@@ -887,7 +1157,7 @@ const PagesAdmin = () => {
 
       {/* Asset cards */}
       <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-6">
-        {slots.map(slot => {
+        {currentSlots.map(slot => {
           const asset = assets.find(a => a.slot === slot);
           const dimensions = slotDimensions[slot];
           return (

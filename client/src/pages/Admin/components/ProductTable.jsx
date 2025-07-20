@@ -1,6 +1,7 @@
 import React from 'react';
 import api from '../../../api/config';
 import { useLang } from '../../../utils/lang.jsx';
+import { HOMEPAGE_SLOTS, VISIBILITIES } from '../../../utils/config';
 
 // Define the server's base URL for images, without the /api part.
 const SERVER_BASE_URL = 'http://localhost:5000';
@@ -61,12 +62,14 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
             <th className="p-2 text-left">{t('category')}</th>
             <th className="p-2 text-left">{t('price')}</th>
             <th className="p-2 text-left">{t('stock')}</th>
+            <th className="p-2 text-left">{t('placements') || 'Placements'}</th>
+            <th className="p-2 text-left">{t('visibility')}</th>
             <th className="p-2 text-left">{t('actions')}</th>
           </tr>
         </thead>
         <tbody>
           {products.length === 0 ? (
-            <tr><td colSpan={6} className="p-4 text-center text-gray-500">{t('noProductsFound') || 'No products found.'}</td></tr>
+            <tr><td colSpan={8} className="p-4 text-center text-gray-500">{t('noProductsFound') || 'No products found.'}</td></tr>
           ) : (
             products.map((product) => (
               <tr key={product._id} className="border-b">
@@ -98,6 +101,22 @@ const ProductTable = ({ products, categories, page, totalPages, onEdit, onDelete
                 </td>
                 <td className="p-2">${product.price}</td>
                 <td className="p-2">{product.stock}</td>
+                <td className="p-2">
+                  {product.placement && product.placement.length > 0 ? (
+                    <div className="text-xs">
+                      {product.placement.map((p, idx) => (
+                        <div key={idx} className="mb-1">
+                          <span className="font-medium">{p.page}:</span> {p.slot}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    product.homepageSlot || '—'
+                  )}
+                </td>
+                <td className="p-2">
+                  {product.visibility || '—'}
+                </td>
                 <td className="p-2">
                   <button
                     className="text-blue-600 hover:underline mr-2"

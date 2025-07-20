@@ -63,7 +63,8 @@ const Home = () => {
       setError('');
       try {
         const data = await fetchProducts();
-        setProducts((data.items || data.data || []).slice(0, 6));
+        // Store the full list; we'll filter by slot in the render
+        setProducts(data.items || data.data || []);
       } catch (err) {
         setError(t('failedToLoadProducts'));
       } finally {
@@ -347,7 +348,13 @@ const Home = () => {
             <div className="text-center text-red-500">{error}</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {products.slice(0, 3).map((product, i) => {
+              {products
+                .filter(p => p.visibility === 'visible' && (
+                  p.placement?.some(loc => loc.page === 'home' && loc.slot === 'featuredTop') ||
+                  p.homepageSlot === 'featuredTop'
+                ))
+                .slice(0, 3)
+                .map((product, i) => {
                 const isOutOfStock = product.stock === 0;
                 const currentQty = cartQuantities[product._id] || 0;
                 return (
@@ -454,7 +461,13 @@ const Home = () => {
             <div className="text-center text-red-500">{error}</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {products.slice(3, 6).map((product, i) => {
+              {products
+                .filter(p => p.visibility === 'visible' && (
+                  p.placement?.some(loc => loc.page === 'home' && loc.slot === 'featuredBottom') ||
+                  p.homepageSlot === 'featuredBottom'
+                ))
+                .slice(0, 3)
+                .map((product, i) => {
                 const isOutOfStock = product.stock === 0;
                 const currentQty = cartQuantities[product._id] || 0;
                 return (

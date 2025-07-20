@@ -34,6 +34,8 @@ const {
   sendNotFound, 
   sendConflict 
 } = require('../utils/responseHandler');
+const { HOMEPAGE_SLOTS } = require('../utils/config');
+const VISIBILITIES = ['visible','hidden','archived'];
 
 // @desc    Get all products with advanced pagination and filtering
 // @route   GET /api/products
@@ -175,20 +177,51 @@ router.get('/:id', validateProductId, validateRequest, async (req, res, next) =>
 // @route   POST /api/products
 // @access  Private/Admin
 router.post('/', requireAuth, requireAdmin, (req, res, next) => {
-  // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
   }
   next();
 }, validateProductCreate, validateRequest, async (req, res, next) => {
   try {
-    const { name, description, price, image, stock, category, featured, archived, discountPrice, tags } = req.body;
+    const {
+      name,
+      description,
+      price,
+      image,
+      stock,
+      category,
+      discountPrice,
+      tags,
+      homepageSlot,
+      placement,
+      visibility,
+      ...rest
+    } = req.body;
+
+    // Validate placement
+    const validPages = ['home', 'products', 'clothing-accessories', 'accessories'];
+    for (const loc of placement || []) {
+      if (!validPages.includes(loc.page)) {
+        return res.status(400).json({ message: `Invalid page: ${loc.page}` });
+      }
+      if (!loc.slot || typeof loc.slot !== 'string') {
+        return res.status(400).json({ message: `Missing or invalid slot for placement` });
+      }
+    }
+    
+    // Validate homepageSlot (legacy support)
+    if (homepageSlot && !HOMEPAGE_SLOTS.includes(homepageSlot)) {
+      return res.status(400).json({ message: `Invalid homepageSlot: ${homepageSlot}` });
+    }
+    // Validate visibility
+    if (visibility && !VISIBILITIES.includes(visibility)) {
+      return res.status(400).json({ message: `Invalid visibility: ${visibility}` });
+    }
 
     // Check if product with same name already exists
     const existingProduct = await Product.findOne({ 
       name: { $regex: new RegExp(`^${name}$`, 'i') } 
     });
-    
     if (existingProduct) {
       return sendConflict(res, 'Product');
     }
@@ -200,24 +233,21 @@ router.post('/', requireAuth, requireAdmin, (req, res, next) => {
       image,
       stock,
       category,
-      featured: featured || false,
-      archived: archived || false,
       discountPrice,
-      tags: tags || []
+      tags: tags || [],
+      placement: Array.isArray(placement) ? placement : [],
+      homepageSlot: homepageSlot || '',
+      visibility: visibility || 'visible',
+      ...rest
     });
 
     await newProduct.save();
-    
-    // Log the activity
     await ActivityLog.create({ 
       user: req.user._id, 
-      action: 'create_product', 
+      event: 'create_product', 
       description: `Created product '${newProduct.name}'` 
     });
-
-    // Invalidate related cache
     await cacheManager.invalidateByTags(['products']);
-
     return sendCreated(res, 'Product created successfully', newProduct);
   } catch (err) {
     next(err);
@@ -228,14 +258,46 @@ router.post('/', requireAuth, requireAdmin, (req, res, next) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 router.put('/:id', requireAuth, requireAdmin, (req, res, next) => {
-  // Defensive fix: ensure tags is always an array
   if (req.body.tags && !Array.isArray(req.body.tags)) {
     req.body.tags = [];
   }
   next();
 }, validateProductUpdate, validateRequest, async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const {
+      name,
+      description,
+      price,
+      image,
+      stock,
+      category,
+      discountPrice,
+      tags,
+      homepageSlot,
+      placement,
+      visibility,
+      ...rest
+    } = req.body;
+
+    // Validate placement
+    const validPages = ['home', 'products', 'clothing-accessories', 'accessories'];
+    for (const loc of placement || []) {
+      if (!validPages.includes(loc.page)) {
+        return res.status(400).json({ message: `Invalid page: ${loc.page}` });
+      }
+      if (!loc.slot || typeof loc.slot !== 'string') {
+        return res.status(400).json({ message: `Missing or invalid slot for placement` });
+      }
+    }
+    
+    // Validate homepageSlot (legacy support)
+    if (homepageSlot && !HOMEPAGE_SLOTS.includes(homepageSlot)) {
+      return res.status(400).json({ message: `Invalid homepageSlot: ${homepageSlot}` });
+    }
+    // Validate visibility
+    if (visibility && !VISIBILITIES.includes(visibility)) {
+      return res.status(400).json({ message: `Invalid visibility: ${visibility}` });
+    }
 
     // If name is being updated, check for duplicates
     if (name) {
@@ -243,15 +305,29 @@ router.put('/:id', requireAuth, requireAdmin, (req, res, next) => {
         name: { $regex: new RegExp(`^${name}$`, 'i') },
         _id: { $ne: req.params.id }
       });
-      
       if (existingProduct) {
         return sendConflict(res, 'Product');
       }
     }
 
+    const updateData = {
+      ...(name !== undefined        && { name }),
+      ...(description !== undefined && { description }),
+      ...(price !== undefined       && { price }),
+      ...(image !== undefined       && { image }),
+      ...(stock !== undefined       && { stock }),
+      ...(category !== undefined    && { category }),
+      ...(discountPrice !== undefined && { discountPrice }),
+      ...(tags !== undefined        && { tags }),
+      placement: Array.isArray(placement) ? placement : [],
+      homepageSlot: homepageSlot || '',
+      visibility: visibility || 'visible',
+      ...rest
+    };
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('category', 'name');
 
@@ -259,19 +335,14 @@ router.put('/:id', requireAuth, requireAdmin, (req, res, next) => {
       return sendNotFound(res, 'Product');
     }
 
-    // Log the activity
     await ActivityLog.create({ 
       user: req.user._id, 
-      action: 'update_product', 
+      event: 'update_product', 
       description: `Updated product '${updatedProduct.name}'` 
     });
-
-    // Invalidate caches
     await cacheManager.invalidateByTags(['products']);
     await cacheManager.delete(`product:${req.params.id}`);
-
     return sendUpdated(res, 'Product updated successfully', updatedProduct);
-    
   } catch (err) {
     next(err);
   }
@@ -300,7 +371,7 @@ router.delete('/:id', requireAuth, requireAdmin, validateProductId, validateRequ
       
       await ActivityLog.create({ 
         user: req.user._id, 
-        action: 'archive_product', 
+        event: 'archive_product', 
         description: `Archived product '${product.name}' due to being part of ${orderCount} order(s)` 
       });
 
@@ -332,7 +403,7 @@ router.delete('/:id', requireAuth, requireAdmin, validateProductId, validateRequ
       
       await ActivityLog.create({ 
         user: req.user._id, 
-        action: 'delete_product', 
+        event: 'delete_product', 
         description: `Permanently deleted product '${product.name}'` 
       });
 
@@ -593,7 +664,7 @@ router.get('/export', requireAuth, requireAdmin, async (req, res, next) => {
 
     await ActivityLog.create({ 
       user: req.user._id, 
-      action: 'export_products', 
+      event: 'export_products', 
       description: 'Exported products to CSV' 
     });
   } catch (err) {
@@ -664,7 +735,7 @@ router.post('/import', requireAuth, requireAdmin, async (req, res, next) => {
 
     await ActivityLog.create({ 
       user: req.user._id, 
-      action: 'import_products', 
+      event: 'import_products', 
       description: `Imported products from CSV (${results.success} success, ${results.failed} failed)` 
     });
 

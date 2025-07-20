@@ -95,6 +95,8 @@ export const useProductManagement = () => {
       stock: '',
       category: '',
       image: '',
+      placement: [],
+      visibility: 'visible',
       tags: [],
     });
     setIsModalOpen(true);
@@ -105,6 +107,8 @@ export const useProductManagement = () => {
     setProductForm({
       ...product,
       category: product.category?._id,
+      placement: product.placement || [],
+      visibility: product.visibility || 'visible',
       tags: product.tags || [],
     });
     setIsModalOpen(true);
@@ -128,7 +132,7 @@ export const useProductManagement = () => {
       if (productData.imageFile) {
         console.log('[useProductManagement] Starting image upload...');
         const uploadData = new FormData();
-        uploadData.append('image', productData.imageFile);
+        uploadData.append('file', productData.imageFile);
         
         // Debug: log FormData contents
         console.log('[useProductManagement] FormData contents:');
@@ -140,11 +144,12 @@ export const useProductManagement = () => {
         const response = await uploadImage(uploadData);
         console.log('[useProductManagement] uploadImage response:', response);
         
-        if (!response || !response.filePath) {
+        // The upload response has the structure: { success: true, data: { url: '...' } }
+        if (!response || !response.data || !response.data.url) {
           throw new Error(`Upload failed: ${JSON.stringify(response)}`);
         }
         
-        imageUrl = response.filePath;
+        imageUrl = response.data.url;
         console.log('[useProductManagement] Updated imageUrl from upload:', imageUrl);
       } else {
         console.log('[useProductManagement] No imageFile provided, using existing imageUrl');
@@ -157,10 +162,14 @@ export const useProductManagement = () => {
         price: productData.price,
         stock: productData.stock,
         category: productData.category,
-        image: imageUrl,
-        featured: productData.featured || false,
+        image: imageUrl || '', // Make image optional
+        placement: Array.isArray(productData.placement) ? productData.placement : [],
+        visibility: productData.visibility || 'visible',
         tags: [], // Always an array
       };
+      
+      console.log('[useProductManagement] productData.placement:', productData.placement);
+      console.log('[useProductManagement] cleanedData.placement:', cleanedData.placement);
       // Remove fields that should not be sent in update
       delete cleanedData.reviews;
       delete cleanedData.numReviews;
@@ -179,7 +188,7 @@ export const useProductManagement = () => {
       if (cleanedData.price === undefined || isNaN(Number(cleanedData.price))) throw new Error('Missing/invalid price');
       if (cleanedData.stock === undefined || isNaN(Number(cleanedData.stock))) throw new Error('Missing/invalid stock');
       if (!cleanedData.category || typeof cleanedData.category !== 'string') throw new Error('Missing/invalid category');
-      if (!cleanedData.image || typeof cleanedData.image !== 'string') throw new Error('Missing/invalid image');
+      // Remove image validation - make it optional
       
       // Ensure price and stock are numbers
       cleanedData.price = parseFloat(cleanedData.price);

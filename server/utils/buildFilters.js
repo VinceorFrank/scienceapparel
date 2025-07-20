@@ -118,6 +118,9 @@ const buildSortObject = (sortString, allowedFields = {}) => {
   return sortObject;
 };
 
+const { HOMEPAGE_SLOTS } = require('./config');
+const VISIBILITIES = ['visible','hidden','archived'];
+
 /**
  * Build advanced filters for products
  * @param {Object} query - Request query object
@@ -154,15 +157,18 @@ const buildProductFilters = (query) => {
     filters.rating = { $gte: Number(query.minRating) };
   }
 
-  // Boolean filters
-  if (query.featured !== undefined) {
-    const featuredFilter = buildBooleanFilter(query.featured, 'featured');
-    Object.assign(filters, featuredFilter);
+  // Homepage slot filter
+  if (query.slot) {
+    if (HOMEPAGE_SLOTS.includes(query.slot)) {
+      filters.homepageSlot = query.slot;
+    }
   }
 
-  if (query.archived !== undefined) {
-    const archivedFilter = buildBooleanFilter(query.archived, 'archived');
-    Object.assign(filters, archivedFilter);
+  // Visibility filter
+  if (query.visibility) {
+    if (VISIBILITIES.includes(query.visibility)) {
+      filters.visibility = query.visibility;
+    }
   }
 
   // Tag filter
@@ -178,9 +184,9 @@ const buildProductFilters = (query) => {
     Object.assign(filters, dateFilter);
   }
 
-  // Exclude archived products by default (unless specifically requested)
-  if (query.archived === undefined) {
-    filters.archived = { $ne: true };
+  // Exclude non-visible products by default (unless specifically requested)
+  if (query.visibility === undefined) {
+    filters.visibility = 'visible';
   }
 
   return filters;

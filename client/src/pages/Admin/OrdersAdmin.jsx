@@ -3,9 +3,6 @@ import useOrderManagement from '../../hooks/useOrderManagement';
 import { exportOrders } from '../../utils/exportUtils';
 import { useLang } from '../../utils/lang.jsx';
 import Modal from './components/Modal.jsx';
-import { Pie, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 import { useState } from 'react';
 
 const OrdersAdmin = () => {
@@ -136,82 +133,273 @@ const OrdersAdmin = () => {
       </div>
 
       {/* Order Details Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={selectedOrder ? `Order #${selectedOrder._id.slice(-6)}` : ''}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={selectedOrder ? `Order #${selectedOrder._id.slice(-6).toUpperCase()}` : ''}>
         {selectedOrder && (
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-            <div>
-              <h3 className="font-semibold mb-2">Customer</h3>
-              <div>{selectedOrder.user?.name} ({selectedOrder.user?.email})</div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Order Items</h3>
-              <ul className="divide-y divide-gray-200">
-                {selectedOrder.orderItems.map((item, idx) => (
-                  <li key={idx} className="py-2 flex items-center gap-2">
-                    <img src={item.image ? `http://localhost:5000/uploads/images/${item.image}` : '/placeholder.png'} alt={item.name} className="w-10 h-10 object-cover rounded border" onError={e => { e.target.src = '/placeholder.png'; }} />
-                    <div className="flex-1">
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-gray-500">Qty: {item.qty} | Price: ${item.price.toFixed(2)}</div>
-                      <div className="text-xs text-gray-400">Category: {item.product?.category?.name || item.category?.name || item.product?.category || item.category || 'Unknown'}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Shipping Address</h3>
-              <div className="text-sm text-gray-700">
-                {selectedOrder.shippingAddress?.address}, {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.postalCode}, {selectedOrder.shippingAddress?.country}
+          <div className="max-h-[95vh] overflow-y-auto p-6 bg-gradient-to-br from-yellow-50 to-blue-50">
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-blue-400 mb-2 font-fredoka">
+                    Order #{selectedOrder._id.slice(-6).toUpperCase()}
+                  </h1>
+                  <p className="text-gray-600">
+                    Placed on {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="bg-blue-200 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-300 transition-colors font-semibold"
+                >
+                  ← Close
+                </button>
               </div>
             </div>
-            <div>
-              <h3 className="font-semibold mb-2">Payment</h3>
-              <div className="text-sm">Method: {selectedOrder.paymentMethod}</div>
-              <div className="text-sm">Status: {selectedOrder.isPaid ? 'Paid' : 'Not Paid'}</div>
-              <div className="text-sm">Total: ${selectedOrder.totalPrice.toFixed(2)}</div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Category Breakdown</h3>
-              <div className="flex flex-col items-center">
-                <Pie
-                  data={{
-                    labels: getCategoryBreakdown(selectedOrder).map(d => d.category),
-                    datasets: [{
-                      data: getCategoryBreakdown(selectedOrder).map(d => d.qty),
-                      backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(34, 197, 94, 0.8)',
-                        'rgba(251, 191, 36, 0.8)',
-                        'rgba(239, 68, 68, 0.8)',
-                        'rgba(168, 85, 247, 0.8)',
-                        'rgba(244, 114, 182, 0.8)',
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(250, 204, 21, 0.8)',
-                      ],
-                    }],
-                  }}
-                  options={{
-                    plugins: { legend: { position: 'bottom' } },
-                    maintainAspectRatio: false,
-                  }}
-                  height={180}
-                />
-                <Bar
-                  data={{
-                    labels: getCategoryBreakdown(selectedOrder).map(d => d.category),
-                    datasets: [{
-                      label: 'Quantity',
-                      data: getCategoryBreakdown(selectedOrder).map(d => d.qty),
-                      backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                    }],
-                  }}
-                  options={{
-                    plugins: { legend: { display: false } },
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                  }}
-                  height={180}
-                />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Order Status */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-blue-400">Order Status</h2>
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                      selectedOrder.isPaid 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    } flex items-center gap-2`}>
+                      <span>{selectedOrder.isPaid ? '✅' : '⏳'}</span>
+                      {selectedOrder.isPaid ? 'Payment Received' : 'Awaiting Payment'}
+                    </span>
+                  </div>
+
+                  {/* Timeline */}
+                  <div className="space-y-4">
+                    {[
+                      {
+                        step: 'Order Placed',
+                        date: selectedOrder.createdAt,
+                        completed: true,
+                        icon: '📝'
+                      },
+                      {
+                        step: 'Payment Received',
+                        date: selectedOrder.isPaid ? selectedOrder.paidAt : null,
+                        completed: selectedOrder.isPaid,
+                        icon: '💳'
+                      },
+                      {
+                        step: 'Processing',
+                        date: selectedOrder.isPaid ? selectedOrder.paidAt : null,
+                        completed: selectedOrder.isPaid,
+                        icon: '📦'
+                      },
+                      {
+                        step: 'Shipped',
+                        date: selectedOrder.shipping?.shippedAt || null,
+                        completed: !!selectedOrder.shipping?.shippedAt || selectedOrder.isShipped,
+                        icon: '🚚'
+                      },
+                      {
+                        step: 'Delivered',
+                        date: selectedOrder.isDelivered ? selectedOrder.deliveredAt : null,
+                        completed: selectedOrder.isDelivered,
+                        icon: '✅'
+                      }
+                    ].map((step, index) => (
+                      <div key={index} className="flex items-center space-x-4">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          step.completed 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-200 text-gray-400'
+                        }`}>
+                          {step.completed ? '✓' : index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">{step.icon}</span>
+                              <span className={`font-medium ${
+                                step.completed ? 'text-gray-900' : 'text-gray-500'
+                              }`}>
+                                {step.step}
+                              </span>
+                            </div>
+                            {step.date && (
+                              <span className="text-sm text-gray-500">
+                                {new Date(step.date).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-6">Ordered Items</h2>
+                  <div className="space-y-4">
+                    {selectedOrder.orderItems.map((item, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <img
+                          src={item.image ? `http://localhost:5000/uploads/images/${item.image}` : '/placeholder.png'}
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            e.target.src = '/placeholder.png';
+                          }}
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900">{item.name}</h3>
+                          <p className="text-sm text-gray-500">Quantity: {item.qty}</p>
+                          <p className="text-xs text-gray-400">Category: {item.product?.category?.name || item.category?.name || item.product?.category || item.category || 'Unknown'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">${(item.price * item.qty).toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">${item.price.toFixed(2)} each</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-4">Shipping Address</h2>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="font-medium text-gray-900">{selectedOrder.shippingAddress?.address}</p>
+                    <p className="text-gray-600">
+                      {selectedOrder.shippingAddress?.postalCode} {selectedOrder.shippingAddress?.city}
+                    </p>
+                    <p className="text-gray-600">{selectedOrder.shippingAddress?.country}</p>
+                  </div>
+                </div>
+
+                {/* Customer Information */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-4">Customer Information</h2>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="font-medium text-gray-900">{selectedOrder.user?.name}</p>
+                    <p className="text-gray-600">{selectedOrder.user?.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Order Summary */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-4">Order Summary</h2>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>${selectedOrder.orderItems.reduce((sum, item) => sum + item.price * item.qty, 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax:</span>
+                      <span>${selectedOrder.taxPrice?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Shipping:</span>
+                      <span>${selectedOrder.shippingPrice?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${selectedOrder.totalPrice?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    {selectedOrder.isPaid && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Paid:</span>
+                        <span>{selectedOrder.paidAt ? new Date(selectedOrder.paidAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : 'N/A'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Information */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-4">Payment Information</h2>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Method:</span>
+                      <span>{selectedOrder.paymentMethod || 'Not specified'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span className={`font-medium ${selectedOrder.isPaid ? 'text-green-600' : 'text-red-600'}`}>
+                        {selectedOrder.isPaid ? 'Paid' : 'Not Paid'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Admin Actions */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleUpdateStatus(selectedOrder._id, { isShipped: !selectedOrder.isShipped })}
+                    className={`w-full px-6 py-3 font-bold rounded-2xl shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+                      selectedOrder.isShipped
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                        : 'bg-green-500 hover:bg-green-600 text-white'
+                    }`}
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
+                  >
+                    {selectedOrder.isShipped ? '🔄 Mark as Pending' : '📦 Mark as Shipped'}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleUpdateStatus(selectedOrder._id, { isPaid: !selectedOrder.isPaid })}
+                    className={`w-full px-6 py-3 font-bold rounded-2xl shadow-md transition-all duration-300 transform hover:-translate-y-1 ${
+                      selectedOrder.isPaid
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    }`}
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
+                  >
+                    {selectedOrder.isPaid ? '❌ Mark as Unpaid' : '✅ Mark as Paid'}
+                  </button>
+
+                  <button
+                    onClick={() => alert('Invoice download coming soon!')}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-100 via-blue-300 to-white text-blue-700 font-bold rounded-2xl shadow-md hover:from-blue-200 hover:to-blue-400 hover:text-blue-800 transition-all duration-300 transform hover:-translate-y-1"
+                    style={{ fontFamily: 'Fredoka One, cursive' }}
+                  >
+                    📄 Download Invoice
+                  </button>
+                </div>
+
+                {/* Category Breakdown */}
+                <div className="bg-white rounded-lg shadow-sm border border-blue-100 p-6">
+                  <h2 className="text-xl font-semibold text-blue-400 mb-4">Category Breakdown</h2>
+                  <div className="space-y-4">
+                    {getCategoryBreakdown(selectedOrder).map((item, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span className="font-medium">{item.category}</span>
+                        <span className="text-blue-600 font-bold">{item.qty}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

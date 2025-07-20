@@ -1,0 +1,10 @@
+// Export all insight components for easy importing
+export { default as ChartSection } from './ChartSection';
+export { default as StatCard } from './StatCard';
+export { default as ExportButton } from './ExportButton';
+export { default as TimeRangeSelector } from './filters/TimeRangeSelector';
+export { default as LegendLabel } from './LegendLabel';
+export { default as ChartContainer } from './ChartContainer';
+export { default as InsightsSummary } from './InsightsSummary';
+export { default as InsightsNavPanel } from './InsightsNavPanel';
+export { default as InsightsDemo } from './InsightsDemo'; 

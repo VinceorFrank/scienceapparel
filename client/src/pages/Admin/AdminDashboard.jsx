@@ -18,6 +18,7 @@ import DashboardMetrics from "../../components/DashboardMetrics";
 import SalesChart from "./components/SalesChart";
 import RevenueChart from './components/RevenueChart';
 import InsightsCharts from './components/InsightsCharts';
+import SummaryDashboard from './SummaryDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { fetchRecentOrders, fetchStockAlerts, fetchCustomerActivity } from '../../api/dashboard';
 import { useDashboardMetrics } from '../../hooks/useDashboardMetrics.js';
@@ -79,6 +80,12 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
+      title: 'Executive Summary',
+      description: 'Key performance indicators for leaders',
+      icon: ChartBarIcon,
+      onClick: () => handleTabChange('summary')
+    },
+    {
       title: 'Add Product',
       description: 'Create a new product listing',
       icon: ShoppingBagIcon,
@@ -124,6 +131,7 @@ const AdminDashboard = () => {
 
   const tabs = [
     { id: 'overview', name: t('overview'), icon: ChartBarIcon },
+    { id: 'summary', name: '📊 Executive Summary', icon: ChartBarIcon },
     { id: 'analytics', name: t('advancedAnalytics'), icon: ArrowTrendingUpIcon },
     { id: 'insights', name: t('businessInsights'), icon: DocumentTextIcon }
   ];
@@ -203,25 +211,47 @@ const AdminDashboard = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {quickActions.map((action) => (
-                  <Link
-                    key={action.title}
-                    to={action.link}
-                    className="group bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-pink-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-                  >
-                    <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <action.icon className="h-8 w-8 text-white" />
+                  action.onClick ? (
+                    <button
+                      key={action.title}
+                      onClick={action.onClick}
+                      className="group bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-pink-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                    >
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                          <action.icon className="h-8 w-8 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-slate-700 mb-2" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                            {action.title}
+                          </h3>
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {action.description}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-slate-700 mb-2" style={{ fontFamily: 'Fredoka One, cursive' }}>
-                          {action.title}
-                        </h3>
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                          {action.description}
-                        </p>
+                    </button>
+                  ) : (
+                    <Link
+                      key={action.title}
+                      to={action.link}
+                      className="group bg-gradient-to-br from-pink-100 via-blue-100 to-white rounded-3xl shadow-xl p-6 lg:p-8 border border-pink-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                    >
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                          <action.icon className="h-8 w-8 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-slate-700 mb-2" style={{ fontFamily: 'Fredoka One, cursive' }}>
+                            {action.title}
+                          </h3>
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {action.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  )
                 ))}
               </div>
             </div>
@@ -305,6 +335,14 @@ const AdminDashboard = () => {
               <div className="p-6">
                 <InsightsCharts />
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'summary' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-100">
+              <SummaryDashboard />
             </div>
           </div>
         )}

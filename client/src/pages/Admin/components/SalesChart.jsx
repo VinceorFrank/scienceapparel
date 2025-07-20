@@ -41,19 +41,19 @@ const SalesChart = () => {
         const response = await api.get('/dashboard/sales-chart');
         const salesData = response.data?.data?.salesData || [];
         if (salesData.length) {
-          const labels = salesData.map(d => d._id);
-          const data = salesData.map(d => d.totalRevenue);
+          const labels = salesData.map((d, index) => ({ id: index, value: d._id }));
+          const data = salesData.map((d, index) => ({ id: index, value: d.totalRevenue }));
 
           // Debug: Log chart labels and data
           console.log('SalesChart labels:', labels);
           console.log('SalesChart data:', data);
 
           setChartData({
-            labels,
+            labels: labels.map(l => l.value),
             datasets: [
               {
                 label: t('dailySales'),
-                data: data,
+                data: data.map(d => d.value),
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 tension: 0.1,

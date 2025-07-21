@@ -47,6 +47,7 @@ import Orders from "./pages/Orders";
 import { CartProvider } from './components/CartContext';
 import PagesAdmin from "./pages/Admin/PagesAdmin";
 import TestComponent from "./pages/Admin/TestComponent";
+import ProductPlacementPreview from "./pages/Admin/ProductPlacementPreview";
 
 
 const App = () => {
@@ -119,6 +120,7 @@ const App = () => {
       <Route path="shipping" element={<ShippingAdmin />} />
       <Route path="pages" element={<PagesAdmin />} />
       <Route path="test" element={<TestComponent />} />
+      <Route path="/admin/preview-product-placement" element={<ProductPlacementPreview />} />
     </Route>
   </Route>
         </Routes>

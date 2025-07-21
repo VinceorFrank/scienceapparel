@@ -129,14 +129,6 @@ const createRateLimiter = (config, limitType) => {
     keyGenerator: generateKey,
     skip: shouldSkipRateLimit,
     handler: (req, res, options) => handleRateLimitExceeded(req, res, { ...options, limitType }),
-    onLimitReached: (req, res, options) => {
-      logger.warn('Rate limit reached', {
-        ip: req.ip,
-        path: req.path,
-        limitType,
-        limit: options.max
-      });
-    }
   });
 };
 

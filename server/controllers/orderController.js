@@ -73,6 +73,7 @@ const createOrder = async (orderData, user) => {
   // Log activity
   await ActivityLog.create({
     user: user._id,
+    event: 'create_order',
     action: 'create_order',
     description: `Created new order ${order._id}`,
     event: AUDIT_EVENTS.ORDER_CREATED,
@@ -305,6 +306,7 @@ const updateOrderStatus = async (orderId, updateData, user) => {
   // Log activity
   await ActivityLog.create({
     user: user._id,
+    event: 'update_order_status',
     action: 'update_order_status',
     description: `Updated order ${orderId} status`,
     event: AUDIT_EVENTS.ORDER_UPDATED,
@@ -354,6 +356,7 @@ const cancelOrder = async (orderId, reason, user) => {
   // Log activity
   await ActivityLog.create({
     user: user._id,
+    event: 'cancel_order',
     action: 'cancel_order',
     description: `Cancelled order ${orderId}: ${reason}`,
     event: AUDIT_EVENTS.ORDER_CANCELLED,
@@ -424,6 +427,7 @@ const addReview = async (orderId, reviewData, user) => {
   // Log activity
   await ActivityLog.create({
     user: user._id,
+    event: 'add_review',
     action: 'add_review',
     description: `Added review for product ${productId}`,
     event: 'review_added',

@@ -77,6 +77,7 @@ const createPaymentIntent = async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'create_payment_intent',
       action: 'create_payment_intent',
       description: `Created payment intent for order ${order._id}`,
       ipAddress: req.ip
@@ -167,6 +168,7 @@ const confirmPayment = async (req, res) => {
       // Log activity
       await ActivityLog.create({
         user: payment.customer,
+        event: 'payment_succeeded',
         action: 'payment_succeeded',
         description: `Payment succeeded for order ${payment.order._id}`,
         ipAddress: req.ip
@@ -183,6 +185,7 @@ const confirmPayment = async (req, res) => {
       
       await ActivityLog.create({
         user: payment.customer,
+        event: 'payment_cancelled',
         action: 'payment_cancelled',
         description: `Payment cancelled for order ${payment.order._id}`,
         ipAddress: req.ip
@@ -194,6 +197,7 @@ const confirmPayment = async (req, res) => {
       
       await ActivityLog.create({
         user: payment.customer,
+        event: 'payment_failed',
         action: 'payment_failed',
         description: `Payment failed for order ${payment.order._id}`,
         ipAddress: req.ip
@@ -423,6 +427,7 @@ const processRefund = async (req, res) => {
     // Log activity
     await ActivityLog.create({
       user: req.user._id,
+      event: 'process_refund',
       action: 'process_refund',
       description: `Refunded ${refundAmount} for payment ${paymentId}`,
       ipAddress: req.ip

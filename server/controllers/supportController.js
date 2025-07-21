@@ -55,8 +55,9 @@ const getAllTickets = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
+      user: req.user?._id || null,
+      event: 'view_support_tickets',
       action: 'VIEW_SUPPORT_TICKETS',
-      user: req.user._id,
       description: `Viewed support tickets with filters: ${JSON.stringify(filter)}`,
       ipAddress: req.ip
     });
@@ -91,8 +92,9 @@ const getTicketById = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
+      user: req.user?._id || null,
+      event: 'view_support_ticket',
       action: 'VIEW_SUPPORT_TICKET',
-      user: req.user._id,
       description: `Viewed support ticket: ${ticket._id}`,
       ipAddress: req.ip
     });
@@ -143,8 +145,9 @@ const createTicket = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
-      action: 'CREATE_SUPPORT_TICKET',
       user: req.user?._id || null,
+      event: 'create_support_ticket',
+      action: 'CREATE_SUPPORT_TICKET',
       description: `New support ticket created: ${ticket._id} by ${customerEmail}`,
       ipAddress: req.ip
     });
@@ -190,8 +193,9 @@ const updateTicket = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
-      action: 'UPDATE_SUPPORT_TICKET',
       user: req.user._id,
+      event: 'update_support_ticket',
+      action: 'UPDATE_SUPPORT_TICKET',
       description: `Updated support ticket: ${ticket._id} - Status: ${status}, Priority: ${priority}`,
       ipAddress: req.ip
     });
@@ -241,8 +245,9 @@ const addResponse = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
-      action: 'ADD_SUPPORT_RESPONSE',
       user: req.user._id,
+      event: 'add_support_response',
+      action: 'ADD_SUPPORT_RESPONSE',
       description: `Added response to support ticket: ${ticket._id}`,
       ipAddress: req.ip
     });
@@ -269,8 +274,9 @@ const deleteTicket = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
-      action: 'DELETE_SUPPORT_TICKET',
       user: req.user._id,
+      event: 'delete_support_ticket',
+      action: 'DELETE_SUPPORT_TICKET',
       description: `Deleted support ticket: ${id}`,
       ipAddress: req.ip
     });
@@ -340,8 +346,9 @@ const bulkUpdateTickets = async (req, res) => {
 
     // Log activity
     await ActivityLog.create({
-      action: 'BULK_UPDATE_SUPPORT_TICKETS',
       user: req.user._id,
+      event: 'bulk_update_support_tickets',
+      action: 'BULK_UPDATE_SUPPORT_TICKETS',
       description: `Bulk updated ${ticketIds.length} support tickets`,
       ipAddress: req.ip
     });

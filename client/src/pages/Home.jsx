@@ -174,10 +174,12 @@ const Home = () => {
     <div 
       className="flex flex-col min-h-screen w-full overflow-hidden"
       style={{
-                    backgroundImage: background?.imageUrl ? `url(${background?.imageUrl})` : undefined,
+        backgroundImage: background?.imageUrl
+          ? `url(${background.imageUrl})`
+          : 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
+        backgroundAttachment: 'fixed',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
       }}
     >
       {background?.imageUrl && (

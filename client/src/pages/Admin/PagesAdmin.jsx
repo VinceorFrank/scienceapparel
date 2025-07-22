@@ -69,6 +69,12 @@ const slotDimensions = {
     recommended: '800×600px',
     aspectRatio: '4:3',
     description: 'secondaryImageDescription'
+  },
+  // Add to slotDimensions
+  'sitewide-background': {
+    recommended: '1920×1080px',
+    aspectRatio: '16:9',
+    description: 'Global background image for all pages (appears behind everything)'
   }
 };
 
@@ -126,7 +132,8 @@ const PagesAdmin = () => {
     }
   }, [siteBackground, customBackgroundColor]);
 
-  const { data = [], isLoading, error } = useQuery({
+  // Fetch both current page and global assets
+  const { data: pageAssets = [], isLoading: isLoadingPage, error: errorPage } = useQuery({
     queryKey: ['pageAssets', pageSlug],
     queryFn: async () => {
       const response = await fetch(`/api/pages/${pageSlug}`);
@@ -138,6 +145,22 @@ const PagesAdmin = () => {
     },
     keepPreviousData: true,
   });
+  const { data: globalAssets = [], isLoading: isLoadingGlobal, error: errorGlobal } = useQuery({
+    queryKey: ['pageAssets', 'global'],
+    queryFn: async () => {
+      const response = await fetch(`/api/pages/global`);
+      if (!response.ok) {
+        // If not found, just return empty array
+        return [];
+      }
+      const result = await response.json();
+      return Array.isArray(result) ? result : [];
+    },
+    keepPreviousData: true,
+  });
+  const isLoading = isLoadingPage || isLoadingGlobal;
+  const error = errorPage || errorGlobal;
+  const assets = [...(Array.isArray(pageAssets) ? pageAssets : []), ...(Array.isArray(globalAssets) ? globalAssets : [])];
 
   const upsert = useMutation({
     mutationFn: upsertPageAsset,
@@ -154,7 +177,8 @@ const PagesAdmin = () => {
     
     const fd = new FormData();
     fd.append('file', file);
-    fd.append('pageSlug', pageSlug);
+    // Use pageSlug 'global' for sitewide-background, otherwise use current pageSlug
+    fd.append('pageSlug', slot === 'sitewide-background' ? 'global' : pageSlug);
     fd.append('slot', slot);
     upsert.mutate(fd);
   };
@@ -162,7 +186,6 @@ const PagesAdmin = () => {
   if (isLoading) return <div className="p-6"><p>{t('loading')}</p></div>;
   if (error) return <div className="p-6"><p>{t('error')}: {error.message}</p></div>;
 
-  const assets = Array.isArray(data) ? data : [];
   const currentSlots = getSlotsForPage(pageSlug);
 
   return (
@@ -861,6 +884,36 @@ const PagesAdmin = () => {
       {/* Page Preview */}
       <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
         <h3 className="text-xl font-semibold mb-4">{t('pagePreview')}: {pageSlug}</h3>
+        {/* Site-wide Background Preview */}
+        {(() => {
+          const globalBgAsset = assets.find(a => a.slot === 'sitewide-background' && a.pageSlug === 'global');
+          return (
+            <div className="relative h-48 rounded-lg overflow-hidden mb-6">
+              {globalBgAsset?.imageUrl ? (
+                <div
+                  className="w-full h-full bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${globalBgAsset.imageUrl})`,
+                  }}
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: `rgba(255,255,255,${globalBgAsset.overlay ?? 0.2})` }}
+                  />
+                  <div className="relative z-10 p-4 text-center">
+                    <h4 className="text-lg font-semibold mb-2 text-gray-800">Site-wide Background</h4>
+                    <p className="text-sm text-gray-900">This is the global background image for all pages</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full bg-gray-100 p-4 flex flex-col justify-center items-center">
+                  <h4 className="text-lg font-semibold mb-2">Site-wide Background</h4>
+                  <p className="text-sm text-gray-500">No site-wide background set</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
         
         {pageSlug === 'home' ? (
           // Home page preview
@@ -1156,7 +1209,71 @@ const PagesAdmin = () => {
       </select>
 
       {/* Asset cards */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-6">
+      <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
+        {/* Site-wide Background Upload Card */}
+        {(() => {
+          const asset = assets.find(a => a.slot === 'sitewide-background' && a.pageSlug === 'global');
+          const dimensions = slotDimensions['sitewide-background'];
+          return (
+            <PastelCard key="sitewide-background" className="relative p-6 border-4 border-indigo-300">
+              <h2 className="text-lg font-semibold mb-4 capitalize">Site-wide Background</h2>
+              <div className="bg-blue-100 border-2 border-blue-300 rounded-lg p-3 mb-4">
+                <h4 className="font-bold text-blue-800 mb-2 text-sm">📏 Recommended Size:</h4>
+                <p className="text-blue-700 text-sm">{dimensions.recommended} ({dimensions.aspectRatio} ratio)</p>
+                <p className="text-blue-600 text-xs mt-1">{dimensions.description}</p>
+              </div>
+              {asset ? (
+                <>
+                  <img
+                    src={asset.imageUrl}
+                    alt={asset.alt}
+                    className="w-full h-40 object-cover rounded-lg mb-3"
+                  />
+                  {/* Overlay Control */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Overlay Opacity: {asset.overlay ?? 0.2}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={asset.overlay ?? 0.2}
+                      onChange={e => {
+                        const fd = new FormData();
+                        fd.append('pageSlug', 'global');
+                        fd.append('slot', 'sitewide-background');
+                        fd.append('overlay', e.target.value);
+                        upsert.mutate(fd);
+                      }}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0%</span>
+                      <span>50%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => remove.mutate(asset._id)}
+                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm italic text-gray-500 mb-3">No image yet</p>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => handleFile('sitewide-background', e)}
+                className="mt-3 w-full text-sm"
+              />
+            </PastelCard>
+          );
+        })()}
         {currentSlots.map(slot => {
           const asset = assets.find(a => a.slot === slot);
           const dimensions = slotDimensions[slot];

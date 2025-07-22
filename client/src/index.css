@@ -47,8 +47,10 @@ section[id] {
 
 /* Custom Beige Background Gradient */
 body {
-  background: linear-gradient(135deg, #fefefe 0%, #fafaf0 25%, #fdfcf7 50%, #fefdfa 75%, #fffef8 100%);
+  background: linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8);
   background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
   min-height: 100vh;
   margin: 0;
   font-family: 'Fredoka One', cursive, system-ui, Avenir, Helvetica, Arial, sans-serif;

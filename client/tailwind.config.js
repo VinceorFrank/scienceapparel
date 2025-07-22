@@ -29,6 +29,10 @@ export default {
           yellow: '#FFF7AE',
           green: '#CFFFB3',
         },
+        'light-pink': '#FB9EBB',
+        'light-yellow': '#F3F3AB',
+        'aqua': '#A4D4DC',
+        'light-peach': '#F4CEB8',
       },
       backgroundImage: {
         'hero': "url('/img/hero-desktop.jpg')",

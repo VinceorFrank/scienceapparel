@@ -7,7 +7,15 @@ const AdminLayout = () => {
   const { lang, setLang, t } = useLang();
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-green-50 via-yellow-50 to-white relative">
+    <div
+      className="min-h-screen flex relative"
+      style={{
+        backgroundImage: 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
+        backgroundAttachment: 'fixed',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       {/* Memphis shapes as SVG background */}
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{zIndex:0}}>
         <circle cx="80" cy="80" r="40" fill="#FFB6C1" opacity="0.2"/>

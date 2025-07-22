@@ -74,35 +74,28 @@ const ProductImageUpload = ({ onImageChange, initialImageUrl }) => {
       <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
       <div
         {...getRootProps()}
-        className={`relative w-full p-4 border-2 border-dashed rounded-lg text-center cursor-pointer
-        ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+        className="flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-blue-100 to-yellow-100 border-4 border-blue-300 rounded-2xl shadow-xl p-6 my-4 transition-all duration-200 hover:border-pink-400 hover:scale-105 cursor-pointer relative"
       >
         <input {...getInputProps()} />
+        <span className="font-bold text-lg text-blue-500 mb-2" style={{ fontFamily: 'Fredoka One, cursive' }}>
+          Drag & drop an image here, or click to select one
+        </span>
+        {/* Show preview or placeholder */}
         {preview ? (
-          <div className="relative w-full h-48">
-            <img 
-              src={preview} 
-              alt="Product Preview" 
-              className="w-full h-full object-contain rounded-lg"
-              onLoad={() => console.log('[ProductImageUpload] Preview image loaded successfully')}
-              onError={(e) => console.error('[ProductImageUpload] Preview image failed to load:', e)}
-            />
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 leading-none text-xs font-bold shadow-lg"
-              aria-label="Remove image"
-            >
-              &times;
-            </button>
-          </div>
+          <img
+            src={preview}
+            alt="Product Preview"
+            className="w-32 h-32 object-cover rounded-xl border-2 border-pink-300 shadow-md"
+          />
         ) : (
-          isDragActive ? (
-            <p>Drop the image here ...</p>
-          ) : (
-            <p>Drag 'n' drop an image here, or click to select one</p>
-          )
+          <div className="w-32 h-32 flex items-center justify-center bg-white bg-opacity-60 rounded-xl border-2 border-dashed border-blue-200">
+            <span className="text-pink-400 font-bold text-2xl">+</span>
+          </div>
         )}
+        {/* Memphis squiggle SVG */}
+        <svg className="absolute bottom-2 right-2 w-8 h-8 opacity-30" viewBox="0 0 32 32">
+          <path d="M2 16 Q8 8 16 16 T30 16" stroke="#f472b6" strokeWidth="2" fill="none"/>
+        </svg>
       </div>
     </div>
   );

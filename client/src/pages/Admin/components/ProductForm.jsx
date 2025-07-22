@@ -107,33 +107,16 @@ const ProductForm = ({
   const PLACEMENT_OPTIONS = {
     home: [
       'featuredTop',
-      'featuredBottom', 
-      'categoryClothing',
-      'categoryAccessories',
-      'newArrivals',
-      'trending',
-      'specialOffer'
+      'featuredBottom'
     ],
     products: [
-      'featured',
-      'newArrivals',
-      'trending',
-      'bestSellers',
-      'onSale'
+      'featured'
     ],
     'clothing-accessories': [
-      'featured',
-      'newArrivals',
-      'trending',
-      'bestSellers',
-      'onSale'
+      'featured'
     ],
     accessories: [
-      'featured',
-      'newArrivals', 
-      'trending',
-      'bestSellers',
-      'onSale'
+      'featured'
     ]
   };
 

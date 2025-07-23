@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PastelCard from "../components/PastelCard";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
 import { addCartItem, getCart } from "../api/cart";
 import { fetchProducts } from "../api/products";
 import { toast } from 'react-toastify';
@@ -145,7 +144,6 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-white py-12 px-4">
-      <Header />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-6 text-center" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
           {t('ourProducts')}

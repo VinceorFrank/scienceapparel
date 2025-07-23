@@ -13,6 +13,26 @@ const Header = () => {
   const { lang, setLang, t } = useLang();
   const navigate = useNavigate();
   const { cartCount } = useCartContext();
+  const [isHeaderVisible, setHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY < 50) {
+        setHeaderVisible(true);
+        setLastScrollY(window.scrollY);
+        return;
+      }
+      if (window.scrollY > lastScrollY) {
+        setHeaderVisible(false); // scrolling down
+      } else {
+        setHeaderVisible(true); // scrolling up
+      }
+      setLastScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
   
   // Debug logging
   console.log('[Header] Current cartCount:', cartCount);
@@ -62,32 +82,31 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-30 bg-gradient-to-r from-pink-100 via-blue-100 to-white shadow-lg border-b-2 border-pink-200">
-      <div className="flex justify-between items-center px-4 py-3 rounded-b-3xl shadow-md bg-white/80 backdrop-blur-md mx-2 mt-2 border border-blue-100">
-        {/* Left side - Hamburger menu */}
-        <div className="flex items-center gap-2 text-blue-400 w-16">
-          <button
-            onClick={() => setMenuOpen(!isMenuOpen)}
-            className="rounded-full bg-pink-200 p-2 border border-pink-300 shadow hover:bg-pink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2"
-            aria-label="Open menu"
-          >
-            <FiMenu size={22} />
-          </button>
-        </div>
+    <header className={`fixed top-0 left-0 w-full z-30 transition-transform duration-300 ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+      {/* Floating Large Logo with Fade Animation */}
+      <div className="absolute top-2 left-4 z-50">
+        <img
+          src="/src/assets/logo-boutique.png"
+          alt="Boutique Logo"
+          className="h-80 w-auto rounded-full shadow-xl border-4 border-white animate-fade-in"
+          style={{ animationDuration: '1.2s', animationTimingFunction: 'ease-out' }}
+        />
+      </div>
 
-        {/* Center - Logo */}
-        <div className="flex-1 flex justify-center">
-          <div className="font-bold text-2xl" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', letterSpacing: '1px' }}>
-            LOGO
-          </div>
-        </div>
+      {/* Thin Full-Width Header Bar */}
+      <div className="flex justify-between items-center h-12 px-4 rounded-b-2xl shadow bg-white/80 backdrop-blur-md w-full border border-blue-100 z-20">
+        {/* Hamburger Only */}
+        <button
+          onClick={() => setMenuOpen(!isMenuOpen)}
+          className="rounded-full bg-pink-200 p-2 border border-pink-300 shadow hover:bg-pink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2"
+          aria-label="Open menu"
+        >
+          <FiMenu size={22} />
+        </button>
 
-        {/* Right side - Icons, AuthBadge, and Language Toggle */}
-        <div className="flex items-center gap-3 justify-end">
-          {/* AuthBadge - shows when logged in */}
+        {/* Right-Aligned Icons */}
+        <div className="flex items-center gap-3 justify-end ml-auto">
           <AuthBadge />
-          
-          {/* Search Icon */}
           <button
             onClick={() => setSearchExpanded(!isSearchExpanded)}
             className="text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
@@ -95,19 +114,15 @@ const Header = () => {
           >
             <FiSearch size={26} />
           </button>
-
-          {/* User Icon - only show when not logged in */}
           {!isLoggedIn && (
-                      <button
-            onClick={() => setUserPopupOpen(!isUserPopupOpen)}
-            className="text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
-            aria-label="User menu"
-          >
+            <button
+              onClick={() => setUserPopupOpen(!isUserPopupOpen)}
+              className="text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
+              aria-label="User menu"
+            >
               <FiUser size={26} />
             </button>
           )}
-
-          {/* Cart Icon with Badge */}
           <button
             onClick={handleCartClick}
             className="relative text-blue-400 hover:text-pink-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2 rounded"
@@ -120,8 +135,6 @@ const Header = () => {
               </span>
             )}
           </button>
-
-          {/* Language Toggle */}
           <button
             onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
             className="px-4 py-1 rounded-full bg-pink-200 text-blue-700 font-bold border-2 border-pink-300 hover:bg-pink-300 shadow transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pastel-pink focus-visible:ring-offset-2"

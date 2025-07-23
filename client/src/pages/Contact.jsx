@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { FiMail, FiPhone, FiMapPin, FiClock } from 'react-icons/fi';
-import Header from '../components/Header';
 import { useLang } from '../utils/lang';
 
 const Contact = () => {
@@ -66,7 +65,6 @@ const Contact = () => {
 
   return (
     <div className="flex flex-col min-h-screen w-full overflow-hidden">
-      <Header />
       
       <main className="flex-1 mt-28 px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}

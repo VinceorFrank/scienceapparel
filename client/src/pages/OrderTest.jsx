@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
 import { getOrderById } from '../api/orders';
 
 const OrderTest = () => {
@@ -97,7 +96,6 @@ const OrderTest = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-white">
-      <Header />
       
       <div className="max-w-6xl mx-auto p-6 mt-28">
         <div className="text-center mb-8">

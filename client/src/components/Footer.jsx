@@ -26,8 +26,12 @@ const Footer = () => {
   return (
     <footer className="w-full bg-gradient-to-r from-pink-100 via-blue-100 to-white py-10 border-t-2 border-pink-200 mt-8">
       <div className="flex flex-col items-center justify-center px-6 max-w-2xl mx-auto rounded-3xl shadow-lg bg-white/80 backdrop-blur-md border border-blue-100 py-8 mb-6">
-        <div className="font-bold text-2xl mb-2" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED', letterSpacing: '1px' }}>
-          LOGO
+        <div className="logo flex items-center justify-center my-6">
+          <img
+            src="/src/assets/logo-boutique.png"
+            alt="Boutique Logo"
+            className="h-24 w-auto rounded-full"
+          />
         </div>
         <p className="mb-2 text-blue-500 font-semibold">{t('contactUsAt')} <span className="underline">info@example.com</span></p>
         {/* Address */}

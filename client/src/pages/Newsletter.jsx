@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Header from "../components/Header";
 import { useLang } from "../utils/lang";
 
 const Newsletter = () => {
@@ -32,7 +31,6 @@ const Newsletter = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-white py-12 px-4">
-      <Header />
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-extrabold mb-8 text-center" style={{ fontFamily: 'Fredoka One, cursive', color: '#6DD5ED' }}>
           {t('stayConnected')}

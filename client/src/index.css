@@ -47,6 +47,7 @@ section[id] {
 
 /* Custom Beige Background Gradient */
 body {
+  overflow-x: hidden;
   background: linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8);
   background-attachment: fixed;
   background-size: cover;

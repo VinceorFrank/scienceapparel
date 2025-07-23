@@ -15,20 +15,24 @@ const Layout = ({ children }) => {
   const bg = globalBg || allAssets.find(a => a.slot === 'background');
 
   return (
-    <div
-      className="min-h-screen w-full"
-      style={{
-        backgroundImage: bg?.imageUrl 
-          ? `url(${bg.imageUrl})` 
-          : 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
-        backgroundAttachment: 'fixed',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center center',
-        width: '100vw',
-        minHeight: '100vh',
-      }}
-    >
+    <div className="min-h-screen w-full relative overflow-x-hidden">
+      {/* Fixed background layer */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          width: '100vw',
+          height: '100vh',
+          backgroundImage: bg?.imageUrl
+            ? `url(${bg.imageUrl})`
+            : 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
+          backgroundAttachment: 'fixed',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center center',
+        }}
+      />
       <div className="flex flex-col min-h-screen" style={{ backgroundColor: bg ? `rgba(255,255,255,${bg.overlay ?? 0.2})` : undefined }}>
         <Header />
         <main className="flex-1 container mx-auto p-4">

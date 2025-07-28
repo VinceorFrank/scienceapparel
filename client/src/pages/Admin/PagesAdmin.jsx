@@ -16,7 +16,7 @@ const getSlotsForPage = (pageSlug) => {
   }
   return [];
 };
-const pages = ['home', 'about'];
+const pages = ['home', 'about', 'account', 'cart', 'shipping', 'admin'];
 
 // Slot dimensions configuration
 const slotDimensions = {

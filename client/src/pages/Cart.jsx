@@ -12,6 +12,7 @@ import {
 import { fetchProducts } from "../api/products";
 import ShippingCalculator from "../components/ShippingCalculator";
 import { useLang } from "../utils/lang";
+import PageLayout from '../components/PageLayout';
 
 const getGuestCart = () => {
   try {
@@ -198,7 +199,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-gradient-to-b from-pink-50 via-blue-50 to-white overflow-x-hidden">
+    <PageLayout slug="cart">
       {/* Header */}
       <header className="text-center py-8">
         <h1 className="text-3xl md:text-4xl font-bold font-fredoka tracking-tight mb-2 text-blue-400">{t('cart')}</h1>
@@ -459,7 +460,7 @@ const Cart = () => {
       </main>
 
       {/* Single Footer at the bottom */}
-    </div>
+    </PageLayout>
   );
 };
 

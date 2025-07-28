@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import ShippingCalculator from "../components/ShippingCalculator";
 import { getTestOrderId } from '../utils/testUtils';
 import { useLang } from '../utils/lang';
+import PageLayout from '../components/PageLayout';
 
 const Shipping = () => {
   const { t } = useLang();
@@ -255,99 +256,7 @@ const Shipping = () => {
     );
   }
 
-  return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">{t('shipping')}</h1>
-      
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          {successMessage}
-        </div>
-      )}
-      
-      {/* Address Selection */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">{t('shippingAddress')}</h2>
-        {addresses.length === 0 ? (
-          <div className="text-gray-500 mb-4">{t('noAddressesSaved')}</div>
-        ) : (
-                      <div className="text-green-600 mb-4">
-              {addresses.filter(a => a.type === 'shipping').length} {t('addressesSaved')}
-            </div>
-        )}
-        <div className="space-y-3 mb-4">
-          {addresses.filter(a => a.type === 'shipping').map(address => (
-            <div
-              key={address._id}
-              className={`flex items-center justify-between p-3 rounded border cursor-pointer ${selectedAddressId === address._id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
-              onClick={() => handleSelectAddress(address._id)}
-            >
-              <div>
-                <div className="font-medium">{address.firstName} {address.lastName}</div>
-                <div className="text-sm text-gray-600">{address.address}, {address.city}, {address.state || address.province}, {address.postalCode}, {address.country}</div>
-                {address.isDefault && <span className="text-xs text-blue-600">{t('defaultAddress')}</span>}
-              </div>
-              <div className="flex space-x-2">
-                <button onClick={e => { e.stopPropagation(); handleEditAddress(address); }} className="text-blue-600 hover:underline">{t('edit')}</button>
-                <button onClick={e => { e.stopPropagation(); handleDeleteAddress(address._id); }} className="text-red-500 hover:underline">{t('delete')}</button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => { setShowAddressForm(true); setEditingAddress(null); }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          {t('addAddress')}
-        </button>
-        {showAddressForm && (
-          <div className="mt-4">
-            <AddressForm
-              initialData={editingAddress}
-              onSave={editingAddress ? (data) => handleUpdateAddress(editingAddress._id, data) : handleAddAddress}
-              onCancel={() => { setShowAddressForm(false); setEditingAddress(null); }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Shipping Options */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">{t('shippingOptions')}</h2>
-        <div className="space-y-3">
-          {/* ShippingCalculator handles everything including mock options */}
-          <ShippingCalculator
-            orderItems={cart?.items || []}
-            destination={selectedAddress}
-            selectedShipping={selectedShipping}
-            onShippingSelect={(shipping) => {
-              console.log('Shipping selected:', shipping);
-              setSelectedShipping(shipping);
-            }}
-            testMode={true}
-          />
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6">
-        <button
-          className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300"
-          onClick={() => navigate('/cart')}
-        >
-          {t('backToCart')}
-        </button>
-        <button
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-          onClick={handleProceedToPayment}
-          disabled={!selectedAddressId || !selectedShipping || orderLoading}
-        >
-          {orderLoading ? t('creatingOrder') : t('proceedToPayment')}
-        </button>
-      </div>
-    </div>
-  );
+  return <PageLayout slug="shipping">{/* page content here */}</PageLayout>;
 };
 
 export default Shipping;

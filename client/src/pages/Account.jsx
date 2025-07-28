@@ -1,7 +1,7 @@
 // client/src/pages/Account.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Layout from '../components/Layout';
+import PageLayout from '../components/PageLayout';
 import { useLang } from '../utils/lang';
 import { getProfile, updateProfile, getPreferences, updatePreferences } from '../api/users';
 
@@ -153,16 +153,16 @@ const Account = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <PageLayout slug="account">
         <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </Layout>
+      </PageLayout>
     );
   }
   if (error) {
     return (
-      <Layout>
+      <PageLayout slug="account">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <span className="text-6xl mb-4 block">❌</span>
@@ -176,12 +176,12 @@ const Account = () => {
             </Link>
           </div>
         </div>
-      </Layout>
+      </PageLayout>
     );
   }
 
   return (
-    <Layout>
+    <PageLayout slug="account">
       <div className="flex flex-col min-h-screen w-full overflow-hidden bg-gradient-to-br from-green-50 via-yellow-50 to-white">
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
           <section className="text-center max-w-4xl mx-auto mb-10">
@@ -522,7 +522,7 @@ const Account = () => {
           </div>
         </main>
       </div>
-    </Layout>
+    </PageLayout>
   );
 };
 

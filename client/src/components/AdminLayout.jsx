@@ -2,15 +2,21 @@ import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { logout } from "../utils/logout";
 import { useLang } from "../utils/lang";
+import { usePageAssets } from "../hooks/usePageAssets";
 
 const AdminLayout = () => {
   const { lang, setLang, t } = useLang();
+  const { data: adminAssets = [] } = usePageAssets('admin');
+  const bgAsset = adminAssets.find(a => a.slot === 'background');
+  const backgroundImage = bgAsset?.imageUrl;
 
   return (
     <div
       className="min-h-screen flex relative"
       style={{
-        backgroundImage: 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
+        backgroundImage: backgroundImage
+          ? `url(${backgroundImage})`
+          : 'linear-gradient(135deg, #FB9EBB, #F3F3AB, #A4D4DC, #F4CEB8)',
         backgroundAttachment: 'fixed',
         backgroundSize: 'cover',
         backgroundPosition: 'center',

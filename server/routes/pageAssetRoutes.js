@@ -40,6 +40,6 @@ router.post('/', protect, admin, upload.single('file'), (err, req, res, next) =>
   if (err) return res.status(400).json({ message: err.message });
   next();
 }, upsertAsset);
-router.delete('/:id', protect, admin, deleteAsset);
+router.delete('/:pageSlug/:slot', protect, admin, deleteAsset);
 
 module.exports = router; 

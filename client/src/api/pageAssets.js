@@ -12,8 +12,8 @@ export const upsertPageAsset = async (formData) => {
   return json;
 };
 
-export const deletePageAsset = async (id) => {
-  const res = await fetch(`/api/pages/${id}`, {
+export const deletePageAsset = async ({ pageSlug, slot }) => {
+  const res = await fetch(`/api/pages/${pageSlug}/${slot}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   });

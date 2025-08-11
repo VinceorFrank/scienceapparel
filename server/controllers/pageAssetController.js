@@ -79,14 +79,22 @@ exports.upsertAsset = async (req, res) => {
 
 exports.deleteAsset = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid asset id' });
+    const { pageSlug, slot } = req.params;
+    console.log('[DEBUG] deleteAsset called with:', { pageSlug, slot });
+    
+    if (!pageSlug || !slot) {
+      return res.status(400).json({ message: 'Missing pageSlug or slot' });
     }
-    const asset = await PageAsset.findByIdAndDelete(id);
-    if (!asset) return res.status(404).json({ message: 'Asset not found' });
+    
+    const asset = await PageAsset.findOneAndDelete({ pageSlug, slot });
+    if (!asset) {
+      return res.status(404).json({ message: 'Asset not found' });
+    }
+    
+    console.log('[DEBUG] Asset deleted:', asset);
     res.json({ message: 'Asset removed' });
   } catch (err) {
+    console.error('[DEBUG] Error in deleteAsset:', err.message);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 }; 

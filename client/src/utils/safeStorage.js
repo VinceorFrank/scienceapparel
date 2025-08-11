@@ -66,5 +66,14 @@ export const blockStorage = {
         safeLocalStorage.remove(key);
       }
     });
+  },
+
+  // Global background toggle storage
+  getUseGlobalBackground: (pageSlug) => {
+    return safeLocalStorage.get(`use_global_background_${pageSlug}`, false);
+  },
+
+  setUseGlobalBackground: (pageSlug, enabled) => {
+    return safeLocalStorage.set(`use_global_background_${pageSlug}`, enabled);
   }
 }; 

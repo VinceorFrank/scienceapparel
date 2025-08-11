@@ -15,10 +15,12 @@ const getSlotsForPage = (pageSlug) => {
     return ['hero', 'infoA', 'infoB', 'background', 'mini'];
   } else if (pageSlug === 'about') {
     return ['extra', 'hero', 'infoA', 'infoB', 'background'];
+  } else if (pageSlug === 'global') {
+    return ['sitewide-background'];
   }
   return [];
 };
-const pages = ['home', 'about', 'account', 'cart', 'shipping', 'admin'];
+const pages = ['home', 'about', 'global', 'account', 'cart', 'shipping', 'admin'];
 
 // Slot dimensions configuration
 const slotDimensions = {
@@ -94,34 +96,15 @@ const PagesAdmin = () => {
     secondaryImage: { enabled: true }
   });
 
-  // Site-wide background control
-  const [siteBackground, setSiteBackground] = useState('beige');
-  const [customBackgroundColor, setCustomBackgroundColor] = useState('#fafaf0');
+  // Note: Site-wide background control removed - backgrounds are now handled per-page in Layout.jsx
+  // This provides better control and prevents conflicts between pages
 
-  // Background options
-  const backgroundOptions = [
-    { value: 'beige', label: 'Beige Gradient (Default)', gradient: 'linear-gradient(135deg, #fefefe 0%, #fafaf0 25%, #fdfcf7 50%, #fefdfa 75%, #fffef8 100%)' },
-    { value: 'white', label: 'Pure White', gradient: 'white' },
-    { value: 'light-gray', label: 'Light Gray', gradient: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #f5f5f5 100%)' },
-    { value: 'blue', label: 'Light Blue', gradient: 'linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #f0f8ff 100%)' },
-    { value: 'green', label: 'Light Green', gradient: 'linear-gradient(135deg, #f0fff0 0%, #e6ffe6 50%, #f0fff0 100%)' },
-    { value: 'custom', label: 'Custom Color', gradient: 'custom' }
-  ];
-
-  // Apply background to body
-  useEffect(() => {
-    const body = document.body;
-    const selectedOption = backgroundOptions.find(option => option.value === siteBackground);
-    
-    if (selectedOption) {
-      if (selectedOption.value === 'custom') {
-        body.style.background = customBackgroundColor;
-      } else {
-        body.style.background = selectedOption.gradient;
-      }
-      body.style.backgroundAttachment = 'fixed';
-    }
-  }, [siteBackground, customBackgroundColor]);
+  // Note: Background control moved to Layout.jsx for proper page-specific backgrounds
+  // This prevents conflicts with the main layout system
+  // useEffect(() => {
+  //   // REMOVED: Body background override to prevent conflicts with Layout.jsx
+  //   // Backgrounds are now handled properly in Layout.jsx with page-specific priority
+  // }, [siteBackground, customBackgroundColor]);
 
   // Fetch both current page and global assets
   const { data: pageAssets = [], isLoading: isLoadingPage, error: errorPage } = useQuery({
@@ -159,7 +142,13 @@ const PagesAdmin = () => {
   });
   const remove = useMutation({
     mutationFn: deletePageAsset,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pageAssets', pageSlug] }),
+    onSuccess: (data, variables) => {
+      // Invalidate both current page and global assets
+      qc.invalidateQueries({ queryKey: ['pageAssets', pageSlug] });
+      if (variables.pageSlug === 'global' || variables.slot === 'sitewide-background') {
+        qc.invalidateQueries({ queryKey: ['pageAssets', 'global'] });
+      }
+    },
   });
 
   const handleFile = (slot, e) => {
@@ -258,55 +247,180 @@ const PagesAdmin = () => {
         ) : (
           /* Admin Controls Mode */
           <div className="space-y-8">
-            {/* 🎛️ BLOCK VISIBILITY CONTROLS */}
-            <div className="bg-gradient-to-r from-green-100 to-blue-100 border-4 border-green-400 rounded-xl p-6 mb-8 shadow-xl">
-              <h3 className="text-3xl font-bold text-green-800 mb-6 text-center">🎛️ BLOCK VISIBILITY CONTROLS</h3>
-              <div className={`grid md:grid-cols-2 lg:grid-cols-${Math.min(validBlocks.length, 5)} gap-6`}>
-                {validBlocks.map((block) => {
-                  const isEnabled = toggles[`${block}Enabled`] !== false; // Default to true if undefined
-                  const toggleFunction = toggleFunctions[`toggle${block.charAt(0).toUpperCase() + block.slice(1)}`];
-                  const label = config.labels[block] || block;
+            {/* 🌍 GLOBAL BACKGROUND MANAGEMENT */}
+            {pageSlug === 'global' && (
+              <div className="bg-gradient-to-r from-purple-100 to-indigo-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
+                <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">🌍 GLOBAL BACKGROUND MANAGEMENT</h3>
+                <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
+                  <h4 className="font-bold text-xl text-purple-700 mb-4 flex items-center">
+                    🌐 <span className="ml-2">Sitewide Background</span>
+                  </h4>
+                  <p className="text-purple-600 mb-6">
+                    This background is used as a fallback when no page-specific background is set. 
+                    It will appear on all pages that don't have their own background uploaded.
+                  </p>
                   
-                  return (
-                    <div key={block} className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
-                      <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
-                        <span className="ml-2">{label}</span>
-                      </h4>
-                      <button
-                        onClick={() => toggleFunction(!isEnabled)}
-                        className={`w-full px-4 py-3 rounded-lg transition-colors ${
-                          isEnabled 
-                            ? 'bg-red-500 hover:bg-red-600 text-white' 
-                            : 'bg-green-500 hover:bg-green-600 text-white'
-                        }`}
-                      >
-                        {isEnabled ? `Hide ${label.split(' ')[1] || label}` : `Show ${label.split(' ')[1] || label}`}
-                      </button>
+                  {/* Global Background Preview */}
+                  <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h5 className="font-semibold text-purple-700 mb-3">Current Global Background</h5>
+                    {globalAssets.find(a => a.slot === 'sitewide-background')?.imageUrl ? (
+                      <div>
+                        <img
+                          src={globalAssets.find(a => a.slot === 'sitewide-background').imageUrl}
+                          alt="Global background preview"
+                          className="w-full h-32 object-cover rounded border-2 border-purple-300 mb-3"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => remove.mutate({ pageSlug: 'global', slot: 'sitewide-background' })}
+                            className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+                            title="Delete global background"
+                          >
+                            Remove Global Background
+                          </button>
+                          <a
+                            href={globalAssets.find(a => a.slot === 'sitewide-background').imageUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                            title="View full-size image"
+                          >
+                            View Full Size
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 border-2 border-dashed border-purple-300 rounded-lg">
+                        <p className="text-purple-600 mb-2">No global background set</p>
+                        <p className="text-sm text-purple-500">Pages will use the default pastel gradient</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload Section */}
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-purple-700">
+                      Upload Global Background Image
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFile('sitewide-background', e)}
+                      className="w-full text-sm text-purple-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Recommended size: 1920×1080px (16:9 aspect ratio)
+                    </p>
+                  </div>
+                  
+                  {/* Background Priority Info */}
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h5 className="font-semibold text-blue-700 mb-3">Background Priority System</h5>
+                    <div className="text-sm text-blue-600 space-y-2">
+                      <p><strong>Priority Order:</strong></p>
+                      <ol className="list-decimal list-inside space-y-1 ml-4">
+                        <li><strong>Page-specific background</strong> - Uploaded for each page (e.g., /about background)</li>
+                        <li><strong>Global background</strong> - This sitewide background (if no page-specific exists)</li>
+                        <li><strong>Fallback gradient</strong> - Default pastel gradient (if no images exist)</li>
+                      </ol>
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
               </div>
-              
-              {/* Current Status */}
-              <div className="mt-6 bg-white p-4 rounded-lg border-2 border-green-300">
-                <h4 className="font-bold text-lg text-green-700 mb-2">📊 Current Block Status</h4>
-                <div className={`grid grid-cols-2 md:grid-cols-${Math.min(validBlocks.length, 5)} gap-4 text-sm`}>
+            )}
+
+            {/* 🎛️ BLOCK VISIBILITY CONTROLS */}
+            {pageSlug !== 'global' && (
+              <div className="bg-gradient-to-r from-green-100 to-blue-100 border-4 border-green-400 rounded-xl p-6 mb-8 shadow-xl">
+                <h3 className="text-3xl font-bold text-green-800 mb-6 text-center">🎛️ BLOCK VISIBILITY CONTROLS</h3>
+                <div className={`grid md:grid-cols-2 lg:grid-cols-${Math.min(validBlocks.length, 5)} gap-6`}>
                   {validBlocks.map((block) => {
                     const isEnabled = toggles[`${block}Enabled`] !== false; // Default to true if undefined
+                    const toggleFunction = toggleFunctions[`toggle${block.charAt(0).toUpperCase() + block.slice(1)}`];
                     const label = config.labels[block] || block;
                     
                     return (
-                      <div key={block} className={`px-3 py-2 rounded ${isEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {label.split(' ')[1] || label}: {isEnabled ? t('visible') : t('hidden')}
+                      <div key={block} className="bg-white p-6 rounded-lg border-2 border-green-300 shadow-lg">
+                        <h4 className="font-bold text-xl text-green-700 mb-4 flex items-center">
+                          <span className="ml-2">{label}</span>
+                        </h4>
+                        <button
+                          onClick={() => toggleFunction(!isEnabled)}
+                          className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                            isEnabled 
+                              ? 'bg-red-500 hover:bg-red-600 text-white' 
+                              : 'bg-green-500 hover:bg-green-600 text-white'
+                          }`}
+                        >
+                          {isEnabled ? `Hide ${label.split(' ')[1] || label}` : `Show ${label.split(' ')[1] || label}`}
+                        </button>
                       </div>
                     );
                   })}
                 </div>
+                
+                {/* Current Status */}
+                <div className="mt-6 bg-white p-4 rounded-lg border-2 border-green-300">
+                  <h4 className="font-bold text-lg text-green-700 mb-2">📊 Current Block Status</h4>
+                  <div className={`grid grid-cols-2 md:grid-cols-${Math.min(validBlocks.length, 5)} gap-4 text-sm`}>
+                    {validBlocks.map((block) => {
+                      const isEnabled = toggles[`${block}Enabled`] !== false; // Default to true if undefined
+                      const label = config.labels[block] || block;
+                      
+                      return (
+                        <div key={block} className={`px-3 py-2 rounded ${isEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {label.split(' ')[1] || label}: {isEnabled ? t('visible') : t('hidden')}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* 🌍 GLOBAL BACKGROUND TOGGLE */}
+            {pageSlug !== 'global' && (
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
+                <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">🌍 GLOBAL BACKGROUND SETTINGS</h3>
+                <div className="bg-white p-6 rounded-lg border-2 border-purple-300 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-xl text-purple-700 mb-2">Use Global Background</h4>
+                      <p className="text-purple-600 text-sm">
+                        When enabled, this page will use the global background instead of its own background.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleFunctions.toggleUseGlobalBackground(!toggles.useGlobalBackground)}
+                      className={`px-6 py-3 rounded-lg font-bold transition-colors ${
+                        toggles.useGlobalBackground 
+                          ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                          : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                      }`}
+                    >
+                      {toggles.useGlobalBackground ? '🌍 Enabled' : '📄 Use Page Background'}
+                    </button>
+                  </div>
+                  
+                  {/* Status indicator */}
+                  <div className="mt-4 p-3 rounded-lg bg-purple-50 border border-purple-200">
+                    <div className="flex items-center">
+                      <span className={`w-3 h-3 rounded-full mr-3 ${toggles.useGlobalBackground ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
+                      <span className="text-purple-700 font-medium">
+                        {toggles.useGlobalBackground 
+                          ? 'Using global background (overrides page background)' 
+                          : 'Using page-specific background (if available)'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 🎛️ BLOCK ORDERING CONTROLS */}
-            <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-400 rounded-xl p-6 mb-8 shadow-xl">
+            {pageSlug !== 'global' && (
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-400 rounded-xl p-6 mb-8 shadow-xl">
               <h3 className="text-3xl font-bold text-blue-800 mb-6 text-center">🔄 {t('blockOrdering')}</h3>
               <div className="bg-white p-6 rounded-lg border-2 border-blue-300 shadow-lg">
                 <h4 className="font-bold text-xl text-blue-700 mb-4 flex items-center">
@@ -375,9 +489,10 @@ const PagesAdmin = () => {
                 </div>
               </div>
             </div>
+            )}
 
             {/* 🎛️ BUTTON SETTINGS CONTROLS */}
-            {hasButtonSettings(pageSlug, 'hero') && toggles.heroEnabled !== false && (
+            {pageSlug !== 'global' && hasButtonSettings(pageSlug, 'hero') && toggles.heroEnabled !== false && (
               <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-4 border-purple-400 rounded-xl p-6 mb-8 shadow-xl">
                 <h3 className="text-3xl font-bold text-purple-800 mb-6 text-center">🎛️ HERO BUTTON SETTINGS</h3>
                 <div className="grid md:grid-cols-2 gap-8">
@@ -534,7 +649,7 @@ const PagesAdmin = () => {
             )}
 
             {/* 📝 ABOUT PAGE CONTENT MANAGEMENT */}
-            {pageSlug === 'about' && (
+            {pageSlug === 'about' && pageSlug !== 'global' && (
               <div className="bg-gradient-to-r from-teal-100 to-blue-100 border-4 border-teal-400 rounded-xl p-6 mb-8 shadow-xl">
                 <h3 className="text-3xl font-bold text-teal-800 mb-6 text-center">📝 ABOUT PAGE CONTENT MANAGEMENT</h3>
                 
@@ -658,52 +773,118 @@ const PagesAdmin = () => {
               </div>
             )}
 
-            {/* 🌍 SITE-WIDE BACKGROUND CONTROL */}
-            <div className="bg-gradient-to-r from-indigo-100 to-purple-100 border-4 border-indigo-400 rounded-xl p-6 mb-8 shadow-xl">
-              <h3 className="text-3xl font-bold text-indigo-800 mb-6 text-center">🌍 SITE-WIDE BACKGROUND CONTROL</h3>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
-                  <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
-                    🎨 <span className="ml-2">Background Style</span>
-                  </h4>
-                  <div className="space-y-3">
-                    {backgroundOptions.map((option) => (
-                      <label key={option.value} className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="siteBackground"
-                          value={option.value}
-                          checked={siteBackground === option.value}
-                          onChange={(e) => setSiteBackground(e.target.value)}
-                          className="mr-3 text-indigo-600"
-                        />
-                        <span className="text-indigo-700">{option.label}</span>
-                      </label>
-                    ))}
+            {/* 📋 BACKGROUND SYSTEM INFO */}
+            {pageSlug !== 'global' && (
+              <div className="bg-gradient-to-r from-indigo-100 to-purple-100 border-4 border-indigo-400 rounded-xl p-6 mb-8 shadow-xl">
+              <h3 className="text-3xl font-bold text-indigo-800 mb-6 text-center">📋 BACKGROUND SYSTEM INFO</h3>
+              <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
+                <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
+                  🎨 <span className="ml-2">Background Priority System</span>
+                </h4>
+                <div className="space-y-3 text-indigo-700">
+                  <p><strong>Priority Order:</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li><strong>Page-specific background</strong> - Uploaded for each page (e.g., /about background)</li>
+                    <li><strong>Global background</strong> - Site-wide background (if no page-specific exists)</li>
+                    <li><strong>Fallback gradient</strong> - Default pastel gradient (if no images exist)</li>
+                  </ol>
+                  <p className="mt-4 text-sm text-indigo-600">
+                    💡 <strong>Tip:</strong> Upload a background image for any page using the "Asset Upload" section below. 
+                    Page-specific backgrounds will override global backgrounds automatically.
+                  </p>
+                  
+                  {/* Current Background Preview */}
+                  <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <h5 className="font-semibold text-indigo-700 mb-3">Current Background Preview</h5>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-indigo-600 mb-2">
+                          <strong>Page-specific:</strong> {pageAssets.find(a => a.slot === 'background')?.imageUrl ? '✅ Uploaded' : '❌ Not set'}
+                        </p>
+                        {pageAssets.find(a => a.slot === 'background')?.imageUrl && (
+                          <img 
+                            src={pageAssets.find(a => a.slot === 'background').imageUrl} 
+                            alt="Page background preview"
+                            className="w-full h-24 object-cover rounded border-2 border-indigo-300"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm text-indigo-600 mb-2">
+                          <strong>Global:</strong> {globalAssets.find(a => a.slot === 'sitewide-background')?.imageUrl ? '✅ Uploaded' : '❌ Not set'}
+                        </p>
+                        {globalAssets.find(a => a.slot === 'sitewide-background')?.imageUrl ? (
+                          <div>
+                            <img 
+                              src={globalAssets.find(a => a.slot === 'sitewide-background').imageUrl} 
+                              alt="Global background preview"
+                              className="w-full h-24 object-cover rounded border-2 border-indigo-300 mb-3"
+                            />
+                            <div className="space-y-3">
+                              {/* Upload new global background */}
+                              <div>
+                                <label className="block text-sm font-medium text-indigo-700 mb-2">
+                                  Change Global Background
+                                </label>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleFile('sitewide-background', e)}
+                                  className="w-full text-sm text-indigo-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                />
+                                <p className="text-xs text-indigo-500 mt-1">
+                                  Recommended: 1920×1080px
+                                </p>
+                              </div>
+                              
+                              {/* Action buttons */}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => remove.mutate({ pageSlug: 'global', slot: 'sitewide-background' })}
+                                  className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+                                  title="Remove global background"
+                                >
+                                  Remove Global
+                                </button>
+                                <a
+                                  href={globalAssets.find(a => a.slot === 'sitewide-background').imageUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                                  title="View full-size image"
+                                >
+                                  View Full Size
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="border-2 border-dashed border-indigo-300 rounded-lg p-4 text-center">
+                            <p className="text-indigo-600 text-sm mb-3">No global background set</p>
+                            <div className="space-y-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFile('sitewide-background', e)}
+                                className="w-full text-sm text-indigo-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                              />
+                              <p className="text-xs text-indigo-500">
+                                Recommended: 1920×1080px
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {siteBackground === 'custom' && (
-                  <div className="bg-white p-6 rounded-lg border-2 border-indigo-300 shadow-lg">
-                    <h4 className="font-bold text-xl text-indigo-700 mb-4 flex items-center">
-                      🎨 <span className="ml-2">Custom Color</span>
-                    </h4>
-                    <input
-                      type="color"
-                      value={customBackgroundColor}
-                      onChange={(e) => setCustomBackgroundColor(e.target.value)}
-                      className="w-full h-12 border-2 border-indigo-300 rounded-lg cursor-pointer"
-                    />
-                    <p className="text-sm text-indigo-600 mt-2">
-                      Current color: {customBackgroundColor}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
+            )}
 
             {/* 📸 ASSET UPLOAD SECTION */}
-            <div className="bg-gradient-to-r from-green-100 to-blue-100 border-4 border-green-400 rounded-xl p-6 mb-8 shadow-xl">
+            {pageSlug !== 'global' && (
+              <div className="bg-gradient-to-r from-green-100 to-blue-100 border-4 border-green-400 rounded-xl p-6 mb-8 shadow-xl">
               <h3 className="text-3xl font-bold text-green-800 mb-6 text-center">📸 ASSET UPLOAD</h3>
               
               {/* Image Size Reference */}
@@ -752,22 +933,36 @@ const PagesAdmin = () => {
                             alt={`${slot} asset`}
                             className="w-full h-32 object-cover rounded-lg border-2 border-green-200"
                           />
-                          <div className="mt-2 flex gap-2">
-                            <button
-                              onClick={() => remove.mutate({ pageSlug: slot === 'sitewide-background' ? 'global' : pageSlug, slot })}
-                              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
-                            >
-                              {t('delete')}
-                            </button>
-                            <a
-                              href={asset.imageUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
-                            >
-                              {t('viewLivePage')}
-                            </a>
-                          </div>
+                                                     <div className="mt-2 flex gap-2">
+                             <button
+                               onClick={() => remove.mutate({ pageSlug: slot === 'sitewide-background' ? 'global' : pageSlug, slot })}
+                               className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+                               title="Delete this background image"
+                             >
+                               {t('delete')}
+                             </button>
+                             <a
+                               href={asset.imageUrl}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                               title="View full-size image"
+                             >
+                               {t('viewLivePage')}
+                             </a>
+                             {slot === 'background' && (
+                               <button
+                                 onClick={() => {
+                                   // Reset to fallback by deleting the asset
+                                   remove.mutate({ pageSlug, slot });
+                                 }}
+                                 className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition-colors"
+                                 title="Reset to fallback background"
+                               >
+                                 Reset to Fallback
+                               </button>
+                             )}
+                           </div>
                         </div>
                       ) : (
                         <div className="mb-4 border-2 border-dashed border-green-300 rounded-lg p-4 text-center">
@@ -796,6 +991,7 @@ const PagesAdmin = () => {
                 })}
               </div>
             </div>
+            )}
           </div>
         )}
       </div>

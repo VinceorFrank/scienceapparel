@@ -13,6 +13,8 @@ export const useBlockToggle = (pageSlug = 'home') => {
     validBlocks.forEach(block => {
       states[`${block}Enabled`] = blockStorage.getEnabled(pageSlug, block);
     });
+    // Add global background toggle
+    states.useGlobalBackground = blockStorage.getUseGlobalBackground(pageSlug);
     return states;
   });
 
@@ -30,6 +32,8 @@ export const useBlockToggle = (pageSlug = 'home') => {
     validBlocks.forEach(block => {
       newStates[`${block}Enabled`] = blockStorage.getEnabled(pageSlug, block);
     });
+    // Add global background toggle
+    newStates.useGlobalBackground = blockStorage.getUseGlobalBackground(pageSlug);
     setBlockStates(newStates);
 
     const storedOrder = blockStorage.getOrder(pageSlug);
@@ -79,8 +83,19 @@ export const useBlockToggle = (pageSlug = 'home') => {
     validBlocks.forEach(block => {
       toggles[`${block}Enabled`] = blockStates[`${block}Enabled`];
     });
+    // Add global background toggle
+    toggles.useGlobalBackground = blockStates.useGlobalBackground;
     return toggles;
   }, [validBlocks, blockStates]);
+
+  // Toggle global background function
+  const toggleUseGlobalBackground = useCallback((enabled) => {
+    setBlockStates(prev => ({
+      ...prev,
+      useGlobalBackground: enabled
+    }));
+    blockStorage.setUseGlobalBackground(pageSlug, enabled);
+  }, [pageSlug]);
 
   return {
     // Block states
@@ -89,6 +104,7 @@ export const useBlockToggle = (pageSlug = 'home') => {
     
     // Toggle functions
     ...toggleFunctions,
+    toggleUseGlobalBackground,
     updateBlockOrder,
     
     // Utility functions

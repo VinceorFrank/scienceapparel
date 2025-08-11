@@ -121,6 +121,13 @@ const AdminDashboard = () => {
       color: 'bg-pink-500 hover:bg-pink-600'
     },
     {
+      title: 'Page Management',
+      description: 'Customize page layouts and backgrounds',
+      icon: DocumentTextIcon,
+      link: '/admin/pages',
+      color: 'bg-indigo-500 hover:bg-indigo-600'
+    },
+    {
       title: 'Settings',
       description: 'Configure system settings',
       icon: CogIcon,

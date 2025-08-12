@@ -98,6 +98,8 @@
   "socialResponsibility": "Responsabilité sociale",
   "trackMyOrder": "Suivre ma commande",
   "disconnect": "Se déconnecter",
+  "loggedOut": "Vous avez été déconnecté.",
+  "logoutFailed": "Échec de la déconnexion. Veuillez réessayer.",
   "salesOverLast7Days": "Ventes des 7 derniers jours",
   "dailySales": "Ventes quotidiennes",
   "quickActionsDesc": "Accès rapide aux tâches d'administration courantes",

@@ -1,59 +1,65 @@
+// client/src/api/config.js
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Prefer explicit VITE_API_URL (e.g. http://localhost:5000/api or https://monsieurmadame.ca/api)
+// Fallback: same-origin + '/api' so the site works behind a reverse proxy in prod.
+const resolveBaseURL = () => {
+  const env = import.meta?.env?.VITE_API_URL;
+  if (env && typeof env === 'string') {
+    return env.replace(/\/+$/, ''); // strip trailing slash
+  }
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api`;
+  }
+  return '/api';
+};
 
-// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: resolveBaseURL(),
+  withCredentials: false, // flip to true if you move to httpOnly cookies later
+  timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
-  timeout: 10000, // 10 second timeout
 });
 
-// Add request interceptor to add token
-api.interceptors.request.use(
-  (config) => {
+// Attach Authorization header if token exists
+api.interceptors.request.use((config) => {
+  try {
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  } catch (_) {}
+  return config;
+});
 
-// Add response interceptor to handle errors
+// Normalize errors and optionally handle 401/403
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle unauthorized access (401) or forbidden access (403)
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Clear all auth data
-      localStorage.clear();
-      
-      // Get current path
-      const currentPath = window.location.pathname;
-      
-      // Determine redirect based on current path
-      if (currentPath.startsWith('/admin')) {
-        window.location.href = '/admin/login';
-      } else {
-        window.location.href = '/login';
+  (res) => res,
+  (err) => {
+    const status = err?.response?.status;
+    const message =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      'Request failed';
+
+    // Attach a stable message for UI
+    err.normalizedMessage = message;
+
+    // Optional: redirect on unauthorized (kept minimal and safe)
+    if (status === 401 || status === 403) {
+      try {
+        // If you store tokens in localStorage, clear on hard auth failures
+        // localStorage.removeItem('token');
+      } catch (_) {}
+      // Avoid redirect loops on the login page
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        // window.location.href = '/login';
+        // For now we just reject; uncomment the redirect when desired.
       }
     }
-    
-    // Handle network errors
-    if (!error.response) {
-      console.error('Network error:', error.message);
-      // Could show a toast notification here
-    }
-    
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 
-export { api };
 export default api; 

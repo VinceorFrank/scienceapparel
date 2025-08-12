@@ -1,5 +1,4 @@
 import api from './config';
-import { API_URL } from './config';
 
 // Fetch all orders for admin (with pagination, search, etc.)
 export const getAdminOrders = async (params = {}) => {
@@ -13,11 +12,12 @@ export const getAdminOrders = async (params = {}) => {
 
 // Fetch all orders for the current user
 export async function getMyOrders(token) {
-  const res = await fetch(`${API_URL}/orders/myorders`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`Request failed with status code ${res.status}`);
-  return res.json();
+  try {
+    const res = await api.get('/orders/myorders');
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || 'Failed to fetch orders');
+  }
 }
 
 // Get single order by ID

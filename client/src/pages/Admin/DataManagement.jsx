@@ -9,7 +9,7 @@ import {
 } from '../../utils/exportUtils';
 import ImportModal from '../../components/ImportModal';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api/config';
+import api from '../../api/config';
 import { useLang } from '../../utils/lang';
 
 const DataManagement = () => {

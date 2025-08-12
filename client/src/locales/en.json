@@ -98,6 +98,8 @@
   "socialResponsibility": "Social Responsibility",
   "trackMyOrder": "Track My Order",
   "disconnect": "Disconnect",
+  "loggedOut": "You have been logged out.",
+  "logoutFailed": "Failed to log out. Please try again.",
   "salesOverLast7Days": "Sales Over Last 7 Days",
   "dailySales": "Daily Sales",
   "quickActionsDesc": "Quick access to common admin tasks",

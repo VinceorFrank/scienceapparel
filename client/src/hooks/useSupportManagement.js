@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { api } from '../api/config';
+import api from '../api/config';
 
 export const useSupportManagement = () => {
   const queryClient = useQueryClient();

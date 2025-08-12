@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PastelCard from "../components/PastelCard";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { addCartItem, getCart } from "../api/cart";
 import { fetchProducts } from "../api/products";
 import { toast } from 'react-toastify';
@@ -54,25 +54,28 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cartQuantities, setCartQuantities] = useState({});
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") || "";
 
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchProducts();
+        const data = await fetchProducts(q ? { q } : {});
         setProducts(data.items || data.data || []);
       } catch (err) {
-        setError(t('errorLoadingProducts'));
+        setError(t('errorLoadingProducts') || 'Failed to load products');
       } finally {
         setLoading(false);
       }
     };
+
     loadProducts();
     updateCartQuantities();
     window.addEventListener('cartUpdated', updateCartQuantities);
     return () => window.removeEventListener('cartUpdated', updateCartQuantities);
-  }, []);
+  }, [q]);
 
   const updateCartQuantities = async () => {
     const token = localStorage.getItem("token");
@@ -166,6 +169,19 @@ const Products = () => {
             <Link to="#" className="text-blue-500 underline hover:text-blue-700 font-medium">{t('accessories')}</Link>
           </div>
         </div>
+        
+        {/* Search Results Header */}
+        {q && (
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-blue-600">
+              {t('searchResultsFor') || 'Search Results for'} "{q}"
+            </h2>
+            <p className="text-gray-600 mt-2">
+              {products.length} {t('productsFound') || 'products found'}
+            </p>
+          </div>
+        )}
+        
         {error && (
           <div className="text-center mb-4 text-red-600 font-semibold">{error}</div>
         )}

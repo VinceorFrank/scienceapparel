@@ -1,6 +1,6 @@
-import api from './config';
+// client/src/api/products.js
 
-const API_BASE = "http://localhost:5000/api";
+import api from './config';
 
 // Get all products (with optional filters, pagination)
 export const getProducts = async (params = {}) => {
@@ -56,9 +56,10 @@ export const deleteProduct = async (id) => {
   }
 };
 
-export async function fetchProducts() {
+// Unified fetch for listing (now supports params, e.g., { q })
+export async function fetchProducts(params = {}) {
   try {
-    const res = await api.get('/products');
+    const res = await api.get('/products', { params });
     return res.data;
   } catch (err) {
     console.error('Failed to fetch products:', err.response ? err.response.data : err.message);

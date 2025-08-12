@@ -4,6 +4,8 @@ import { FiSearch, FiUser, FiShoppingCart, FiMenu, FiX } from 'react-icons/fi';
 import { useLang } from '../utils/lang';
 import { useCartContext } from './CartContext';
 import AuthBadge from './AuthBadge';
+import { toast } from 'react-toastify';
+import { logout } from '../utils/auth';
 
 const Header = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -55,12 +57,16 @@ const Header = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      // Redirect to first matching product - implement search logic later
+    const q = searchQuery.trim();
+    if (!q) {
       navigate('/products');
       setSearchExpanded(false);
       setSearchQuery('');
+      return;
     }
+    navigate(`/products?q=${encodeURIComponent(q)}`);
+    setSearchExpanded(false);
+    setSearchQuery('');
   };
 
   const handleUserAction = (action) => {
@@ -72,8 +78,17 @@ const Header = () => {
     } else if (action === 'profile') {
       navigate('/account');
     } else if (action === 'logout') {
-      // Implement logout logic later
-      console.log('Logout clicked');
+      handleLogout();
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success(t('loggedOut') || 'You have been logged out.');
+      navigate('/');
+    } catch (err) {
+      toast.error(t('logoutFailed') || 'Failed to log out. Please try again.');
     }
   };
 

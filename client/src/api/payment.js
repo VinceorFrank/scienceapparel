@@ -1,4 +1,4 @@
-import { api } from './config';
+import api from './config';
 
 // Create payment intent
 export const createPaymentIntent = async (amount, currency = 'cad') => {

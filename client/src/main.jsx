@@ -7,6 +7,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
+// Expose globally so utils/auth.js can clear cache without import coupling
+window.__queryClient = queryClient;
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <LangProvider>
     <QueryClientProvider client={queryClient}>

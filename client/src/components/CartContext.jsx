@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// client/src/components/CartContext.jsx
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import api from '../api/config';
 
 const CartContext = createContext();
-
 export const useCartContext = () => useContext(CartContext);
 
 const getGuestCart = () => {
@@ -15,51 +16,46 @@ const getGuestCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
 
-  // Helper to update cart count from storage or backend
+  const computeGuestCount = () => {
+    const items = getGuestCart();
+    return items.reduce((sum, it) => sum + (it.quantity || 1), 0);
+  };
+
   const updateCartCount = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Fetch from backend
-      try {
-        const res = await fetch('/api/cart', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        const count = data?.data?.cart?.itemCount || 0;
-        console.log('[CartContext] Backend cart count:', count);
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const { data } = await api.get('/cart');
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const count = items.reduce((sum, it) => sum + (it.quantity || 0), 0);
         setCartCount(count);
-      } catch {
-        console.log('[CartContext] Backend cart error, setting count to 0');
-        setCartCount(0);
+      } else {
+        setCartCount(computeGuestCount());
       }
-    } else {
-      // Guest cart
-      const guestItems = getGuestCart();
-      const count = guestItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
-      console.log('[CartContext] Guest cart items:', guestItems);
-      console.log('[CartContext] Guest cart count:', count);
-      setCartCount(count);
+    } catch (err) {
+      console.error('[CartContext] Failed to refresh cart count:', err.normalizedMessage || err.message);
+      // If server fetch fails (e.g., network), fallback to guest cart so UI doesn't look broken
+      setCartCount(computeGuestCount());
     }
   };
 
   useEffect(() => {
+    // Initial load
     updateCartCount();
-    // Listen for cart updates
+
+    // Listen for cross-component/cart updates
     const handler = () => updateCartCount();
     window.addEventListener('cartUpdated', handler);
     window.addEventListener('storage', handler);
-    
-    // Force update on focus (in case of cache issues)
-    const focusHandler = () => {
-      console.log('[CartContext] Window focused, updating cart count');
-      updateCartCount();
-    };
-    window.addEventListener('focus', focusHandler);
-    
+
+    // Refresh when user focuses the tab (helps after login/logout)
+    const onFocus = () => updateCartCount();
+    window.addEventListener('focus', onFocus);
+
     return () => {
       window.removeEventListener('cartUpdated', handler);
       window.removeEventListener('storage', handler);
-      window.removeEventListener('focus', focusHandler);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 

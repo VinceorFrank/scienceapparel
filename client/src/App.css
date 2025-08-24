@@ -57,3 +57,56 @@
 .pulse:last-frame {
   transform: scale(1.5);
 }
+
+/* Custom logout toast styles - make them super prominent */
+.logout-success-toast {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  font-size: 16px !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3) !important;
+  border: 2px solid #10b981 !important;
+  min-width: 400px !important;
+  max-width: 500px !important;
+}
+
+.logout-error-toast {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  color: white !important;
+  font-size: 16px !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3) !important;
+  border: 2px solid #ef4444 !important;
+  min-width: 400px !important;
+  max-width: 500px !important;
+}
+
+/* Make sure toast is above everything */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.Toastify__toast {
+  margin: 8px !important;
+  min-height: 64px !important;
+}
+
+/* Debug: Make all toasts very visible */
+.Toastify__toast--info,
+.Toastify__toast--success,
+.Toastify__toast--warning,
+.Toastify__toast--error {
+  background: #333 !important;
+  color: white !important;
+  font-size: 16px !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  min-width: 300px !important;
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBlockConfig, validateBlockOrder } from '../config/blockConfig';
 import { blockStorage } from '../utils/safeStorage';
 
@@ -43,17 +43,20 @@ export const useBlockToggle = (pageSlug = 'home') => {
     }
   }, [pageSlug, validBlocks]);
 
-  // Create toggle functions with useCallback
-  const toggleFunctions = {};
-  validBlocks.forEach(block => {
-    toggleFunctions[`toggle${block.charAt(0).toUpperCase() + block.slice(1)}`] = useCallback((enabled) => {
-      setBlockStates(prev => ({
-        ...prev,
-        [`${block}Enabled`]: enabled
-      }));
-      blockStorage.setEnabled(pageSlug, block, enabled);
-    }, [pageSlug, block]);
-  });
+  // Create toggle functions with useCallback - fixed to avoid hooks in loops
+  const toggleFunctions = useMemo(() => {
+    const functions = {};
+    validBlocks.forEach(block => {
+      functions[`toggle${block.charAt(0).toUpperCase() + block.slice(1)}`] = (enabled) => {
+        setBlockStates(prev => ({
+          ...prev,
+          [`${block}Enabled`]: enabled
+        }));
+        blockStorage.setEnabled(pageSlug, block, enabled);
+      };
+    });
+    return functions;
+  }, [pageSlug, validBlocks]);
 
   // Update block order with validation
   const updateBlockOrder = useCallback((order) => {

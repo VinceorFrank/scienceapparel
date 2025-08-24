@@ -84,11 +84,71 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
+      console.log('[Header] Starting logout process...');
+      
+      // Test toast first to see if it's working
+      console.log('[Header] Testing toast...');
+      toast.info('Testing toast - if you see this, toast is working!', {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      
+      // Wait a moment for the test toast to be visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       await logout();
-      toast.success(t('loggedOut') || 'You have been logged out.');
+      console.log('[Header] Logout successful, showing success toast...');
+      
+      // Show a much more prominent logout success message
+      toast.success(
+        <div className="text-center">
+          <div className="text-lg font-bold text-green-800 mb-2">
+            ✅ {t('loggedOut') || 'Successfully Logged Out!'}
+          </div>
+          <div className="text-sm text-green-700">
+            You have been safely logged out of your account
+          </div>
+        </div>,
+        {
+          position: "top-center",
+          autoClose: 5000, // Show for 5 seconds
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          className: "logout-success-toast",
+          toastId: "logout-success", // Prevent duplicate toasts
+        }
+      );
+      
+      console.log('[Header] Success toast shown, waiting before navigation...');
+      
+      // Wait for the success toast to be visible before navigating
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('[Header] Navigating to home...');
       navigate('/');
     } catch (err) {
-      toast.error(t('logoutFailed') || 'Failed to log out. Please try again.');
+      console.error('[Header] Logout error:', err);
+      toast.error(
+        <div className="text-center">
+          <div className="text-lg font-bold text-red-800 mb-2">
+            ❌ {t('logoutFailed') || 'Logout Failed!'}
+          </div>
+          <div className="text-sm text-red-700">
+            Please try logging out again
+          </div>
+        </div>,
+        {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          className: "logout-error-toast",
+        }
+      );
     }
   };
 
@@ -127,6 +187,21 @@ const Header = () => {
               aria-label="Search"
             >
               <FiSearch size={26} />
+            </button>
+            
+            {/* Test Toast Button - Remove this after testing */}
+            <button
+              onClick={() => {
+                console.log('[Header] Test toast button clicked');
+                toast.info('🎉 Test toast is working!', {
+                  position: "top-center",
+                  autoClose: 3000,
+                });
+              }}
+              className="text-green-400 hover:text-green-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 rounded bg-green-100 px-2 py-1 text-xs"
+              aria-label="Test Toast"
+            >
+              Test Toast
             </button>
             {!isLoggedIn && (
               <button

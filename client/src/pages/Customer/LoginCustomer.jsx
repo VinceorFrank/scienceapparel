@@ -31,36 +31,37 @@ const LoginCustomer = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">{t('customerLogin')}</h2>
-        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        <input
-          type="email"
-          placeholder={t('email')}
-          className="w-full border p-2 mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder={t('password')}
-          className="w-full border p-2 mb-6"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          {t('login')}
-        </button>
-      </form>
-      <div className="mt-4 text-center text-sm text-gray-600">
-        {t('noAccountYet')} {' '}
-        <a href="/signup" className="text-blue-600 hover:underline">{t('createAccount')}</a>
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <form onSubmit={handleSubmit}>
+          <h2 className="text-2xl font-bold mb-6 text-center">{t('customerLogin')}</h2>
+          {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+          <input
+            type="email"
+            placeholder={t('email')}
+            className="w-full border p-2 mb-4"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder={t('password')}
+            className="w-full border p-2 mb-6"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          >
+            {t('login')}
+          </button>
+        </form>
+        
+        {/* Create account link below the form */}
+        <div className="mt-6 text-center text-sm text-gray-600">
+          {t('noAccountYet')} {' '}
+          <a href="/signup" className="text-blue-600 hover:underline">{t('createAccount')}</a>
+        </div>
       </div>
     </div>
   );

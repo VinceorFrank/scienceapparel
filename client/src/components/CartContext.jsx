@@ -40,8 +40,11 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Initial load
-    updateCartCount();
+    // Initial load - wrap async call properly
+    const initCart = async () => {
+      await updateCartCount();
+    };
+    initCart();
 
     // Listen for cross-component/cart updates
     const handler = () => updateCartCount();
